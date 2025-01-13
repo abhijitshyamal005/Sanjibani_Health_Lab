@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { FaBox, FaChevronDown, FaLocationDot, FaMicroscope } from "react-icons/fa6";
-import { FaShoppingCart } from "react-icons/fa"; 
+import { FaShoppingCart } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io";
 import { Link } from 'react-router-dom';
 
@@ -33,8 +33,8 @@ const Navbar = () => {
             <FaLocationDot className="h-4 w-5 text-orange-400" />
             <span className="text-xs font-semibold">MY LOCATION</span>
           </div>
-          <div 
-            className="flex items-center space-x-1 cursor-pointer" 
+          <div
+            className="flex items-center space-x-1 cursor-pointer"
             onClick={togglePopup}
             ref={dropdownRef}
           >
@@ -76,10 +76,16 @@ const Navbar = () => {
           <span className="text-sm font-medium">Checkups</span>
         </Link>
 
-        <button className="flex items-center space-x-2 border border-green-400 text-green-600 hover:border-green-600 hover:text-green-600 hover:shadow-lg hover:shadow-green-200 transition-all duration-300 rounded-md py-2 px-6">
+        <a
+          href="https://wa.me/916296390743"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2 border border-green-400 text-green-600 hover:border-green-600 hover:text-green-600 hover:shadow-lg hover:shadow-green-200 transition-all duration-300 rounded-md py-2 px-6"
+        >
           <IoLogoWhatsapp className="h-5 w-5 text-green-600" />
           <span className="text-sm font-medium">Support</span>
-        </button>
+        </a>
+
 
         <button className="flex items-center space-x-2 bg-gradient-to-r from-green-800 to-teal-600 text-white rounded-md hover:opacity-90 transition duration-300 py-2 px-6">
           <FaShoppingCart className="h-4 w-4" />
