@@ -31,6 +31,8 @@ import Kidney from './pages/Kidney.jsx';
 import Fiver from './pages/Fiver.jsx';
 
 import SexHealth from './pages/SexHealth.jsx';
+import Signup from './pages/Signup.jsx';
+import Login from './pages/Login.jsx';
 
 
 const router = {
@@ -57,6 +59,8 @@ const router = {
   Kidney: '/kidney',
   Fiver: '/fiver',
   SexHealth: '/sex-health',
+  Login:'/login',
+  Signup:'/signup'
   
   // Route for Full Body Checkup Details
   
@@ -92,6 +96,8 @@ function App() {
           <Route path={router.Kidney} element={<Kidney/>} />
           <Route path={router.Fiver} element={<Fiver/>} />
           <Route path={router.SexHealth} element={<SexHealth/>} />
+          <Route path={router.Login} element={<Login/>} />
+          <Route path={router.Signup} element={<Signup/>} />
           {/* Add more routes as needed */}
 
         </Route>

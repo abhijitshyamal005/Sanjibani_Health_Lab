@@ -3,11 +3,17 @@ import User from '../models/userModel.js';
 
 export const register = async (req, res) => {
     try {
-        const { mobile } = req.body;
+        const { mobile } = req.body.data;
+        const checkUser=await User.find({ mobile: mobile})
+        if(checkUser)
+        {
+            return res.status(409).json({ message: 'User already exists' });
+        }
         const user = await User.create({ mobile });
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.status(201).json({ user, token });
     } catch (error) {
+        console.log(error)
         res.status(400).json({ error: error.message });
     }
 };
