@@ -38,7 +38,7 @@ const Navbar = () => {
       {/* Top Navbar */}
       <nav className="sticky top-0 flex items-center justify-between p-4 border-b-2 border-gray-100 bg-white z-50 w-full">
         {/* Left side: Logo and Location */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 gap-32 md:gap-3">
           {/* Logo */}
           <Link to="/" className="flex flex-col items-start space-y-[-4px]">
             <div className="text-orange-400 text-2xl md:text-3xl font-bold">SanjiBani</div>
