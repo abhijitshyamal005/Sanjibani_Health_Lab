@@ -12,14 +12,16 @@ export default function Signup() {
     const [successMessage, setSuccessMessage] = useState('');
     const [verificationCode, setVerificationCode] = useState('');
     const [isVerified, setIsVerified] = useState(false);
-    const [showPopup, setShowPopup] = useState(false); 
+    const [showPopup, setShowPopup] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         setSuccessMessage('');
+
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/register', {
+            await axios.post('http://localhost:5000/api/auth/register', {
                 name,
                 email,
                 mobileNumber,
@@ -27,7 +29,6 @@ export default function Signup() {
             });
 
             setSuccessMessage('A verification code has been sent to your email.');
-            localStorage.setItem('userId', response.data.userId);
         } catch (error) {
             setError('Signup failed: ' + (error.response?.data?.message || error.message));
         } finally {
@@ -40,20 +41,20 @@ export default function Signup() {
         setIsLoading(true);
         setError('');
         setSuccessMessage('');
+
         try {
-            const userId = localStorage.getItem('userId');
             const response = await axios.post('http://localhost:5000/api/auth/verifyemail', {
-                userId,
+                email,
                 verificationCode
             });
 
-            if (response.data.success) {
+            if (response.data.token) {
                 setIsVerified(true);
-                setShowPopup(true); 
+                setShowPopup(true);
                 setSuccessMessage('Your email has been verified successfully! You can now login.');
-                localStorage.setItem('token', response.data.token); // Store JWT token
+                localStorage.setItem('token', response.data.token);
             } else {
-                setError('Invalid verification code');
+                setError('Invalid verification code.');
             }
         } catch (error) {
             setError('Verification failed: ' + (error.response?.data?.message || error.message));
@@ -64,7 +65,7 @@ export default function Signup() {
 
     const handleClosePopup = () => {
         setShowPopup(false);
-        window.location.href = "/login"; 
+        window.location.href = "/login";
     };
 
     return (
