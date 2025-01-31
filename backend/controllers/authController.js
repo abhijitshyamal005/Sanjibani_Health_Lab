@@ -76,14 +76,13 @@ export const verifyemail = async (req, res) => {
 
         verificationCodes.delete(email);
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-        res.status(201).json({ message: "Email verified successfully!", token });
+        res.status(201).json({ message: "Email verified successfully!", token ,userId: user._id });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 export default router;
-
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -104,7 +103,19 @@ export const login = async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-        res.status(200).json({ message: "Login successful", token });
+
+        // Send back the user object along with token and userId
+        res.status(200).json({
+            message: "Login successful",
+            token,
+            userId: user._id,
+            user: { 
+                _id: user._id,
+                email: user.email,
+                name: user.name, 
+                // Add any other fields you need
+            },
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -1,19 +1,22 @@
 import express from "express";
-import User from "../models/User.js";
-import { protect } from "../middleware/authMiddleware.js";
+import User from "../models/userModel.js";
 
 const router = express.Router();
 
-// Fetch User Details
-router.get("/:id", protect, async (req, res) => {
+// Fetch User Details by userId
+router.get("/:userId", async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select("-password");
+        const userId = req.params.userId;
+        const user = await User.findById(userId); 
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        res.json(user);
+
+        res.status(200).json(user); 
     } catch (error) {
-        res.status(500).json({ message: "Server Error" });
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Error fetching user details", error: error.message });
     }
 });
 

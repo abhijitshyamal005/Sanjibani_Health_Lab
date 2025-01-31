@@ -2,24 +2,27 @@ import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/users/";
 
-// Get user details from localStorage or fetch from database if not found
 export const getUserDetails = async () => {
     try {
-        const user = localStorage.getItem("user");
-        if (user) {
-            return JSON.parse(user);
+        // Attempt to retrieve user details from localStorage
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            // If user data exists in localStorage, parse and return it
+            return JSON.parse(storedUser);
         } else {
-            // If user is not found in localStorage, fetch from DB
+            // If no user in localStorage, fetch from the database using userId
             const userId = localStorage.getItem("userId");
             if (userId) {
+                // If userId is found in localStorage, attempt to fetch user data from DB
                 const userFromDB = await fetchUserFromDB(userId);
                 if (userFromDB) {
-                    setUserDetails(userFromDB);  
+                    // Store the fetched user data in localStorage for future use
+                    setUserDetails(userFromDB);
                     return userFromDB;
                 }
             }
         }
-        return null;
+        return null; // Return null if no user data found
     } catch (error) {
         console.error("Error parsing or fetching user data:", error);
         return null;
@@ -29,18 +32,25 @@ export const getUserDetails = async () => {
 // Save user details to localStorage
 export const setUserDetails = (userData) => {
     try {
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("userId", userData._id);  
+        if (userData && userData._id) {
+            // Save the user data and userId to localStorage
+            localStorage.setItem("user", JSON.stringify(userData));
+            localStorage.setItem("userId", userData._id);
+        } else {
+            console.error("Invalid user data:", userData);
+        }
     } catch (error) {
         console.error("Error saving user data to local storage:", error);
     }
 };
 
+
 // Remove user details from localStorage
 export const removeUserDetails = () => {
     try {
+        // Remove user data and userId from localStorage
         localStorage.removeItem("user");
-        localStorage.removeItem("userId");  
+        localStorage.removeItem("userId");
     } catch (error) {
         console.error("Error removing user data from local storage:", error);
     }
@@ -49,9 +59,11 @@ export const removeUserDetails = () => {
 // Fetch user data from the database using userId
 export const fetchUserFromDB = async (userId) => {
     try {
+        // Send a GET request to the API to fetch the user data based on userId
         const response = await axios.get(`${API_URL}${userId}`);
-        return response.data;
+        return response.data; // Return the fetched data
     } catch (error) {
+        // Log error and return null if the fetch fails
         console.error("Error fetching user data from database:", error.response?.data || error.message);
         return null;
     }

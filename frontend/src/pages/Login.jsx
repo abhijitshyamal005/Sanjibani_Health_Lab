@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,6 +12,8 @@ export default function LoginPopup() {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // eslint-disable-next-line no-unused-vars
+    const [ userId, setUserId] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,28 +35,36 @@ export default function LoginPopup() {
         setError('');
         setSuccessMessage('');
         setIsLoading(true);
-
+    
         try {
             const response = await axios.post('http://localhost:5000/api/auth/login', {
                 email,
                 password,
             });
-
-            // Save the token and user data
-            localStorage.setItem('token', response.data.token);
+    
+            // Check if response contains the user data and _id
             const userData = response.data.user;
-            setUserDetails(userData); 
-            setSuccessMessage('Login successful! Redirecting to home page...');
+            if (userData && userData._id) {
+                // Save the token and user data
+                localStorage.setItem('token', response.data.token);
+                setUserId(userData._id);
+                localStorage.setItem('userId', userData._id);
+                setUserDetails(userData); 
+                setSuccessMessage('Login successful! Redirecting to home page...');
+            } else {
+                setError('User data is missing or invalid');
+            }
+    
             setIsLoading(false);
             setTimeout(() => {
                 navigate('/');
             }, 2000);
-        // eslint-disable-next-line no-unused-vars
         } catch (error) {
             setIsLoading(false);
             setError('Invalid credentials or user not found');
         }
     };
+    
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

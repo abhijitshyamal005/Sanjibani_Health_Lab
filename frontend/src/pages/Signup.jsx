@@ -14,6 +14,7 @@ export default function Signup() {
     const [verificationCode, setVerificationCode] = useState('');
     const [isVerified, setIsVerified] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
+    const [userId , setUserId ] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -53,11 +54,13 @@ export default function Signup() {
                 setIsVerified(true);
                 setShowPopup(true);
                 setSuccessMessage('Your email has been verified successfully! You can now login.');
+                setUserId(response.data.userId);
 
               
                 const user = { name, email, mobileNumber };
                 setUserDetails(user); 
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userId', userId);
             } else {
                 setError('Invalid verification code.');
             }
