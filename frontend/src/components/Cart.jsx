@@ -1,8 +1,21 @@
 import { X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { getUserDetails } from "../utils/userUtils";
 
 // eslint-disable-next-line react/prop-types
 export default function Cart({ onClose }) {
+    const navigate = useNavigate();
+
+    const handleNavigation = async () => {
+        const user = await getUserDetails();  
+        onClose();
+        if (user) {
+            navigate("/");  
+        } else {
+            navigate("/signup"); 
+        }
+    };
+
     return (
         <div
             className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl border-l border-gray-300 transform translate-x-0 transition-transform duration-300 ease-in-out z-50 flex flex-col`}
@@ -19,13 +32,12 @@ export default function Cart({ onClose }) {
             </div>
 
             <div className="p-4 border-t bg-white">
-                <Link 
-                    to={'/labtest'}
-                    onClick={onClose}
+                <button
+                    onClick={handleNavigation}
                     className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-400 text-white py-3 rounded-lg text-lg font-medium transition-all"
                 >
                     Book Your LabTests & Checkups
-                </Link>
+                </button>
             </div>
         </div>
     );

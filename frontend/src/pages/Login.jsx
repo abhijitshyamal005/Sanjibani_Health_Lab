@@ -1,23 +1,37 @@
 /* eslint-disable react/no-unescaped-entities */
-
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; 
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Img from '../assets/Login/loginImg.webp';
+import { getUserDetails, setUserDetails } from '../utils/userUtils'; 
 
 export default function LoginPopup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false); 
-    const navigate = useNavigate(); 
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const user = await getUserDetails(); 
+            if (user) {
+                setSuccessMessage('You are already logged in!');
+                setTimeout(() => {
+                    navigate('/'); 
+                }, 2000);
+            }
+        };
+
+        fetchUserData();
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
-        setIsLoading(true); 
+        setIsLoading(true);
 
         try {
             const response = await axios.post('http://localhost:5000/api/auth/login', {
@@ -25,19 +39,18 @@ export default function LoginPopup() {
                 password,
             });
 
-            // Save the token or handle the response
+            // Save the token and user data
             localStorage.setItem('token', response.data.token);
+            const userData = response.data.user;
+            setUserDetails(userData); 
             setSuccessMessage('Login successful! Redirecting to home page...');
-            setIsLoading(false); 
-
-            // Redirect after success
+            setIsLoading(false);
             setTimeout(() => {
-                navigate('/'); 
+                navigate('/');
             }, 2000);
-
         // eslint-disable-next-line no-unused-vars
         } catch (error) {
-            setIsLoading(false); 
+            setIsLoading(false);
             setError('Invalid credentials or user not found');
         }
     };

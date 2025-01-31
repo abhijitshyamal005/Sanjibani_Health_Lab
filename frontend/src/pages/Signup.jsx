@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import Img from "../assets/Login/loginImg.webp";
+import { setUserDetails } from "../utils/userUtils";
 
 export default function Signup() {
     const [name, setName] = useState('');
@@ -52,6 +53,10 @@ export default function Signup() {
                 setIsVerified(true);
                 setShowPopup(true);
                 setSuccessMessage('Your email has been verified successfully! You can now login.');
+
+              
+                const user = { name, email, mobileNumber };
+                setUserDetails(user); 
                 localStorage.setItem('token', response.data.token);
             } else {
                 setError('Invalid verification code.');
@@ -65,7 +70,7 @@ export default function Signup() {
 
     const handleClosePopup = () => {
         setShowPopup(false);
-        window.location.href = "/login";
+        window.location.href = "/";
     };
 
     return (
