@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CardComponent from './CardComponent.jsx';
-import { useNavigate } from 'react-router-dom'; // for navigation
+import { useNavigate } from 'react-router-dom'; 
+import { toast } from "react-toastify";
 
 const cards = [
   { title: "Full Body Checkup - Essential", price: "₹1599", oldPrice: "₹6063", discount: "74% Off", parameters: "91", reportTime: "within 7 hours", link: "/full-body-es" },
@@ -13,8 +14,8 @@ const cards = [
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const totalPages = Math.ceil(cards.length / 3); // Total number of pages (each page shows 3 cards)
-  const navigate = useNavigate(); // for navigation
+  const totalPages = Math.ceil(cards.length / 3); 
+  const navigate = useNavigate(); 
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -29,13 +30,13 @@ const CarouselComponent = () => {
   };
 
   const handleViewDetails = (link) => {
-    // Redirect to a specific details page using the link
+  
     navigate(link);
   };
 
   const handleAddToCart = (title) => {
-    // You can implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
+    
+    toast.success(`Added "${title}" to cart!`);
   };
 
   return (
