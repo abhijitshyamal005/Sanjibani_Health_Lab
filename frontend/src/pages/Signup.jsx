@@ -14,7 +14,6 @@ export default function Signup() {
     const [verificationCode, setVerificationCode] = useState('');
     const [isVerified, setIsVerified] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
-    const [userId , setUserId ] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,12 +23,8 @@ export default function Signup() {
 
         try {
             await axios.post('http://localhost:5000/api/auth/register', {
-                name,
-                email,
-                mobileNumber,
-                password
+                name, email, mobileNumber, password
             });
-
             setSuccessMessage('A verification code has been sent to your email.');
         } catch (error) {
             setError('Signup failed: ' + (error.response?.data?.message || error.message));
@@ -45,24 +40,16 @@ export default function Signup() {
         setSuccessMessage('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/verifyemail', {
-                email,
-                verificationCode
-            });
-
+            const response = await axios.post('http://localhost:5000/api/auth/verifyemail', { email, verificationCode });
             if (response.data.token) {
                 setIsVerified(true);
                 setShowPopup(true);
                 setSuccessMessage('Your email has been verified successfully! You can now login.');
-                setUserId(response.data.userId);
-
-              
-                const user = { name, email, mobileNumber };
-                setUserDetails(user); 
+                
+                const user = { name, email, mobileNumber, _id: response.data.userId };
+                setUserDetails(user);
                 localStorage.setItem('token', response.data.token);
-                localStorage.setItem('userId', userId);
-            } else {
-                setError('Invalid verification code.');
+                localStorage.setItem('userId', response.data.userId);
             }
         } catch (error) {
             setError('Verification failed: ' + (error.response?.data?.message || error.message));
@@ -70,6 +57,7 @@ export default function Signup() {
             setIsLoading(false);
         }
     };
+
 
     const handleClosePopup = () => {
         setShowPopup(false);

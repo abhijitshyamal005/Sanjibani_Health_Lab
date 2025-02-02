@@ -21,7 +21,6 @@ const transporter = nodemailer.createTransport({
 // Store verification codes temporarily
 const verificationCodes = new Map();
 
-// Send Verification Code
 const sendVerificationEmail = async (email, code) => {
     const mailOptions = {
         from: process.env.EMAIL,
@@ -33,14 +32,11 @@ const sendVerificationEmail = async (email, code) => {
 };
 
 // Register User (Step 1)
-export const  register = async (req, res) => {
+export const register = async (req, res) => {
     const { name, email, mobileNumber, password } = req.body;
-
     try {
         const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ message: "User already exists. Please login." });
-        }
+        if (existingUser) return res.status(409).json({ message: "User already exists. Please login." });
         
         const verificationCode = crypto.randomInt(100000, 999999).toString();
         verificationCodes.set(email, { name, email, mobileNumber, password, verificationCode });
@@ -57,11 +53,8 @@ export const verifyemail = async (req, res) => {
     const { email, verificationCode } = req.body;
     const storedData = verificationCodes.get(email);
 
-    if (!storedData) {
-        return res.status(400).json({ message: "Verification code expired or invalid." });
-    }
-    if (storedData.verificationCode !== verificationCode) {
-        return res.status(400).json({ message: "Invalid verification code." });
+    if (!storedData || storedData.verificationCode !== verificationCode) {
+        return res.status(400).json({ message: "Invalid or expired verification code." });
     }
 
     try {
@@ -73,10 +66,9 @@ export const verifyemail = async (req, res) => {
             password: hashedPassword,
             isVerified: true,
         });
-
         verificationCodes.delete(email);
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-        res.status(201).json({ message: "Email verified successfully!", token ,userId: user._id });
+        res.status(201).json({ message: "Email verified successfully!", token, userId: user._id });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
