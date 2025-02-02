@@ -1,21 +1,28 @@
+/* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import CardComponent from './CardComponent.jsx';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
+import { addToCart } from "../utils/cartUtils";
+import { v4 as uuidv4 } from 'uuid';
+import { useCart } from '../context/CartContext';
+
 
 const cards = [
-  { title: "Full Body Checkup - Essential", price: "₹1599", oldPrice: "₹6063", discount: "74% Off", parameters: "91", reportTime: "within 7 hours", link: "/full-body-es" },
-  { title: "Full Body Checkup - Comprehensive", price: "₹3599", oldPrice: "₹13663", discount: "74% Off", parameters: "107", reportTime: "by Today", link: "/full-body-cos" },
-  { title: "Full Body Checkup - Advanced", price: "₹5999", oldPrice: "₹16000", discount: "70% Off", parameters: "120", reportTime: "by Tomorrow", link: "/full-body-es" },
-  { title: "Full Body Checkup - Premium", price: "₹7999", oldPrice: "₹18000", discount: "65% Off", parameters: "150", reportTime: "within 24 hours", link: "/full-body-cos" },
-  { title: "Full Body Checkup - Platinum", price: "₹10999", oldPrice: "₹22000", discount: "50% Off", parameters: "200", reportTime: "within 2 days", link: "/full-body-es" },
-  { title: "Full Body Checkup - Executive", price: "₹12999", oldPrice: "₹24000", discount: "45% Off", parameters: "250", reportTime: "within 1 day", link: "/full-body-cos" },
+  { id: uuidv4(), title: "Full Body Checkup - Essential", price: "₹1599", oldPrice: "₹6063", discount: "74% Off", parameters: "91", reportTime: "within 7 hours", link: "/full-body-es" },
+  { id: uuidv4(), title: "Full Body Checkup - Comprehensive", price: "₹3599", oldPrice: "₹13663", discount: "74% Off", parameters: "107", reportTime: "by Today", link: "/full-body-cos" },
+  { id: uuidv4(), title: "Full Body Checkup - Advanced", price: "₹5999", oldPrice: "₹16000", discount: "70% Off", parameters: "120", reportTime: "by Tomorrow", link: "/full-body-es" },
+  { id: uuidv4(), title: "Full Body Checkup - Premium", price: "₹7999", oldPrice: "₹18000", discount: "65% Off", parameters: "150", reportTime: "within 24 hours", link: "/full-body-cos" },
+  { id: uuidv4(), title: "Full Body Checkup - Platinum", price: "₹10999", oldPrice: "₹22000", discount: "50% Off", parameters: "200", reportTime: "within 2 days", link: "/full-body-es" },
+  { id: uuidv4(), title: "Full Body Checkup - Executive", price: "₹12999", oldPrice: "₹24000", discount: "45% Off", parameters: "250", reportTime: "within 1 day", link: "/full-body-cos" },
 ];
+
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const totalPages = Math.ceil(cards.length / 3); 
-  const navigate = useNavigate(); 
+  const totalPages = Math.ceil(cards.length / 3);
+  const navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -30,14 +37,32 @@ const CarouselComponent = () => {
   };
 
   const handleViewDetails = (link) => {
-  
     navigate(link);
   };
 
-  const handleAddToCart = (title) => {
-    
-    toast.success(`Added "${title}" to cart!`);
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first!");
+      return;
+    }
+  
+    if (!product || !product.id) {
+      toast.error("Invalid product or product ID.");
+      return;
+    }
+  
+    try {
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    }
   };
+  
+  
+
 
   return (
     <div className="relative flex flex-col mt-12 mb-10 px-4 sm:px-0">
@@ -68,8 +93,8 @@ const CarouselComponent = () => {
                   discount={card.discount}
                   parameters={card.parameters}
                   reportTime={card.reportTime}
-                  onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                  onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                  onViewDetails={() => handleViewDetails(card.link)}
+                  onAddToCart={() => handleAddToCart(card)}  // Pass the whole card object
                 />
               </div>
             ))}

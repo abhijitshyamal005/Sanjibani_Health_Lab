@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import ScrollToTop from './components/ScrollTop.jsx';
+import { CartProvider } from './context/CartContext';
 
 import './App.css';
 import CarouselComponent from './components/CarouselComponent';
@@ -72,6 +73,7 @@ function App() {
     <>
       {/* ScrollToTop should be outside the Routes component */}
       <ScrollToTop />
+      <CartProvider>
       <Routes>
         <Route path='/' element={<AppLayout />}>
           <Route index element={<Home />} />
@@ -106,6 +108,7 @@ function App() {
         <Route path="*" element={<WithoutHeaderFotter />} />
         <Route path={router.notFound} element={<NotFound />} />
       </Routes>
+      </CartProvider>
     </>
   );
 }

@@ -4,7 +4,6 @@ import cors from 'cors';
 import connectDB from './config/db.js'; 
 import authRoutes from './routes/authRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
-import orderRoutes from './routes/orderRoutes.js';
 import userRoutes from './routes/userRoutes.js'; 
 
 dotenv.config();
@@ -18,7 +17,7 @@ connectDB();
 // Middleware to handle CORS and JSON parsing
 app.use(cors({
   origin: ["http://localhost:5173"], 
-  methods: ["POST", "GET"],
+  methods: ["POST", "GET","PUT", "DELETE"],
   credentials: true,
 }));
 
@@ -33,7 +32,6 @@ app.get("/", (req, res) => {
 // Define routes
 app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/order", orderRoutes);
 app.use("/api/users", userRoutes); 
 
 // Start server
