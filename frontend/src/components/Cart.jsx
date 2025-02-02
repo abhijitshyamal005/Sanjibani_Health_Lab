@@ -7,6 +7,7 @@ import { getUserDetails } from "../utils/userUtils";
 import { fetchCart, removeItemFromCart } from "../utils/cartUtils";
 import { toast } from "react-toastify";
 import { useCart } from "../context/CartContext";
+import { MdDeleteSweep } from "react-icons/md";
 
 export default function Cart({ onClose }) {
 
@@ -129,7 +130,7 @@ export default function Cart({ onClose }) {
     return (
         <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl border-l border-gray-300 transform translate-x-0 transition-transform duration-300 ease-in-out z-50 flex flex-col">
             <div className="flex justify-between items-center p-4 border-b bg-gray-100">
-                <h2 className="text-xl font-semibold text-gray-800">Shopping Cart</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Your Cart..</h2>
                 <button onClick={onClose}>
                     <X className="h-6 w-6 text-green-600 hover:text-red-500 transition-all" />
                 </button>
@@ -139,7 +140,7 @@ export default function Cart({ onClose }) {
                 {loading ? (
                     <p className="text-gray-500">Loading cart...</p>
                 ) : cartItems.length === 0 ? (
-                    <p className="text-gray-500 text-lg">Your cart is currently empty.</p>
+                    <p className="text-gray-500 text-lg">Your cart is currently empty. Book a service now!</p>
                 ) : (
                     <div className="space-y-4">
                         {cartItems.map((item, index) => (
@@ -157,9 +158,9 @@ export default function Cart({ onClose }) {
                                     </span>
                                     <button 
                                         onClick={() => handleRemoveItem(item.productName, item.productPrice)}
-                                        className="text-red-500 hover:text-red-700 text-sm"
+                                        className="text-red-500 hover:text-red-700 text-2xl"
                                     >
-                                        Remove
+                                        <MdDeleteSweep />
                                     </button>
                                 </div>
                             </div>

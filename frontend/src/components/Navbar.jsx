@@ -4,12 +4,15 @@ import { FaShoppingCart } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io";
 import { Link } from 'react-router-dom';
 import Cart from './Cart';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Kolkata');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { cart } = useCart();
+  const itemCount = cart?.items?.length || 0;
 
   const togglePopup = () => {
     setPopupVisible((prev) => !prev);
@@ -96,11 +99,15 @@ const Navbar = () => {
 
           {/* Cart Button */}
           <button
-            className="flex items-center space-x-2 bg-gradient-to-r from-green-800 to-teal-600 text-white rounded-md hover:opacity-90 transition duration-300 py-2 px-6"
+            className="flex items-center space-x-2 bg-gradient-to-r from-green-800 to-teal-600 text-white rounded-md hover:opacity-90 transition duration-300 py-2 px-6 relative"
             onClick={() => setIsCartOpen(true)}
           >
             <FaShoppingCart className="h-4 w-4" />
             <span className="text-sm font-medium">Cart</span>
+            {/* Cart Badge */}
+            <div className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {itemCount}
+            </div>
           </button>
         </div>
       </nav>
@@ -151,10 +158,14 @@ const Navbar = () => {
           </a>
 
           <button
-            className="flex flex-col items-center text-teal-600"
+            className="flex flex-col items-center text-teal-600 relative"
             onClick={() => setIsCartOpen(true)}
           >
             <FaShoppingCart className="h-5 w-5" />
+            {/* Cart Badge for Mobile */}
+            <div className="absolute -top-1 -right-2 bg-orange-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs">
+              {itemCount}
+            </div>
             <span className="text-xs font-medium hidden">Cart</span>
           </button>
         </div>
@@ -163,7 +174,7 @@ const Navbar = () => {
       {/* Cart Component */}
       {isCartOpen && <Cart onClose={() => setIsCartOpen(false)} />}
 
-     
+
     </>
   );
 };

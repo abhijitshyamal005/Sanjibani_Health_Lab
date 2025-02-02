@@ -44,6 +44,7 @@ const CarouselComponent = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error("Please login first!");
+      navigate('/login');
       return;
     }
   
