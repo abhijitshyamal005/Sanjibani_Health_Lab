@@ -18,20 +18,22 @@ export default function Cart({ onClose }) {
     const [error, setError] = useState(null);
     const { cart, setCart, cartVersion } = useCart();
     const { refreshCart } = useCart();
+
+
     useEffect(() => {
         const loadCartData = async () => {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    setLoading(false);
+                    setCartItems([]);
+                    setTotalPrice(0);
                     return;
                 }
 
                 const cartData = await fetchCart(token);
-                setCart(cartData); // Update context cart
                 if (cartData?.items) {
                     setCartItems(cartData.items);
-                    setTotalPrice(cartData.totalPrice || calculateTotal(cartData.items));
+                    setTotalPrice(cartData.totalPrice || 0);
                 }
             } catch (err) {
                 setError('Failed to load cart');
@@ -41,33 +43,7 @@ export default function Cart({ onClose }) {
         };
 
         loadCartData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cartVersion]);
-
-    useEffect(() => {
-        const loadCartData = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    setLoading(false);
-                    return;
-                }
-
-                const cartData = await fetchCart(token);
-                if (cartData && cartData.items) {
-                    setCartItems(cartData.items);
-                    setTotalPrice(cartData.totalPrice || calculateTotal(cartData.items));
-                }
-            } catch (err) {
-                setError('Failed to load cart');
-                toast.error('Failed to load cart items');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadCartData();
-    }, []);
 
     const calculateTotal = (items) => {
         return items.reduce((sum, item) => sum + (item.productPrice * item.quantity), 0);
@@ -81,26 +57,13 @@ export default function Cart({ onClose }) {
                 navigate('/login');
                 return;
             }
-    
-            // Convert to number and validate
-            const numericPrice = Number(productPrice);
-            if (isNaN(numericPrice)) {
-                toast.error('Invalid product price format');
-                return;
-            }
-    
-            await removeItemFromCart(productName, numericPrice, token);
-            
-            // Update state using refreshCart from context
-            refreshCart();
-            
+
+            await removeItemFromCart(productName, productPrice, token);
+            await refreshCart();
             toast.success('Item removed successfully');
         } catch (err) {
             console.error('Remove Item Error:', err);
-            const errorMessage = err.message.includes('Failed to fetch') 
-                ? 'Network error - check your connection'
-                : err.message;
-            toast.error(`Removal failed: ${errorMessage}`);
+            toast.error(`Removal failed: ${err.message}`);
         }
     };
 
@@ -108,16 +71,14 @@ export default function Cart({ onClose }) {
         try {
             const user = await getUserDetails();
             onClose();
-            
-            if (cartItems.length > 0) {
-                navigate(user ? "/checkout" : "/login");
-            } else {
-                navigate(user ? "/" : "/signup");
-            }
+            navigate(cartItems.length > 0 ? "/checkout" : user ? "/" : "/login");
         } catch (err) {
             toast.error('Navigation failed');
         }
     };
+
+
+
 
     if (error) {
         return (
@@ -128,13 +89,12 @@ export default function Cart({ onClose }) {
     }
 
     return (
-        <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl border-l border-gray-300 transform translate-x-0 transition-transform duration-300 ease-in-out z-50 flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b bg-gray-100">
-                <h2 className="text-xl font-semibold text-gray-800">Your Cart..</h2>
-                <button onClick={onClose}>
-                    <X className="h-6 w-6 text-green-600 hover:text-red-500 transition-all" />
-                </button>
-            </div>
+        <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl border-l border-gray-300 z-50 flex flex-col">            <div className="flex justify-between items-center p-4 border-b bg-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800">Your Cart..</h2>
+            <button onClick={onClose}>
+                <X className="h-6 w-6 text-green-600 hover:text-red-500 transition-all" />
+            </button>
+        </div>
 
             <div className="p-6 flex-1 overflow-y-auto">
                 {loading ? (
@@ -156,7 +116,7 @@ export default function Cart({ onClose }) {
                                     <span className="font-medium">
                                         ₹{(item.productPrice * item.quantity).toLocaleString()}
                                     </span>
-                                    <button 
+                                    <button
                                         onClick={() => handleRemoveItem(item.productName, item.productPrice)}
                                         className="text-red-500 hover:text-red-700 text-2xl"
                                     >
@@ -178,7 +138,7 @@ export default function Cart({ onClose }) {
                         </span>
                     </div>
                 )}
-                
+
                 <button
                     onClick={handleNavigation}
                     className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-400 text-white py-3 rounded-lg text-lg font-medium transition-all"

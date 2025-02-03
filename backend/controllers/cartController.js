@@ -1,38 +1,71 @@
 import Cart from '../models/cartModel.js'
 
 // Add to Cart Controller
+
 export const addToCart = async (req, res) => {
   try {
-    const { productName, productPrice, quantity } = req.body
-    const userId = req.userId
+    const { productName, productPrice, quantity } = req.body;
+    const userId = req.userId;
 
-    // Find user's cart or create new
-    let cart = await Cart.findOne({ user: userId })
-    if (!cart) {
-      cart = new Cart({ user: userId, items: [], totalPrice: 0 })
+    // Validate input with precise checks
+    if (!productName || typeof productName !== 'string') {
+      return res.status(400).json({ message: 'Invalid product name' });
+    }
+    if (typeof productPrice !== 'number' || productPrice <= 0 || !Number.isFinite(productPrice)) {
+      return res.status(400).json({ message: 'Invalid product price' });
+    }
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({ message: 'Invalid quantity' });
     }
 
-    // Check if item exists
-    const existingItem = cart.items.find(
-      item =>
-        item.productName === productName && item.productPrice === productPrice
-    )
+    // Find or create cart with transaction-safe approach
+    let cart = await Cart.findOne({ user: userId }).session(req.session) || 
+               new Cart({ user: userId, items: [], totalPrice: 0 });
 
-    if (existingItem) {
-      existingItem.quantity += quantity
+    // Check for existing item using precise comparison
+    const existingItemIndex = cart.items.findIndex(item => 
+      item.productName === productName && 
+      item.productPrice === productPrice
+    );
+
+    // Update or add item
+    if (existingItemIndex > -1) {
+      cart.items[existingItemIndex].quantity += quantity;
     } else {
-      cart.items.push({ productName, productPrice, quantity })
+      cart.items.push({
+        productName,
+        productPrice: Number(productPrice.toFixed(2)),
+        quantity
+      });
     }
 
-    // Update total price
-    cart.totalPrice += productPrice * quantity
+    // Recalculate total from scratch to ensure accuracy
+    cart.totalPrice = cart.items.reduce((total, item) => 
+      total + (item.productPrice * item.quantity), 0
+    );
 
-    await cart.save()
-    res.status(200).json(cart)
+    // Apply financial-grade rounding
+    cart.totalPrice = Number(cart.totalPrice.toFixed(2));
+
+    // Validate final state
+    if (cart.totalPrice < 0) {
+      throw new Error('Negative total price calculated');
+    }
+
+    await cart.save();
+    return res.status(200).json({
+      ...cart.toObject(),
+      totalPrice: cart.totalPrice // Explicitly send formatted value
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message })
+    console.error('Cart Error:', error);
+    return res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-}
+};
 
 // Get Cart Controller
 export const getCart = async (req, res) => {

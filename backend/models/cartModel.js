@@ -27,6 +27,8 @@ const cartSchema = new mongoose.Schema(
     totalPrice: {
       type: Number,
       default: 0,
+      min: [0, 'Total price cannot be negative'],
+      set: v => Math.round(v * 100) / 100 
     },
   },
   {

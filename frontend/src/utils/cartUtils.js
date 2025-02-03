@@ -1,4 +1,10 @@
 export const addToCart = async (productId, quantity, productData, token) => {
+    const rawPrice = productData.price.replace(/[^0-9.]/g, '');
+    if (!rawPrice || isNaN(rawPrice)) {
+        throw new Error('Invalid price format');
+    }
+    const parsedPrice = parseFloat(rawPrice);
+
     const response = await fetch('http://localhost:5000/api/cart/add', {
         method: 'POST',
         headers: {
@@ -7,7 +13,7 @@ export const addToCart = async (productId, quantity, productData, token) => {
         },
         body: JSON.stringify({
             productName: productData.title,
-            productPrice: Number(productData.price.replace(/[^0-9.-]+/g, "")),
+            productPrice: parsedPrice,
             quantity: quantity
         })
     });
@@ -17,7 +23,7 @@ export const addToCart = async (productId, quantity, productData, token) => {
         throw new Error(data.message || 'Failed to add to cart');
     }
     
-    return data; // Return the updated cart data
+    return data; 
 };
 
 export const fetchCart = async (token) => {
