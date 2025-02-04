@@ -20,8 +20,7 @@ import WithoutHeaderFotter from './components/WithoutHeaderFotter.jsx';
 import NotFound from './pages/Not-found.jsx';
 import LabTest from './pages/LabTest.jsx'
 import Checkup from './pages/Checkup.jsx';
-import FullBodyEs from './components/ViewDetails/FullBodyCheckupEs.jsx';
-import FullBodyCos from './components/ViewDetails/FullBodyCheckupCos.jsx';
+import ViewDetails from '../src/components/ViewDetails/ViewDetails.jsx';
 import FullBody  from './pages/FullBody.jsx';
 import Heart from './pages/Heart.jsx';
 
@@ -52,8 +51,8 @@ const router = {
   notFound: '/not-found',
   LabTest: '/labtest',
   Checkup: '/checkup',
-  FullBodyEs: '/full-body-es',
-  FullBodyCos: '/full-body-cos',
+ 
+  ViewDetails: '/view-details',
   FullBody: '/full-body',
   Heart: '/heart',
   Liver: '/liver',
@@ -90,8 +89,7 @@ function App() {
           <Route path={router.Footer} element={<Footer />} />
           <Route path={router.LabTest} element={<LabTest />} /> 
           <Route path={router.Checkup} element={<Checkup />} /> 
-          <Route path={router.FullBodyEs} element={<FullBodyEs />} />
-          <Route path={router.FullBodyCos} element={<FullBodyCos />} />
+          <Route path={router.ViewDetails} element={<ViewDetails />} />         
           <Route path={router.FullBody} element={<FullBody/>} />
           <Route path={router.Heart} element={<Heart/>} />
           <Route path={router.Liver} element={<Liver/>} />
