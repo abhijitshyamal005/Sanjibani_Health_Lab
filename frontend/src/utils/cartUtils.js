@@ -33,8 +33,9 @@ export const fetchCart = async (token) => {
     return await response.json();
 };
 
-export const removeItemFromCart = async (productName, productPrice, token) => {
+export const removeItemFromCart = async (productName, productPrice, token, _id) => {
     try {
+       
         const numericPrice = Number(productPrice);
         if (isNaN(numericPrice)) {
             throw new Error('Invalid price format');
@@ -48,7 +49,8 @@ export const removeItemFromCart = async (productName, productPrice, token) => {
             },
             body: JSON.stringify({ 
                 productName,
-                productPrice: numericPrice
+                productPrice: numericPrice,
+                id:_id
             })
         });
 

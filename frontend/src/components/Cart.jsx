@@ -29,7 +29,6 @@ export default function Cart({ onClose }) {
                     setTotalPrice(0);
                     return;
                 }
-
                 const cartData = await fetchCart(token);
                 if (cartData?.items) {
                     setCartItems(cartData.items);
@@ -49,7 +48,7 @@ export default function Cart({ onClose }) {
         return items.reduce((sum, item) => sum + (item.productPrice * item.quantity), 0);
     };
 
-    const handleRemoveItem = async (productName, productPrice) => {
+    const handleRemoveItem = async (productName, productPrice,_id) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -58,7 +57,7 @@ export default function Cart({ onClose }) {
                 return;
             }
 
-            await removeItemFromCart(productName, productPrice, token);
+            await removeItemFromCart(productName, productPrice, token,_id);
             await refreshCart();
             toast.success('Item removed successfully');
         } catch (err) {
@@ -117,7 +116,7 @@ export default function Cart({ onClose }) {
                                         ₹{(item.productPrice * item.quantity).toLocaleString()}
                                     </span>
                                     <button
-                                        onClick={() => handleRemoveItem(item.productName, item.productPrice)}
+                                        onClick={() => handleRemoveItem(item.productName, item.productPrice,item._id)}
                                         className="text-red-500 hover:text-red-700 text-2xl"
                                     >
                                         <MdDeleteSweep />
@@ -138,7 +137,6 @@ export default function Cart({ onClose }) {
                         </span>
                     </div>
                 )}
-
                 <button
                     onClick={handleNavigation}
                     className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-400 text-white py-3 rounded-lg text-lg font-medium transition-all"

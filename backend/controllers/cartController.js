@@ -4,68 +4,73 @@ import Cart from '../models/cartModel.js'
 
 export const addToCart = async (req, res) => {
   try {
-    const { productName, productPrice, quantity } = req.body;
-    const userId = req.userId;
+    const { productName, productPrice, quantity } = req.body
+    const userId = req.userId
 
     // Validate input with precise checks
     if (!productName || typeof productName !== 'string') {
-      return res.status(400).json({ message: 'Invalid product name' });
+      return res.status(400).json({ message: 'Invalid product name' })
     }
-    if (typeof productPrice !== 'number' || productPrice <= 0 || !Number.isFinite(productPrice)) {
-      return res.status(400).json({ message: 'Invalid product price' });
+    if (
+      typeof productPrice !== 'number' ||
+      productPrice <= 0 ||
+      !Number.isFinite(productPrice)
+    ) {
+      return res.status(400).json({ message: 'Invalid product price' })
     }
     if (!Number.isInteger(quantity) || quantity < 1) {
-      return res.status(400).json({ message: 'Invalid quantity' });
+      return res.status(400).json({ message: 'Invalid quantity' })
     }
 
     // Find or create cart with transaction-safe approach
-    let cart = await Cart.findOne({ user: userId }).session(req.session) || 
-               new Cart({ user: userId, items: [], totalPrice: 0 });
+    let cart =
+      (await Cart.findOne({ user: userId }).session(req.session)) ||
+      new Cart({ user: userId, items: [], totalPrice: 0 })
 
     // Check for existing item using precise comparison
-    const existingItemIndex = cart.items.findIndex(item => 
-      item.productName === productName && 
-      item.productPrice === productPrice
-    );
+    const existingItemIndex = cart.items.findIndex(
+      item =>
+        item.productName === productName && item.productPrice === productPrice
+    )
 
     // Update or add item
     if (existingItemIndex > -1) {
-      cart.items[existingItemIndex].quantity += quantity;
+      cart.items[existingItemIndex].quantity += quantity
     } else {
       cart.items.push({
         productName,
         productPrice: Number(productPrice.toFixed(2)),
         quantity
-      });
+      })
     }
 
     // Recalculate total from scratch to ensure accuracy
-    cart.totalPrice = cart.items.reduce((total, item) => 
-      total + (item.productPrice * item.quantity), 0
-    );
+    cart.totalPrice = cart.items.reduce(
+      (total, item) => total + item.productPrice * item.quantity,
+      0
+    )
 
     // Apply financial-grade rounding
-    cart.totalPrice = Number(cart.totalPrice.toFixed(2));
+    cart.totalPrice = Number(cart.totalPrice.toFixed(2))
 
     // Validate final state
     if (cart.totalPrice < 0) {
-      throw new Error('Negative total price calculated');
+      throw new Error('Negative total price calculated')
     }
 
-    await cart.save();
+    await cart.save()
     return res.status(200).json({
       ...cart.toObject(),
-      totalPrice: cart.totalPrice // Explicitly send formatted value
-    });
-
+      totalPrice: cart.totalPrice
+    })
   } catch (error) {
-    console.error('Cart Error:', error);
-    return res.status(500).json({ 
+    console.error('Cart Error:', error)
+    return res.status(500).json({
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    })
   }
-};
+}
 
 // Get Cart Controller
 export const getCart = async (req, res) => {
@@ -80,7 +85,8 @@ export const getCart = async (req, res) => {
 // Remove from Cart Controller
 export const removeFromCart = async (req, res) => {
   try {
-    const { productName, productPrice } = req.body
+    let { productName, productPrice, id } = req.body
+    productPrice = Number(productPrice)
     const userId = req.userId
 
     // Validate input
@@ -95,35 +101,22 @@ export const removeFromCart = async (req, res) => {
     }
 
     const cart = await Cart.findOne({ user: userId })
+
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' })
     }
+    const newItem = cart.items.filter(item => item._id != id)
 
-    const itemIndex = cart.items.findIndex(
-      item =>
-        item.productName === productName && item.productPrice === productPrice
-    )
-
-    if (itemIndex === -1) {
-      return res.status(404).json({
-        message: 'Item not found in cart',
-        details: { productName, productPrice }
-      })
-    }
-
-    // Update total price
+    cart.items = newItem
     cart.totalPrice = cart.items.reduce(
       (total, item) => total + item.productPrice * item.quantity,
       0
     )
 
-    cart.items.splice(itemIndex, 1)
     await cart.save()
 
     res.status(200).json({
-      message: 'Item removed successfully',
-      items: cart.items,
-      totalPrice: cart.totalPrice
+      message: 'Item removed successfully'
     })
   } catch (error) {
     console.error('Server Error:', error)
