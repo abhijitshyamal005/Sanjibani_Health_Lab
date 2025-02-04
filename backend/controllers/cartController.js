@@ -1,3 +1,4 @@
+import { set } from 'mongoose'
 import Cart from '../models/cartModel.js'
 
 // Add to Cart Controller
@@ -114,6 +115,7 @@ export const removeFromCart = async (req, res) => {
     )
 
     await cart.save()
+
 
     res.status(200).json({
       message: 'Item removed successfully'

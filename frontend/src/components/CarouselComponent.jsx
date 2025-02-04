@@ -95,7 +95,7 @@ const CarouselComponent = () => {
                   parameters={card.parameters}
                   reportTime={card.reportTime}
                   onViewDetails={() => handleViewDetails(card.link)}
-                  onAddToCart={() => handleAddToCart(card)}  // Pass the whole card object
+                  onAddToCart={() => handleAddToCart(card)}  
                 />
               </div>
             ))}
