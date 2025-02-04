@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
+import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
+import { addToCart } from '../../utils/cartUtils.js';
 
 const cards = [
-  { title: "Lipid Profile Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "6", reportTime: "within 12 hours" },
-  { title: "Complete Cardiac Profile", price: "₹2000", oldPrice: "₹2500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours" },
-  { title: "ECG (Electrocardiogram)", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 1 hour" },
-  { title: "Echocardiogram (Echo)", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "1", reportTime: "within 2 hours" },
-  { title: "Troponin Test", price: "₹1200", oldPrice: "₹1400", discount: "14% Off", parameters: "1", reportTime: "within 6 hours" },
-  { title: "CT Angiography", price: "₹3500", oldPrice: "₹4000", discount: "12% Off", parameters: "1", reportTime: "by Tomorrow" },
+  { id: uuidv4(), title: "Lipid Profile Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "6", reportTime: "within 12 hours" },
+  { id: uuidv4(), title: "Complete Cardiac Profile", price: "₹2000", oldPrice: "₹2500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "ECG (Electrocardiogram)", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 1 hour" },
+  { id: uuidv4(), title: "Echocardiogram (Echo)", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "1", reportTime: "within 2 hours" },
+  { id: uuidv4(), title: "Troponin Test", price: "₹1200", oldPrice: "₹1400", discount: "14% Off", parameters: "1", reportTime: "within 6 hours" },
+  { id: uuidv4(), title: "CT Angiography", price: "₹3500", oldPrice: "₹4000", discount: "12% Off", parameters: "1", reportTime: "by Tomorrow" },
 ];
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerPage = 3;
-  const totalPages = Math.ceil(cards.length / itemsPerPage); // Total number of pages
+  const totalPages = Math.ceil(cards.length / itemsPerPage); 
+  const { Navigate } = useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -27,6 +34,28 @@ const CarouselComponent = () => {
     }
   };
 
+    const handleAddToCart = async (product) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error("Please login first!");
+          Navigate('/login');
+          return;
+        }
+    
+        if (!product || !product.id) {
+          toast.error("Invalid product or product ID.");
+          return;
+        }
+    
+        try {
+          await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+          refreshCart();
+          toast.success(`Added "${product.title}" to cart!`);
+          // eslint-disable-next-line no-unused-vars
+        } catch (error) {
+          toast.error("Failed to add to cart.");
+        }
+      };
   return (
     <div className="relative flex flex-col mt-12 justify-center mb-10 px-4">
       <div className='mt-12 mb-12'>
@@ -55,6 +84,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
               ))}

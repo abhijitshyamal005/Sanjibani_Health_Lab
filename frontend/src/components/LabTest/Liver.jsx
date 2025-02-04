@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../utils/cartUtils.js';
 
 const cards = [
-  { title: "Liver Function Test (LFT)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "7", reportTime: "within 12 hours" },
-  { title: "Complete Liver Profile", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours" },
-  { title: "Bilirubin Test", price: "₹300", oldPrice: "₹400", discount: "25% Off", parameters: "1", reportTime: "within 6 hours" },
-  { title: "SGPT/ALT Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "by Tomorrow" },
-  { title: "SGOT/AST Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "within 12 hours" },
-  { title: "Alkaline Phosphatase Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Liver Function Test (LFT)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "7", reportTime: "within 12 hours" },
+  { id: uuidv4(),title: "Complete Liver Profile", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours" },
+  {id: uuidv4(), title: "Bilirubin Test", price: "₹300", oldPrice: "₹400", discount: "25% Off", parameters: "1", reportTime: "within 6 hours" },
+  {id: uuidv4(), title: "SGPT/ALT Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "by Tomorrow" },
+  {id: uuidv4(), title: "SGOT/AST Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "within 12 hours" },
+  {id: uuidv4(), title: "Alkaline Phosphatase Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 24 hours" },
 ];
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerPage = 3;
-  const totalPages = Math.ceil(cards.length / itemsPerPage); // Total number of pages
+  const totalPages = Math.ceil(cards.length / itemsPerPage);
+  const { Navigate} = useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -26,6 +33,28 @@ const CarouselComponent = () => {
       setCurrentIndex(currentIndex - 1);
     }
   };
+    const handleAddToCart = async (product) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error("Please login first!");
+          Navigate('/login');
+          return;
+        }
+    
+        if (!product || !product.id) {
+          toast.error("Invalid product or product ID.");
+          return;
+        }
+    
+        try {
+          await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+          refreshCart();
+          toast.success(`Added "${product.title}" to cart!`);
+          // eslint-disable-next-line no-unused-vars
+        } catch (error) {
+          toast.error("Failed to add to cart.");
+        }
+      };
 
   return (
     <div className="relative flex flex-col mt-12 justify-center mb-10 px-4">
@@ -55,6 +84,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
               ))}

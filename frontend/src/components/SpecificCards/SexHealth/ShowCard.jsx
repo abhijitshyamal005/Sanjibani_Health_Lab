@@ -1,28 +1,52 @@
 import CardComponent from '../../CardComponent.jsx';
 import { useNavigate } from 'react-router-dom'; 
 import WhatsappImg from '../../WhatsappImg.jsx';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../../utils/cartUtils.js';
+import { useCart } from '../../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Sexual Health Checkup - Basic", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "4", reportTime: "within 24 hours", link: "/sexual-health-basic" },
-  { title: "Sexual Health Checkup - Comprehensive", price: "₹2500", oldPrice: "₹3000", discount: "17% Off", parameters: "8", reportTime: "within 48 hours", link: "/sexual-health-comprehensive" },
-  { title: "STD Screening Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "3", reportTime: "within 12 hours", link: "/std-screening" },
-  { title: "HIV Test", price: "₹1000", oldPrice: "₹1200", discount: "17% Off", parameters: "1", reportTime: "within 6 hours", link: "/hiv-test" },
-  { title: "Hepatitis B & C Test", price: "₹1500", oldPrice: "₹1800", discount: "15% Off", parameters: "2", reportTime: "within 24 hours", link: "/hepatitis-test" },
-  { title: "VDRL Test (Syphilis Test)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow", link: "/vdrl-test" },
+  {id: uuidv4(), title: "Sexual Health Checkup - Basic", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "4", reportTime: "within 24 hours", link: "/sexual-health-basic" },
+  {id: uuidv4(), title: "Sexual Health Checkup - Comprehensive", price: "₹2500", oldPrice: "₹3000", discount: "17% Off", parameters: "8", reportTime: "within 48 hours", link: "/sexual-health-comprehensive" },
+  {id: uuidv4(), title: "STD Screening Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "3", reportTime: "within 12 hours", link: "/std-screening" },
+  {id: uuidv4(), title: "HIV Test", price: "₹1000", oldPrice: "₹1200", discount: "17% Off", parameters: "1", reportTime: "within 6 hours", link: "/hiv-test" },
+  {id: uuidv4(), title: "Hepatitis B & C Test", price: "₹1500", oldPrice: "₹1800", discount: "15% Off", parameters: "2", reportTime: "within 24 hours", link: "/hepatitis-test" },
+  {id: uuidv4(), title: "VDRL Test (Syphilis Test)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow", link: "/vdrl-test" },
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); // for navigation
+  const navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   const handleViewDetails = (link) => {
     // Redirect to a specific details page using the link
     navigate(link);
   };
 
-  const handleAddToCart = (title) => {
-    // You can implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
-  };
+  const handleAddToCart = async (product) => {
+     const token = localStorage.getItem('token');
+     if (!token) {
+       toast.error("Please login first!");
+       navigate('/login');
+       return;
+     }
+ 
+     if (!product || !product.id) {
+       toast.error("Invalid product or product ID.");
+       return;
+     }
+ 
+     try {
+       await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+       refreshCart();
+       toast.success(`Added "${product.title}" to cart!`);
+       // eslint-disable-next-line no-unused-vars
+     } catch (error) {
+       toast.error("Failed to add to cart.");
+     }
+   };
+ 
 
   return (
     <>
@@ -46,7 +70,7 @@ const CarouselComponent = () => {
                 parameters={card.parameters}
                 reportTime={card.reportTime}
                 onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                onAddToCart={() => handleAddToCart(card)}
               />
             </div>
           ))}

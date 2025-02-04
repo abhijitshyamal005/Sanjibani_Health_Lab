@@ -1,18 +1,25 @@
 import { useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../utils/cartUtils.js';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Complete Blood Count (CBC)", price: "₹330", oldPrice: "₹336", discount: "10% Off", parameters: "30", reportTime: "within 6 hours" },
-  { title: "Glycosylated Hemoglobin (HbA1c)", price: "₹550", oldPrice: "₹598", discount: "8% Off", parameters: "1", reportTime: "by Tomorrow" },
-  { title: "Lipid Profile", price: "₹800", oldPrice: "₹1200", discount: "33% Off", parameters: "6", reportTime: "within 24 hours" },
-  { title: "Thyroid Function Test (TFT)", price: "₹450", oldPrice: "₹700", discount: "36% Off", parameters: "4", reportTime: "by Today" },
-  { title: "Liver Function Test (LFT)", price: "₹500", oldPrice: "₹750", discount: "33% Off", parameters: "8", reportTime: "within 2 days" },
-  { title: "Kidney Function Test (KFT)", price: "₹600", oldPrice: "₹850", discount: "29% Off", parameters: "7", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Complete Blood Count (CBC)", price: "₹330", oldPrice: "₹336", discount: "10% Off", parameters: "30", reportTime: "within 6 hours" },
+  { id: uuidv4(), title: "Glycosylated Hemoglobin (HbA1c)", price: "₹550", oldPrice: "₹598", discount: "8% Off", parameters: "1", reportTime: "by Tomorrow" },
+  { id: uuidv4(), title: "Lipid Profile", price: "₹800", oldPrice: "₹1200", discount: "33% Off", parameters: "6", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Thyroid Function Test (TFT)", price: "₹450", oldPrice: "₹700", discount: "36% Off", parameters: "4", reportTime: "by Today" },
+  { id: uuidv4(), title: "Liver Function Test (LFT)", price: "₹500", oldPrice: "₹750", discount: "33% Off", parameters: "8", reportTime: "within 2 days" },
+  { id: uuidv4(), title: "Kidney Function Test (KFT)", price: "₹600", oldPrice: "₹850", discount: "29% Off", parameters: "7", reportTime: "within 24 hours" },
 ];
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const totalPages = Math.ceil(cards.length / 3); // Total number of pages (each page shows 3 cards)
+  const totalPages = Math.ceil(cards.length / 3);
+  const { Navigate } = useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -25,6 +32,30 @@ const CarouselComponent = () => {
       setCurrentIndex(currentIndex - 1);
     }
   };
+
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first!");
+      Navigate('/login');
+      return;
+    }
+
+    if (!product || !product.id) {
+      toast.error("Invalid product or product ID.");
+      return;
+    }
+
+    try {
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    }
+  };
+
 
   return (
     <div className="relative flex flex-col mt-12 mb-10 px-4">
@@ -54,6 +85,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
               ))}
@@ -70,7 +102,7 @@ const CarouselComponent = () => {
 
         {/* Pagination */}
         <div className="flex justify-center mt-4 text-xs md:text-base space-x-2">
-          
+
 
           {/* Dots for remaining pages */}
           {Array.from({ length: totalPages }).map((_, i) => (

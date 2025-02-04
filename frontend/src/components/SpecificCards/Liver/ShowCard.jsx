@@ -1,27 +1,49 @@
 import CardComponent from '../../CardComponent.jsx';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import WhatsappImg from '../../WhatsappImg.jsx';
+import { addToCart } from '../../../utils/cartUtils.js';
+import { toast } from 'react-toastify';
+import { useCart } from '../../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Liver Function Test (LFT)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "7", reportTime: "within 12 hours", link: "/not-found" },
-  { title: "Complete Liver Profile", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours", link: "/not-found" },
-  { title: "Bilirubin Test", price: "₹300", oldPrice: "₹400", discount: "25% Off", parameters: "1", reportTime: "within 6 hours", link: "/not-found" },
-  { title: "SGPT/ALT Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "by Tomorrow", link: "/not-found" },
-  { title: "SGOT/AST Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "within 12 hours", link: "/not-found" },
-  { title: "Alkaline Phosphatase Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 24 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Liver Function Test (LFT)", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "7", reportTime: "within 12 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Complete Liver Profile", price: "₹1200", oldPrice: "₹1500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Bilirubin Test", price: "₹300", oldPrice: "₹400", discount: "25% Off", parameters: "1", reportTime: "within 6 hours", link: "/not-found" },
+  { id: uuidv4(), title: "SGPT/ALT Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "by Tomorrow", link: "/not-found" },
+  { id: uuidv4(), title: "SGOT/AST Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "within 12 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Alkaline Phosphatase Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 24 hours", link: "/not-found" },
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); // for navigation
-
+  const navigate = useNavigate();
+  const { refreshCart } = useCart();
   const handleViewDetails = (link) => {
     // Redirect to a specific details page using the link
     navigate(link);
   };
 
-  const handleAddToCart = (title) => {
-    // You can implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first!");
+      navigate('/login');
+      return;
+    }
+
+    if (!product || !product.id) {
+      toast.error("Invalid product or product ID.");
+      return;
+    }
+
+    try {
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    }
   };
 
   return (
@@ -46,7 +68,7 @@ const CarouselComponent = () => {
                 parameters={card.parameters}
                 reportTime={card.reportTime}
                 onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                onAddToCart={() => handleAddToCart(card)}
               />
             </div>
           ))}

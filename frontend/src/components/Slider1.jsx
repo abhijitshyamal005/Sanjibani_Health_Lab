@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import CardComponent from './CardComponent';
-import { FaBookReader } from "react-icons/fa"; // Assuming the card component is in the same folder
-import { useNavigate } from 'react-router-dom'; // For navigation
+import { FaBookReader } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'react-toastify';
+import { addToCart } from '../utils/cartUtils';
+import { useCart } from '../context/CartContext';
+
 
 const Slider = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
-    const navigate = useNavigate(); // Initialize navigate for routing
+    const navigate = useNavigate();
+    const { refreshCart } = useCart(); 
 
     const slides = [
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Essential",
             price: "₹1599",
             oldPrice: "₹6063",
@@ -20,6 +27,7 @@ const Slider = () => {
             link: "/full-body-es" // Added link
         },
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Comprehensive",
             price: "₹3599",
             oldPrice: "₹13663",
@@ -31,6 +39,7 @@ const Slider = () => {
             link: "/full-body-cos" // Added link
         },
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Advanced",
             price: "₹5999",
             oldPrice: "₹16000",
@@ -42,6 +51,7 @@ const Slider = () => {
             link: "/full-body-es" // Added link
         },
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Premium",
             price: "₹7999",
             oldPrice: "₹18000",
@@ -53,6 +63,7 @@ const Slider = () => {
             link: "/full-body-cos" // Added link
         },
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Platinum",
             price: "₹10999",
             oldPrice: "₹22000",
@@ -64,6 +75,7 @@ const Slider = () => {
             link: "/full-body-es" // Added link
         },
         {
+            id: uuidv4(),
             title: "Full Body Checkup - Executive",
             price: "₹12999",
             oldPrice: "₹24000",
@@ -88,6 +100,29 @@ const Slider = () => {
         navigate(link); // Navigate to the link
     };
 
+    const handleAddToCart = async (product) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toast.error("Please login first!");
+            navigate('/login');
+            return;
+        }
+
+        if (!product || !product.id) {
+            toast.error("Invalid product or product ID.");
+            return;
+        }
+
+        try {
+            await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+            refreshCart();
+            toast.success(`Added "${product.title}" to cart!`);
+        // eslint-disable-next-line no-unused-vars
+        } catch (error) {
+            toast.error("Failed to add to cart.");
+        }
+    };
+
     return (
         <div className="relative flex flex-col items-center mt-8 mb-8 px-4">
             <div className="relative w-full max-w-screen-lg">
@@ -106,7 +141,8 @@ const Slider = () => {
                                     discount={slide.discount}
                                     parameters={slide.parameters}
                                     reportTime={slide.reportTime}
-                                    onViewDetails={() => handleViewDetails(slide.link)} // Pass the link to handleViewDetails
+                                    onViewDetails={() => handleViewDetails(slide.link)}
+                                    onAddToCart={() => handleAddToCart(slide)}
                                 />
                                 {/* Text section */}
                                 <div className="text-left max-w-sm mx-4">

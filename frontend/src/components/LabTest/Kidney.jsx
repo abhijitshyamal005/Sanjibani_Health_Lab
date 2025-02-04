@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../utils/cartUtils.js';
+import { v4 as uuidv4 } from 'uuid';
+
 
 const cards = [
-  { title: "Kidney Function Test (KFT)", price: "₹900", oldPrice: "₹1100", discount: "18% Off", parameters: "5", reportTime: "within 12 hours" },
-  { title: "Complete Renal Profile", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "8", reportTime: "within 24 hours" },
-  { title: "Creatinine Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours" },
-  { title: "Blood Urea Nitrogen (BUN) Test", price: "₹350", oldPrice: "₹450", discount: "22% Off", parameters: "1", reportTime: "within 12 hours" },
-  { title: "Uric Acid Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow" },
-  { title: "Electrolytes Test", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "3", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Kidney Function Test (KFT)", price: "₹900", oldPrice: "₹1100", discount: "18% Off", parameters: "5", reportTime: "within 12 hours" },
+  {id:uuidv4(), title: "Complete Renal Profile", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "8", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Creatinine Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours" },
+  { id: uuidv4(), title: "Blood Urea Nitrogen (BUN) Test", price: "₹350", oldPrice: "₹450", discount: "22% Off", parameters: "1", reportTime: "within 12 hours" },
+  { id: uuidv4(), title: "Uric Acid Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow" },
+  { id: uuidv4(), title: "Electrolytes Test", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "3", reportTime: "within 24 hours" },
 ];
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerPage = 3;
-  const totalPages = Math.ceil(cards.length / itemsPerPage); // Total number of pages
+  const totalPages = Math.ceil(cards.length / itemsPerPage); 
+  const { Navigate}= useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -26,6 +34,28 @@ const CarouselComponent = () => {
       setCurrentIndex(currentIndex - 1);
     }
   };
+    const handleAddToCart = async (product) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error("Please login first!");
+          Navigate('/login');
+          return;
+        }
+    
+        if (!product || !product.id) {
+          toast.error("Invalid product or product ID.");
+          return;
+        }
+    
+        try {
+          await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+          refreshCart();
+          toast.success(`Added "${product.title}" to cart!`);
+          // eslint-disable-next-line no-unused-vars
+        } catch (error) {
+          toast.error("Failed to add to cart.");
+        }
+      };
 
   return (
     <div className="relative bg-gradient-to-t from-gray-100 to-gray-50 flex flex-col mt-12 mb-10 px-4">
@@ -55,6 +85,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
               ))}

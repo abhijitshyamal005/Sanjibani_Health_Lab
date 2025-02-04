@@ -1,18 +1,23 @@
 import CardComponent from '../../CardComponent.jsx';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import WhatsappImg from '../../WhatsappImg.jsx';
+import { addToCart } from '../../../utils/cartUtils.js';
+import { toast } from 'react-toastify';
+import { useCart } from '../../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Kidney Function Test (KFT)", price: "₹900", oldPrice: "₹1100", discount: "18% Off", parameters: "5", reportTime: "within 12 hours", link: "/not-found" },
-  { title: "Complete Renal Profile", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "8", reportTime: "within 24 hours", link: "/not-found" },
-  { title: "Creatinine Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours", link: "/not-found" },
-  { title: "Blood Urea Nitrogen (BUN) Test", price: "₹350", oldPrice: "₹450", discount: "22% Off", parameters: "1", reportTime: "within 12 hours", link: "/not-found" },
-  { title: "Uric Acid Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow", link: "/not-found" },
-  { title: "Electrolytes Test", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "3", reportTime: "within 24 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Kidney Function Test (KFT)", price: "₹900", oldPrice: "₹1100", discount: "18% Off", parameters: "5", reportTime: "within 12 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Complete Renal Profile", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "8", reportTime: "within 24 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Creatinine Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Blood Urea Nitrogen (BUN) Test", price: "₹350", oldPrice: "₹450", discount: "22% Off", parameters: "1", reportTime: "within 12 hours", link: "/not-found" },
+  { id: uuidv4(), title: "Uric Acid Test", price: "₹450", oldPrice: "₹550", discount: "18% Off", parameters: "1", reportTime: "by Tomorrow", link: "/not-found" },
+  { id: uuidv4(), title: "Electrolytes Test", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "3", reportTime: "within 24 hours", link: "/not-found" },
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); // for navigation
+  const navigate = useNavigate();
+  const { refreshCart } = useCart()
 
   const handleViewDetails = (link) => {
     // Redirect to a specific details page using the link
@@ -24,9 +29,27 @@ const CarouselComponent = () => {
     }
   };
 
-  const handleAddToCart = (title) => {
-    // Implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first!");
+      navigate('/login');
+      return;
+    }
+
+    if (!product || !product.id) {
+      toast.error("Invalid product or product ID.");
+      return;
+    }
+
+    try {
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    }
   };
 
   return (
@@ -49,13 +72,13 @@ const CarouselComponent = () => {
                 parameters={card.parameters}
                 reportTime={card.reportTime}
                 onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                onAddToCart={() => handleAddToCart(card)}
               />
             </div>
           ))}
         </div>
       </div>
-      <WhatsappImg/>
+      <WhatsappImg />
     </>
   );
 };

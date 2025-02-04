@@ -1,18 +1,25 @@
 import { useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../utils/cartUtils.js';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Typhoid Fever Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours" },
-  { title: "Dengue Fever Test", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "2", reportTime: "within 24 hours" },
-  { title: "Malaria Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 12 hours" },
-  { title: "Chikungunya Test", price: "₹550", oldPrice: "₹650", discount: "15% Off", parameters: "1", reportTime: "by Tomorrow" },
-  { title: "Viral Fever Profile", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "5", reportTime: "within 2 days" },
-  { title: "Influenza (Flu) Test", price: "₹800", oldPrice: "₹950", discount: "16% Off", parameters: "3", reportTime: "by Today" },
+  { id: uuidv4(), title: "Typhoid Fever Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours" },
+  { id: uuidv4(), title: "Dengue Fever Test", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "2", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Malaria Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 12 hours" },
+  { id: uuidv4(), title: "Chikungunya Test", price: "₹550", oldPrice: "₹650", discount: "15% Off", parameters: "1", reportTime: "by Tomorrow" },
+  { id: uuidv4(), title: "Viral Fever Profile", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "5", reportTime: "within 2 days" },
+  { id: uuidv4(), title: "Influenza (Flu) Test", price: "₹800", oldPrice: "₹950", discount: "16% Off", parameters: "3", reportTime: "by Today" },
 ];
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const totalPages = Math.ceil(cards.length / 3); // Total number of pages (each page shows 3 cards)
+  const totalPages = Math.ceil(cards.length / 3); 
+  const Navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   const next = () => {
     if (currentIndex < totalPages - 1) {
@@ -25,6 +32,28 @@ const CarouselComponent = () => {
       setCurrentIndex(currentIndex - 1);
     }
   };
+   const handleAddToCart = async (product) => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Please login first!");
+        Navigate('/login');
+        return;
+      }
+  
+      if (!product || !product.id) {
+        toast.error("Invalid product or product ID.");
+        return;
+      }
+  
+      try {
+        await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+        refreshCart();
+        toast.success(`Added "${product.title}" to cart!`);
+        // eslint-disable-next-line no-unused-vars
+      } catch (error) {
+        toast.error("Failed to add to cart.");
+      }
+    };
 
   return (
     <div className="relative flex flex-col mt-12 md:mt-26 mb-10 px-4">
@@ -54,6 +83,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
               ))}

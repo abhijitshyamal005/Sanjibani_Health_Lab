@@ -1,28 +1,53 @@
 import CardComponent from '../../CardComponent.jsx';
 import { useNavigate } from 'react-router-dom'; 
 import WhatsappImg from '../../WhatsappImg.jsx';
+import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
+import { useCart } from '../../../context/CartContext.jsx';
+import { addToCart } from '../../../utils/cartUtils.js';
+
+
 
 const cards = [
-  { title: "Typhoid Fever Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours", link: "/typhoid-test" },
-  { title: "Dengue Fever Test", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "2", reportTime: "within 24 hours", link: "/dengue-test" },
-  { title: "Malaria Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 12 hours", link: "/malaria-test" },
-  { title: "Chikungunya Test", price: "₹550", oldPrice: "₹650", discount: "15% Off", parameters: "1", reportTime: "by Tomorrow", link: "/chikungunya-test" },
-  { title: "Viral Fever Profile", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "5", reportTime: "within 2 days", link: "/viral-fever-profile" },
-  { title: "Influenza (Flu) Test", price: "₹800", oldPrice: "₹950", discount: "16% Off", parameters: "3", reportTime: "by Today", link: "/influenza-test" },
+  { id: uuidv4(), title: "Typhoid Fever Test", price: "₹400", oldPrice: "₹500", discount: "20% Off", parameters: "1", reportTime: "within 6 hours", link: "/typhoid-test" },
+  { id: uuidv4(), title: "Dengue Fever Test", price: "₹700", oldPrice: "₹850", discount: "18% Off", parameters: "2", reportTime: "within 24 hours", link: "/dengue-test" },
+  { id: uuidv4(), title: "Malaria Test", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 12 hours", link: "/malaria-test" },
+  { id: uuidv4(), title: "Chikungunya Test", price: "₹550", oldPrice: "₹650", discount: "15% Off", parameters: "1", reportTime: "by Tomorrow", link: "/chikungunya-test" },
+  { id: uuidv4(), title: "Viral Fever Profile", price: "₹600", oldPrice: "₹750", discount: "20% Off", parameters: "5", reportTime: "within 2 days", link: "/viral-fever-profile" },
+  { id: uuidv4(), title: "Influenza (Flu) Test", price: "₹800", oldPrice: "₹950", discount: "16% Off", parameters: "3", reportTime: "by Today", link: "/influenza-test" },
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); // for navigation
+  const navigate = useNavigate(); 
+    const { refreshCart } = useCart(); 
 
   const handleViewDetails = (link) => {
     // Redirect to a specific details page using the link
     navigate(link);
   };
 
-  const handleAddToCart = (title) => {
-    // You can implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
-  };
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        toast.error("Please login first!");
+        navigate('/login');
+        return;
+    }
+
+    if (!product || !product.id) {
+        toast.error("Invalid product or product ID.");
+        return;
+    }
+
+    try {
+        await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+        refreshCart();
+        toast.success(`Added "${product.title}" to cart!`);
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+        toast.error("Failed to add to cart.");
+    }
+};
 
   return (
     <>
@@ -45,8 +70,8 @@ const CarouselComponent = () => {
                 discount={card.discount}
                 parameters={card.parameters}
                 reportTime={card.reportTime}
-                onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                onViewDetails={() => handleViewDetails(card.link)} 
+                onAddToCart={() => handleAddToCart(card)} 
               />
             </div>
           ))}

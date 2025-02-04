@@ -1,27 +1,50 @@
 import CardComponent from '../../CardComponent.jsx';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import WhatsappImg from '../../WhatsappImg.jsx';
+import { toast } from 'react-toastify';
+import { addToCart } from '../../../utils/cartUtils.js';
+import { useCart } from '../../../context/CartContext.jsx';
+import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { title: "Lipid Profile Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "6", reportTime: "within 12 hours", link: "/lipid-profile" },
-  { title: "Complete Cardiac Profile", price: "₹2000", oldPrice: "₹2500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours", link: "/cardiac-profile" },
-  { title: "ECG (Electrocardiogram)", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 1 hour", link: "/ecg" },
-  { title: "Echocardiogram (Echo)", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "1", reportTime: "within 2 hours", link: "/echo" },
-  { title: "Troponin Test", price: "₹1200", oldPrice: "₹1400", discount: "14% Off", parameters: "1", reportTime: "within 6 hours", link: "/troponin-test" },
-  { title: "CT Angiography", price: "₹3500", oldPrice: "₹4000", discount: "12% Off", parameters: "1", reportTime: "by Tomorrow", link: "/ct-angiography" },
+  { id: uuidv4(), title: "Lipid Profile Test", price: "₹800", oldPrice: "₹1000", discount: "20% Off", parameters: "6", reportTime: "within 12 hours", link: "/lipid-profile" },
+  { id: uuidv4(), title: "Complete Cardiac Profile", price: "₹2000", oldPrice: "₹2500", discount: "20% Off", parameters: "10", reportTime: "within 24 hours", link: "/cardiac-profile" },
+  { id: uuidv4(), title: "ECG (Electrocardiogram)", price: "₹500", oldPrice: "₹600", discount: "17% Off", parameters: "1", reportTime: "within 1 hour", link: "/ecg" },
+  { id: uuidv4(), title: "Echocardiogram (Echo)", price: "₹1500", oldPrice: "₹1800", discount: "17% Off", parameters: "1", reportTime: "within 2 hours", link: "/echo" },
+  { id: uuidv4(), title: "Troponin Test", price: "₹1200", oldPrice: "₹1400", discount: "14% Off", parameters: "1", reportTime: "within 6 hours", link: "/troponin-test" },
+  { id: uuidv4(), title: "CT Angiography", price: "₹3500", oldPrice: "₹4000", discount: "12% Off", parameters: "1", reportTime: "by Tomorrow", link: "/ct-angiography" },
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); // for navigation
+  const navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   const handleViewDetails = (link) => {
-    // Redirect to a specific details page using the link
+
     navigate(link);
   };
 
-  const handleAddToCart = (title) => {
-    // You can implement adding the specific product to a cart here
-    alert(`Added "${title}" to cart!`);
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first!");
+      navigate('/login');
+      return;
+    }
+
+    if (!product || !product.id) {
+      toast.error("Invalid product or product ID.");
+      return;
+    }
+
+    try {
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    }
   };
 
   return (
@@ -44,13 +67,13 @@ const CarouselComponent = () => {
                 parameters={card.parameters}
                 reportTime={card.reportTime}
                 onViewDetails={() => handleViewDetails(card.link)} // Pass the link handler
-                onAddToCart={() => handleAddToCart(card.title)} // Pass the title to cart handler
+                onAddToCart={() => handleAddToCart(card)}
               />
             </div>
           ))}
         </div>
       </div>
-      <WhatsappImg/>
+      <WhatsappImg />
     </>
   );
 };
