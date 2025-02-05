@@ -96,9 +96,9 @@ const Slider = () => {
         return () => clearInterval(slideInterval); // Clean up on component unmount
     }, [slides.length]);
 
-    const handleViewDetails = (link) => {
-        navigate(link); // Navigate to the link
-    };
+    const handleViewDetails = (card) => {
+        navigate('/view-details', { state: { selectedTest: card } });
+      };
 
     const handleAddToCart = async (product) => {
         const token = localStorage.getItem('token');
@@ -141,7 +141,7 @@ const Slider = () => {
                                     discount={slide.discount}
                                     parameters={slide.parameters}
                                     reportTime={slide.reportTime}
-                                    onViewDetails={() => handleViewDetails(slide.link)}
+                                    onViewDetails={() => handleViewDetails(slide)}
                                     onAddToCart={() => handleAddToCart(slide)}
                                 />
                                 {/* Text section */}

@@ -21,9 +21,9 @@ const CarouselComponent = () => {
   const navigate = useNavigate(); 
     const { refreshCart } = useCart(); 
 
-  const handleViewDetails = (link) => {
-    // Redirect to a specific details page using the link
-    navigate(link);
+
+  const handleViewDetails = (card) => {
+    navigate('/view-details', { state: { selectedTest: card } });
   };
 
   const handleAddToCart = async (product) => {
@@ -70,7 +70,7 @@ const CarouselComponent = () => {
                 discount={card.discount}
                 parameters={card.parameters}
                 reportTime={card.reportTime}
-                onViewDetails={() => handleViewDetails(card.link)} 
+                onViewDetails={() => handleViewDetails(card)} 
                 onAddToCart={() => handleAddToCart(card)} 
               />
             </div>

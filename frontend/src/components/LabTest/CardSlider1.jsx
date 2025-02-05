@@ -7,12 +7,12 @@ import { useCart } from '../../context/CartContext.jsx';
 import { v4 as uuidv4 } from 'uuid';
 
 const cards = [
-  { id: uuidv4(), title: "Complete Blood Count (CBC)", price: "₹330", oldPrice: "₹336", discount: "10% Off", parameters: "30", reportTime: "within 6 hours" },
-  { id: uuidv4(), title: "Glycosylated Hemoglobin (HbA1c)", price: "₹550", oldPrice: "₹598", discount: "8% Off", parameters: "1", reportTime: "by Tomorrow" },
-  { id: uuidv4(), title: "Lipid Profile", price: "₹800", oldPrice: "₹1200", discount: "33% Off", parameters: "6", reportTime: "within 24 hours" },
-  { id: uuidv4(), title: "Thyroid Function Test (TFT)", price: "₹450", oldPrice: "₹700", discount: "36% Off", parameters: "4", reportTime: "by Today" },
-  { id: uuidv4(), title: "Liver Function Test (LFT)", price: "₹500", oldPrice: "₹750", discount: "33% Off", parameters: "8", reportTime: "within 2 days" },
-  { id: uuidv4(), title: "Kidney Function Test (KFT)", price: "₹600", oldPrice: "₹850", discount: "29% Off", parameters: "7", reportTime: "within 24 hours" },
+  { id: uuidv4(), title: "Complete Blood Count (CBC)", price: "₹330", oldPrice: "₹336", discount: "10% Off", parameters: "30", reportTime: "within 6 hours",link: '/view-details' },
+  { id: uuidv4(), title: "Glycosylated Hemoglobin (HbA1c)", price: "₹550", oldPrice: "₹598", discount: "8% Off", parameters: "1", reportTime: "by Tomorrow" ,link: '/view-details'},
+  { id: uuidv4(), title: "Lipid Profile", price: "₹800", oldPrice: "₹1200", discount: "33% Off", parameters: "6", reportTime: "within 24 hours",link: '/view-details' },
+  { id: uuidv4(), title: "Thyroid Function Test (TFT)", price: "₹450", oldPrice: "₹700", discount: "36% Off", parameters: "4", reportTime: "by Today",link: '/view-details' },
+  { id: uuidv4(), title: "Liver Function Test (LFT)", price: "₹500", oldPrice: "₹750", discount: "33% Off", parameters: "8", reportTime: "within 2 days",link: '/view-details' },
+  { id: uuidv4(), title: "Kidney Function Test (KFT)", price: "₹600", oldPrice: "₹850", discount: "29% Off", parameters: "7", reportTime: "within 24 hours",link: '/view-details' },
 ];
 
 const CarouselComponent = () => {
@@ -31,6 +31,10 @@ const CarouselComponent = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
+  };
+
+  const handleViewDetails = (card) => {
+    Navigate('/view-details', { state: { selectedTest: card } });
   };
 
   const handleAddToCart = async (product) => {
@@ -85,6 +89,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onViewDetails={()=>handleViewDetails(card)}
                     onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>

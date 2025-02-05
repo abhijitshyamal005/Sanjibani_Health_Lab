@@ -33,6 +33,9 @@ const CarouselComponent = () => {
       setCurrentIndex(currentIndex - 1);
     }
   };
+  const handleViewDetails = (card) => {
+    Navigate('/view-details', { state: { selectedTest: card } });
+  };
 
     const handleAddToCart = async (product) => {
         const token = localStorage.getItem('token');
@@ -84,6 +87,7 @@ const CarouselComponent = () => {
                     discount={card.discount}
                     parameters={card.parameters}
                     reportTime={card.reportTime}
+                    onViewDetails={()=>handleViewDetails(card)}
                     onAddToCart={() => handleAddToCart(card)}
                   />
                 </div>
