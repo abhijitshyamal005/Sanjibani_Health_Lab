@@ -70,9 +70,9 @@ const CarouselComponent = () => {
   };
 
   return (
-    <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
-        4 Full Body Checkups in Bangalore
+    <section className=" max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        5 Full Body Checkups in Kolkata
       </h2>
 
       <div className="relative group">
@@ -102,7 +102,8 @@ const CarouselComponent = () => {
           <div
             className="flex transition-transform duration-300 ease-out "
             style={{
-              transform: `translateX(-${currentIndex * (100 / (window.innerWidth < 768 ? 1 : 2.5))}%)`, 
+              transform: `translateX(-${currentIndex * (100 / (window.innerWidth < 768 ? 1 : 2.5))}%) `, 
+              
             }}
           >
             {cards.map((card) => (
@@ -111,7 +112,7 @@ const CarouselComponent = () => {
                 className="flex-shrink-0"
                 style={{
                   width: window.innerWidth < 768 ? '100%' : `${100 / 2.5}%`, 
-                  padding: "0 4px", 
+                   
                 }}
               >
                 <CardComponent

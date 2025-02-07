@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CardComponent from '../CardComponent.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
@@ -17,103 +17,152 @@ const cards = [
 
 const CarouselComponent = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerPage = 3;
-  const totalPages = Math.ceil(cards.length / itemsPerPage); 
-  const { Navigate } = useNavigate();
+  const [cardsPerPage, setCardsPerPage] = useState(3);
+  const navigate = useNavigate();
   const { refreshCart } = useCart();
 
-  const next = () => {
-    if (currentIndex < totalPages - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
+  useEffect(() => {
+    const updateCardsPerPage = () => {
+      const screenWidth = window.innerWidth;
+      if (screenWidth < 640) setCardsPerPage(1);
+      else if (screenWidth < 1024) setCardsPerPage(2);
+      else setCardsPerPage(3);
+    };
+
+    updateCardsPerPage();
+    window.addEventListener('resize', updateCardsPerPage);
+    return () => window.removeEventListener('resize', updateCardsPerPage);
+  }, []);
+
+  const totalPages = Math.ceil(cards.length / cardsPerPage);
+
+  const handleNavigation = (direction) => {
+    setCurrentIndex(prev => {
+      const newIndex = direction === 'next' ? prev + 1 : prev - 1;
+      return Math.max(0, Math.min(newIndex, totalPages - 1));
+    });
   };
 
-  const prev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
   const handleViewDetails = (card) => {
-    Navigate('/view-details', { state: { selectedTest: card } });
+    navigate(card.link, { state: { selectedTest: card } });
   };
 
-    const handleAddToCart = async (product) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          toast.error("Please login first!");
-          Navigate('/login');
-          return;
-        }
-    
-        if (!product || !product.id) {
-          toast.error("Invalid product or product ID.");
-          return;
-        }
-    
-        try {
-          await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
-          refreshCart();
-          toast.success(`Added "${product.title}" to cart!`);
-          // eslint-disable-next-line no-unused-vars
-        } catch (error) {
-          toast.error("Failed to add to cart.");
-        }
-      };
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login to continue");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await addToCart(
+        product.id,
+        1,
+        { title: product.title, price: product.price },
+        token
+      );
+      refreshCart();
+      toast.success(`${product.title} added to cart`);
+    } catch (error) {
+      toast.error(error.message || "Failed to add to cart");
+    }
+  };
+
   return (
-    <div className="relative flex flex-col mt-12 justify-center mb-10 px-4">
-      <div className='mt-12 mb-12'>
-        <h2 className="text-xl text-gray-800 font-bold mb-4 text-center md:text-left">Heart Tests In Kolkata</h2>
-        
-        {/* Center the cards and buttons */}
-        <div className="relative flex items-center">
-          <button
-            onClick={prev}
-            className={`absolute left-0 md:left-4 top-1/2 transform -translate-y-1/2 text-black border-black border-[1px] rounded-full px-3 py-1`}
-          >
-            ❮
-          </button>
+    <section className=" max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h2 className="text-2xl font-bold text-gray-900 md:text-start text-center mb-8">
+      Heart Tests In Kolkata
+      </h2>
 
-          <div className="flex overflow-hidden max-w-5xl mx-auto">
-            <div
-              className="flex transition-transform duration-300 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
-            >
-              {cards.map((card, index) => (
-                <div key={index} className="min-w-[33%] md:min-w-[23%] px-2">
-                  <CardComponent
-                    title={card.title}
-                    price={card.price}
-                    oldPrice={card.oldPrice}
-                    discount={card.discount}
-                    parameters={card.parameters}
-                    reportTime={card.reportTime}
-                    onViewDetails={()=>handleViewDetails(card)}
-                    onAddToCart={() => handleAddToCart(card)}
-                  />
-                </div>
-              ))}
-            </div>
+      <div className="relative group">
+        {/* Navigation Arrows */}
+        <button
+          onClick={() => handleNavigation('prev')}
+          className="hidden sm:flex absolute -left-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
+          disabled={currentIndex === 0}
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => handleNavigation('next')}
+          className="hidden sm:flex absolute -right-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
+          disabled={currentIndex === totalPages - 1}
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Carousel Container */}
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-300 ease-out "
+            style={{
+              transform: `translateX(-${currentIndex * (100 / (window.innerWidth < 768 ? 1 : 2.5))}%) `, 
+              
+            }}
+          >
+            {cards.map((card) => (
+              <div
+                key={card.id}
+                className="flex-shrink-0"
+                style={{
+                  width: window.innerWidth < 768 ? '100%' : `${100 / 2.5}%`, 
+                   
+                }}
+              >
+                <CardComponent
+                  {...card}
+                  onViewDetails={() => handleViewDetails(card)}
+                  onAddToCart={() => handleAddToCart(card)}
+                  className="flex flex-col items-center"
+                />
+              </div>
+            ))}
           </div>
+        </div>
 
+
+        {/* Mobile Navigation Buttons */}
+        <div className="sm:hidden flex justify-center gap-4 mt-6">
           <button
-            onClick={next}
-            className='absolute right-0 md:right-4 top-1/2 transform -translate-y-1/2 text-black border-black border-[1px] rounded-full px-3 py-1'
+            onClick={() => handleNavigation('prev')}
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+            disabled={currentIndex === 0}
           >
-            ❯
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={() => handleNavigation('next')}
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+            disabled={currentIndex === totalPages - 1}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 
-        {/* Pagination */}
-        <div className="flex justify-center mt-4 text-xs space-x-2">
-          
-
-          {/* Dots for remaining pages */}
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <span key={i} className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-orange-500' : 'bg-gray-500'}`}></span>
+        {/* Pagination Indicators */}
+        <div className="flex justify-center mt-8 space-x-2">
+          {Array.from({ length: totalPages }).map((_, idx) => (
+            <button
+              key={idx}
+              className={`w-2 h-2 rounded-full transition-colors ${idx === currentIndex ? 'bg-orange-600' : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              aria-label={`Go to page ${idx + 1}`}
+              onClick={() => setCurrentIndex(idx)}
+            />
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
