@@ -51,3 +51,10 @@
     animation: moveBall3 7s ease-in-out infinite;
   }
 }
+
+.card-container {
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}

@@ -5,7 +5,8 @@ import { VscRepoClone } from "react-icons/vsc";
 
 const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTime, onViewDetails, onAddToCart }) => {
     return (
-        <div className="bg-white shadow-xl rounded-xl p-3 max-w-sm w-full ml-5 mb-5 sm:ml-0">
+        <div className="bg-white shadow-xl rounded-xl p-3 max-w-sm w-full mx-auto sm:mx-0 mb-5">
+            {/* Header Section */}
             <div className="bg-gradient-to-r from-green-800 to-teal-700 text-white p-4 rounded-xl flex flex-col sm:flex-row justify-between">
                 <div className="font-semibold text-lg sm:text-xl">{title}</div>
                 <div className="text-right mt-2 sm:mt-0">
@@ -14,6 +15,8 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
                     <div className="ml-3 mt-1 text-center text-sm bg-green-600 rounded-sm">{discount}</div>
                 </div>
             </div>
+
+            {/* Content Section */}
             <div className="p-4 flex flex-col sm:flex-row justify-between items-center text-gray-700">
                 <div className="flex items-start text-gray-400">
                     <FaDna className="w-6 h-6" />
@@ -32,15 +35,17 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
                     <div className="font-semibold text-gray-800">{reportTime}</div>
                 </div>
             </div>
+
+            {/* Buttons Section */}
             <div className="flex flex-col sm:flex-row justify-around items-center mt-1">
                 <button
-                    className="text-green-600 border border-green-600 rounded-md px-6 font-semibold py-2 mb-2 sm:mb-0 sm:mr-2 hover:bg-green-600 hover:text-white"
+                    className="text-green-600 border border-green-600 rounded-md px-6 font-semibold py-2 mb-2 sm:mb-0 sm:mr-2 hover:bg-green-600 hover:text-white transition duration-300"
                     onClick={onViewDetails}
                 >
                     View Details
                 </button>
                 <button
-                    className="bg-gradient-to-r from-[#ff970a] to-[#ffd59d] text-white rounded-md px-6 font-semibold py-2 hover:bg-orange-600"
+                    className="bg-gradient-to-r from-[#ff970a] to-[#ffd59d] text-white rounded-md px-6 font-semibold py-2 hover:bg-orange-600 transition duration-300"
                     onClick={onAddToCart}
                 >
                     Add to Cart
