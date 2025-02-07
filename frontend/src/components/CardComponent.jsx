@@ -7,7 +7,7 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
     return (
         <div className="bg-white shadow-xl rounded-xl  max-w-[350px] w-full mx-auto sm:mx-0 mb-5">
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-green-900 to-teal-700 text-white p-4 rounded-xl flex flex-col sm:flex-row justify-between">
+            <div className="bg-gradient-to-r from-green-900 to-teal-700 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between">
                 <div className="font-semibold text-sm sm:text-xl">{title}</div>
                 <div className="text-right mt-2 sm:mt-0">
                     <span className="line-through text-sm">{oldPrice}</span>
@@ -37,7 +37,7 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
             </div>
 
             {/* Buttons Section */}
-            <div className="flex flex-col p-3 sm:flex-row justify-around items-center mt-1">
+            <div className="flex flex-col p-3 sm:flex-row justify-around items-center mt-1 text-sm">
                 <button
                     className="text-green-600 border border-green-600 rounded-md px-6 font-semibold py-2 mb-2 sm:mb-0 sm:mr-2 hover:bg-green-600 hover:text-white transition duration-300"
                     onClick={onViewDetails}
