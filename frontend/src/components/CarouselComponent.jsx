@@ -70,7 +70,7 @@ const CarouselComponent = () => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
         4 Full Body Checkups in Bangalore
       </h2>
@@ -79,7 +79,7 @@ const CarouselComponent = () => {
         {/* Navigation Arrows */}
         <button
           onClick={() => handleNavigation('prev')}
-          className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
+          className="hidden sm:flex absolute -left-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
           disabled={currentIndex === 0}
         >
           <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@ const CarouselComponent = () => {
 
         <button
           onClick={() => handleNavigation('next')}
-          className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
+          className="hidden sm:flex absolute -right-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-10"
           disabled={currentIndex === totalPages - 1}
         >
           <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,24 +100,31 @@ const CarouselComponent = () => {
         {/* Carousel Container */}
         <div className="overflow-hidden">
           <div
-            className="flex transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / cardsPerPage)}%)` }}
+            className="flex transition-transform duration-300 ease-out "
+            style={{
+              transform: `translateX(-${currentIndex * (100 / (window.innerWidth < 768 ? 1 : 2.5))}%)`, 
+            }}
           >
             {cards.map((card) => (
               <div
                 key={card.id}
-                className="flex-shrink-0 p-2"
-                style={{ width: `${100 / cardsPerPage}%` }}
+                className="flex-shrink-0"
+                style={{
+                  width: window.innerWidth < 768 ? '100%' : `${100 / 2.5}%`, 
+                  padding: "0 4px", 
+                }}
               >
                 <CardComponent
                   {...card}
                   onViewDetails={() => handleViewDetails(card)}
                   onAddToCart={() => handleAddToCart(card)}
+                  className="flex flex-col items-center"
                 />
               </div>
             ))}
           </div>
         </div>
+
 
         {/* Mobile Navigation Buttons */}
         <div className="sm:hidden flex justify-center gap-4 mt-6">
@@ -146,7 +153,7 @@ const CarouselComponent = () => {
           {Array.from({ length: totalPages }).map((_, idx) => (
             <button
               key={idx}
-              className={`w-2 h-2 rounded-full transition-colors ${idx === currentIndex ? 'bg-gray-600' : 'bg-gray-300 hover:bg-gray-400'
+              className={`w-2 h-2 rounded-full transition-colors ${idx === currentIndex ? 'bg-orange-600' : 'bg-gray-300 hover:bg-gray-400'
                 }`}
               aria-label={`Go to page ${idx + 1}`}
               onClick={() => setCurrentIndex(idx)}

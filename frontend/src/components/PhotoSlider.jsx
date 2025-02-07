@@ -61,16 +61,16 @@ const ImageSlider = () => {
       {/* Previous Button */}
       <button
         onClick={prevSlide}
-        className="hidden sm:block absolute top-1/2 transform -translate-y-1/2 text-black border border-black px-2 py-1 rounded-full hover:bg-opacity-75 md:left-4 lg:-left-20"
-      >
+        className="hidden sm:flex absolute -left-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 px-4 shadow-lg hover:shadow-xl transition-shadow z-10"
+        >
         &#10094;
       </button>
 
       {/* Next Button */}
       <button
         onClick={nextSlide}
-        className="hidden sm:block absolute top-1/2 transform -translate-y-1/2 text-black border border-black px-2 py-1 rounded-full hover:bg-opacity-75 md:right-4 lg:-right-20"
-      >
+        className="hidden sm:flex absolute -right-24 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 px-4 shadow-lg hover:shadow-xl transition-shadow z-10"
+        >
         &#10095;
       </button>
 
