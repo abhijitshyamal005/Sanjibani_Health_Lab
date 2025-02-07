@@ -5,10 +5,10 @@ import { VscRepoClone } from "react-icons/vsc";
 
 const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTime, onViewDetails, onAddToCart }) => {
     return (
-        <div className="bg-white shadow-xl rounded-xl p-3 max-w-sm w-full mx-auto sm:mx-0 mb-5">
+        <div className="bg-white shadow-xl rounded-xl  max-w-[350px] w-full mx-auto sm:mx-0 mb-5">
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-green-800 to-teal-700 text-white p-4 rounded-xl flex flex-col sm:flex-row justify-between">
-                <div className="font-semibold text-lg sm:text-xl">{title}</div>
+            <div className="bg-gradient-to-r from-green-900 to-teal-700 text-white p-4 rounded-xl flex flex-col sm:flex-row justify-between">
+                <div className="font-semibold text-sm sm:text-xl">{title}</div>
                 <div className="text-right mt-2 sm:mt-0">
                     <span className="line-through text-sm">{oldPrice}</span>
                     <span className="ml-2 text-lg font-bold">{price}</span>
@@ -17,7 +17,7 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
             </div>
 
             {/* Content Section */}
-            <div className="p-4 flex flex-col sm:flex-row justify-between items-center text-gray-700">
+            <div className="p-4 flex flex-col sm:flex-row justify-between items-center  text-gray-700">
                 <div className="flex items-start text-gray-400">
                     <FaDna className="w-6 h-6" />
                 </div>
@@ -37,7 +37,7 @@ const CardComponent = ({ title, price, oldPrice, discount, parameters, reportTim
             </div>
 
             {/* Buttons Section */}
-            <div className="flex flex-col sm:flex-row justify-around items-center mt-1">
+            <div className="flex flex-col p-3 sm:flex-row justify-around items-center mt-1">
                 <button
                     className="text-green-600 border border-green-600 rounded-md px-6 font-semibold py-2 mb-2 sm:mb-0 sm:mr-2 hover:bg-green-600 hover:text-white transition duration-300"
                     onClick={onViewDetails}

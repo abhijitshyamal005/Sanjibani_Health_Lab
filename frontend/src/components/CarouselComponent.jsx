@@ -70,8 +70,8 @@ const CarouselComponent = () => {
   };
 
   return (
-    <section className=" max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+    <section className=" max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-8 md:text-start">
         5 Full Body Checkups in Kolkata
       </h2>
 

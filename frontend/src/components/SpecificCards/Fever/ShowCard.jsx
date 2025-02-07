@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import CardComponent from '../../CardComponent.jsx';
 import { useNavigate } from 'react-router-dom'; 
 import WhatsappImg from '../../WhatsappImg.jsx';
@@ -18,9 +19,8 @@ const cards = [
 ];
 
 const CarouselComponent = () => {
-  const navigate = useNavigate(); 
-    const { refreshCart } = useCart(); 
-
+  const navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   const handleViewDetails = (card) => {
     navigate('/view-details', { state: { selectedTest: card } });
@@ -29,40 +29,34 @@ const CarouselComponent = () => {
   const handleAddToCart = async (product) => {
     const token = localStorage.getItem('token');
     if (!token) {
-        toast.error("Please login first!");
-        navigate('/login');
-        return;
+      toast.error("Please login first!");
+      navigate('/login');
+      return;
     }
 
     if (!product || !product.id) {
-        toast.error("Invalid product or product ID.");
-        return;
+      toast.error("Invalid product or product ID.");
+      return;
     }
 
     try {
-        await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
-        refreshCart();
-        toast.success(`Added "${product.title}" to cart!`);
-    // eslint-disable-next-line no-unused-vars
+      await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
+      refreshCart();
+      toast.success(`Added "${product.title}" to cart!`);
     } catch (error) {
-        toast.error("Failed to add to cart.");
+      toast.error("Failed to add to cart.");
     }
-};
+  };
 
   return (
     <>
-      <div className="flex flex-col items-center mt-8 md:mt-16 mb-10 px-4">
-        <h2 className="text-lg sm:text-xl md:text-2xl text-gray-500 font-bold text-center mb-6">
-          Showing 5 tests/checkups Body Checkups in Kolkata
-        </h2>
+      <div className="flex flex-col items-center mt-32 justify-center mb-10">
+        <h2 className="text-xl text-gray-500 font-bold text-start mb-6">Showing 6 Cardiac Tests in Kolkata</h2>
 
-        {/* Display all cards in a grid layout and center them */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+        {/* Display all cards in a grid layout without gap */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0 mt-8 w-full max-w-6xl px-4">
           {cards.map((card, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg p-4 shadow-md mx-auto"
-            >
+            <div key={index} className="w-full bg-white rounded-lg p-4"> {/* Set card width to full */}
               <CardComponent
                 title={card.title}
                 price={card.price}
@@ -70,14 +64,14 @@ const CarouselComponent = () => {
                 discount={card.discount}
                 parameters={card.parameters}
                 reportTime={card.reportTime}
-                onViewDetails={() => handleViewDetails(card)} 
-                onAddToCart={() => handleAddToCart(card)} 
+                onViewDetails={() => handleViewDetails(card)} // Pass the link handler
+                onAddToCart={() => handleAddToCart(card)}
               />
             </div>
           ))}
         </div>
       </div>
-      <WhatsappImg/>
+      <WhatsappImg />
     </>
   );
 };

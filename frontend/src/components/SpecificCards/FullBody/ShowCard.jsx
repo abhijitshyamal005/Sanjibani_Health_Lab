@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import CardComponent from '../../CardComponent.jsx';
 import { useNavigate } from 'react-router-dom';
 import WhatsappImg from '../../WhatsappImg.jsx';
@@ -40,7 +41,6 @@ const CarouselComponent = () => {
       await addToCart(product.id, 1, { title: product.title, price: product.price }, token);
       refreshCart();
       toast.success(`Added "${product.title}" to cart!`);
-      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Failed to add to cart.");
     }
@@ -48,16 +48,13 @@ const CarouselComponent = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center mt-16 sm:mt-24 mb-10 px-4">
-        <h2 className="text-lg sm:text-xl lg:text-2xl text-gray-500 font-bold text-center mb-6">Showing Body Checkups in Kolkata</h2>
+      <div className="flex flex-col items-center mt-32 justify-center mb-10">
+        <h2 className="text-xl text-gray-500 font-bold text-start mb-6">Showing 6 Cardiac Tests in Kolkata</h2>
 
-        {/* Display all cards in a grid layout and center them */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+        {/* Display all cards in a grid layout without gap */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0 mt-8 w-full max-w-6xl px-4">
           {cards.map((card, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md p-4" 
-            >
+            <div key={index} className="w-full bg-white rounded-lg p-4"> {/* Set card width to full */}
               <CardComponent
                 title={card.title}
                 price={card.price}
