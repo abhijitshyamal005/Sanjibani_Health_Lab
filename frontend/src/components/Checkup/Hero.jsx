@@ -7,52 +7,47 @@ import { Link } from 'react-router-dom';
 function HeroSection() {
     return (
         <>
-            {/* Breadcrumb */}
-            <div className='flex items-center ml-4 mt-3 text-sm md:ml-10 lg:ml-52'>
-                <Link to='/' className='font-semibold text-gray-500 text-xs md:text-sm'>Home {'>'}</Link>
-                <span className='ml-2 font-semibold  text-gray-600 text-xs md:text-sm'>Health Checkups Kolkata</span>
+            <div className='flex items-center ml-4 md:ml-8 lg:ml-52 mt-3 text-xs md:text-sm'>
+                <Link to='/' className='font-semibold text-gray-500'>Home {'>'}</Link>
+                <span className='ml-4 font-semibold text-gray-600'>Health Checkups Kolkata</span>
             </div>
-            
-            {/* Hero Section */}
-            <div className="relative flex flex-col md:flex-row justify-center mt-6 md:mt-10">
+
+            <div className="relative flex flex-col items-center mt-3">
                 <img
                     src={heroImg}
                     alt="hero img"
-                    className="w-full md:w-3/4 lg:max-w-[1100px] object-contain relative z-10"
+                    className="w-full max-w-[1100px] object-contain relative z-10"
                 />
 
                 {/* Text Section on the left side of the image */}
-                <div className="absolute w-full md:w-1/2 lg:max-w-xl left-0 -mt-16 md:mt-10 md:-ml-11 md:left-1/4 p-4 px-6 md:px-10 z-20">
-                    <h2 className="text-xl md:text-2xl lg:w-full w-3/4   font-bold text-gray-600 mb-4">Full Body Checkups in Kolkata.</h2>
-                    <p className="text-gray-700 text-sm md:text-base font-semibold leading-relaxed mt-3 hidden md:block">
-                        In today's fast-paced world, it's essential to prioritize your health and not let it take a back seat. Experience hassle-free testing by booking our comprehensive full body checkup near you in Kolkata.
-                    </p>
+                <div className="absolute top-1/4 left-1/3 md:-mt-9 transform -translate-x-1/2 max-w-xl p-4 px-6 lg:px-10 z-20">
+                    <h2 className="text-xl md:text-3xl lg:text-4xl md:mt-0 -mt-10 font-bold text-gray-600 mb-4">Full Body Checkups in Kolkata.</h2>
+                    <p className="text-gray-700 mt-4 text-sm md:text-base font-semibold leading-relaxed hidden md:block">
+                    In today's fast-paced world, it's essential to prioritize your health and not let it take a back seat. Experience hassle-free testing by booking our comprehensive full body checkup near you in Kolkata.                    </p>
                     <p className="text-gray-700 text-sm md:text-base font-semibold leading-relaxed mt-4 hidden md:block">
-                        Leave all your health worries to us and ensure a thorough examination of your entire body in the comfort of your own home!
-                    </p>
+                    Leave all your health worries to us and ensure a thorough examination of your entire body in the comfort of your own home!                    </p>
                 </div>
 
                 {/* Animated Blurred Balls */}
-                <div className="absolute top-8 left-1/4 w-20 h-20 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall1 z-20 hidden md:block"></div>
-                <div className="absolute top-9 left-2/3 w-12 h-12 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall2 z-20 hidden md:block"></div>
-                <div className="absolute bottom-7 right-1/4 w-24 h-24 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall3 z-20 hidden md:block"></div>
+                <div className="absolute top-8 left-1/4 w-20 h-20 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall1 z-20"></div>
+                <div className="absolute top-9 left-2/3 w-12 h-12 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall2 z-20"></div>
+                <div className="absolute bottom-7 right-1/4 w-24 h-24 bg-[#ffb222] rounded-full blur-[20px] opacity-70 animate-moveBall3 z-20"></div>
             </div>
 
-            {/* Search Section */}
-            <div className="bg-white bg-opacity-35 backdrop-blur-lg py-6 px-4 rounded-lg shadow-md w-full max-w-lg mx-auto -mt-14 relative z-30">
-                <div className="flex items-center">
+            <div className="bg-white bg-opacity-35 backdrop-blur-lg py-6 px-4 rounded-[25px] shadow-md w-full max-w-lg mx-auto -mt-14 relative z-30">
+                {/* Background matching the width of the search component */}
+                <div className="flex items-center justify-start">
                     <div className="relative w-full">
                         <input
                             type="text"
                             placeholder="Search for tests"
-                            className="w-full px-4 py-3 pr-12 text-lg rounded-lg border-2 border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                            className="w-full px-4 py-3 pr-12 text-lg rounded-[15px] border-2 border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300"
                         />
                         <LuSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-7 w-7" />
                     </div>
                 </div>
             </div>
 
-            {/* Offer Section */}
             <div className="text-center mt-6 md:mt-8 px-4">
                 <p className="text-sm md:text-base text-gray-600">
                     Get <span className="text-orange-500 font-semibold">15% OFF*</span> on orders above ₹500 | 
