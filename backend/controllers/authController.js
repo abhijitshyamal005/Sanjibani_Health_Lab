@@ -67,7 +67,7 @@ export const verifyemail = async (req, res) => {
             isVerified: true,
         });
         verificationCodes.delete(email);
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
         res.status(201).json({ message: "Email verified successfully!", token, userId: user._id });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -94,7 +94,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials." });
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
         // Send back the user object along with token and userId
         res.status(200).json({
@@ -105,7 +105,6 @@ export const login = async (req, res) => {
                 _id: user._id,
                 email: user.email,
                 name: user.name, 
-                // Add any other fields you need
             },
         });
     } catch (err) {
