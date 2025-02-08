@@ -22,7 +22,7 @@ export default function Signup() {
         setSuccessMessage('');
 
         try {
-            await axios.post('http://localhost:5000/api/auth/register', {
+            await axios.post('https://sanjibanihealth-lab.onrender.com/api/auth/register', {
                 name, email, mobileNumber, password
             });
             setSuccessMessage('A verification code has been sent to your email.');
@@ -40,7 +40,7 @@ export default function Signup() {
         setSuccessMessage('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/verifyemail', { email, verificationCode });
+            const response = await axios.post('https://sanjibanihealth-lab.onrender.com/api/auth/verifyemail', { email, verificationCode });
             if (response.data.token) {
                 setIsVerified(true);
                 setShowPopup(true);
