@@ -5,7 +5,7 @@ export const addToCart = async (productId, quantity, productData, token) => {
     }
     const parsedPrice = parseFloat(rawPrice);
 
-    const response = await fetch('http://localhost:5000/api/cart/add', {
+    const response = await fetch('https://sanjibanihealth-lab.onrender.com/api/cart/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ export const addToCart = async (productId, quantity, productData, token) => {
 };
 
 export const fetchCart = async (token) => {
-    const response = await fetch('http://localhost:5000/api/cart', {
+    const response = await fetch('https://sanjibanihealth-lab.onrender.com/api/cart', {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     return await response.json();
@@ -41,7 +41,7 @@ export const removeItemFromCart = async (productName, productPrice, token, _id) 
             throw new Error('Invalid price format');
         }
 
-        const response = await fetch('http://localhost:5000/api/cart/remove', {
+        const response = await fetch('https://sanjibanihealth-lab.onrender.com/api/cart/remove', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
