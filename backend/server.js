@@ -16,7 +16,7 @@ connectDB();
 
 // Middleware to handle CORS and JSON parsing
 app.use(cors({
-  origin: ["http://localhost:5173"], 
+  origin: ["https://sanjibani-health-lab.vercel.app"], 
   methods: ["POST", "GET","PUT", "DELETE"],
   credentials: true,
 }));
