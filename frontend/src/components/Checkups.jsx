@@ -21,17 +21,17 @@ const Checkups = () => {
         </div>
 
         {/* Checkup Cards Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-2 xl:grid-cols-2 justify-items-center gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 justify-items-center gap-4 sm:gap-5">
           {/* Full Body Checkup */}
           <Link
             to='/full-body'
-            className="flex flex-col justify-center items-center bg-gradient-to-t from-[#ff970a] to-[#ffd59d] p-6 h-56 w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
+            className="flex flex-col justify-center items-center bg-gradient-to-t from-[#ff970a] to-[#ffd59d] p-4 sm:p-6 h-40 w-40 sm:h-48 sm:w-48 md:h-56 md:w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
           >
             <div className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full">
               <span className="text-xl text-orange-400">{'>'}</span>
             </div>
-            <p className="text-white text-lg sm:text-xl font-semibold mt-4 mb-2">Full Body Checkup</p>
-            <div className="text-white text-3xl">
+            <p className="text-white text-base sm:text-lg md:text-xl font-semibold mt-4 mb-2">Full Body Checkup</p>
+            <div className="text-white text-2xl sm:text-3xl">
               👨‍👩‍👧‍👦
             </div>
           </Link>
@@ -39,35 +39,35 @@ const Checkups = () => {
           {/* Sexual Health */}
           <Link
             to='/sex-health'
-            className="flex flex-col justify-center items-center bg-gradient-to-r from-green-600 to-teal-100 p-6 h-56 w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
+            className="flex flex-col justify-center items-center bg-gradient-to-r from-green-600 to-teal-100 p-4 sm:p-6 h-40 w-40 sm:h-48 sm:w-48 md:h-56 md:w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
           >
             <div className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full">
               <span className="text-xl text-green-400">{'>'}</span>
             </div>
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-2">Sexual Health</h3>
+            <h3 className="text-white text-base sm:text-lg md:text-xl font-semibold mb-2">Sexual Health</h3>
           </Link>
 
           {/* Heart Checkup */}
           <Link
             to='/heart'
-            className="flex flex-col justify-center items-center bg-gradient-to-l from-green-600 to-teal-100 p-6 h-56 w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
+            className="flex flex-col justify-center items-center bg-gradient-to-l from-green-600 to-teal-100 p-4 sm:p-6 h-40 w-40 sm:h-48 sm:w-48 md:h-56 md:w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
           >
             <div className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full">
               <span className="text-xl text-green-400">{'>'}</span>
             </div>
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-2">Heart Checkup</h3>
+            <h3 className="text-white text-base sm:text-lg md:text-xl font-semibold mb-2">Heart Checkup</h3>
           </Link>
 
           {/* Fever Checkup */}
           <Link
             to='/fever'
-            className="flex flex-col justify-center items-center bg-gradient-to-b from-[#ff970a] to-[#ffd59d] p-6 h-56 w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
+            className="flex flex-col justify-center items-center bg-gradient-to-b from-[#ff970a] to-[#ffd59d] p-4 sm:p-6 h-40 w-40 sm:h-48 sm:w-48 md:h-56 md:w-56 rounded-xl shadow-sm relative hover:shadow-md transition-shadow duration-100"
           >
             <div className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full">
               <span className="text-xl text-orange-400">{'>'}</span>
             </div>
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-2">Fever Checkup</h3>
-            <div className="text-white text-3xl">🌡️</div>
+            <h3 className="text-white text-base sm:text-lg md:text-xl font-semibold mb-2">Fever Checkup</h3>
+            <div className="text-white text-2xl sm:text-3xl">🌡️</div>
           </Link>
         </div>
       </div>
