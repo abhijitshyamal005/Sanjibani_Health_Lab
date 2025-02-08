@@ -39,7 +39,6 @@ export default function Cart({ onClose }) {
                 setLoading(false);
             }
         };
-
         loadCartData();
     }, [cartVersion]);
 
@@ -51,16 +50,13 @@ export default function Cart({ onClose }) {
                 navigate('/login');
                 return;
             }
-
             await removeItemFromCart(productName, productPrice, token, _id);
             await refreshCart();
             toast.success('Item removed successfully');
         } catch (err) {
             toast.error(`Removal failed: ${err.message}`);
         }
-    };
-
-    const handleNavigation = async () => {
+    };    const handleNavigation = async () => {
         try {
             const user = await getUserDetails();
             onClose();
@@ -69,7 +65,6 @@ export default function Cart({ onClose }) {
             toast.error('Navigation failed');
         }
     };
-
     if (error) {
         return (
             <div className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl p-4">
@@ -77,16 +72,14 @@ export default function Cart({ onClose }) {
             </div>
         );
     }
-
     return (
         <div className="fixed top-0 right-0 h-full w-full sm:w-[440px] bg-[#ebefed] shadow-2xl border-l z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
             <div className="flex justify-between items-center p-6 border-gray-200">
-                <Link onClick={onClose} className="text-base font-semibold text-gray-800">&lt; Back to home</Link>
+                <p onClick={onClose} className="text-base font-semibold text-gray-800">&lt; Back to home</p>
                 <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                     <X className="h-6 w-6 text-gray-600 hover:text-gray-800" />
                 </button>
             </div>
-
             <div className="flex-1 overflow-y-auto p-6">
                 {loading ? (
                     <p className="text-gray-500">Loading cart...</p>
@@ -124,13 +117,11 @@ export default function Cart({ onClose }) {
                     </div>
                 )}
             </div>
-
             {cartItems.length > 0 && (
                 <div className="bg-[#01B37A] text-white">
                     <p className="text-sm text-center p-2">Get <span className="font-semibold">15% OFF*</span> on 1st order above <span className="font-semibold">₹500</span> Use: <span className="font-semibold text-xs rounded-lg bg-green-600 p-1">SANJIBANI003</span></p>
                 </div>
             )}
-
             {cartItems.length > 0 && (
                 <div className="p-6 border-t border-gray-200 bg-white flex justify-between items-center">
                     <div className="flex items-center gap-4">
