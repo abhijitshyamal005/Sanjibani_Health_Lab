@@ -157,7 +157,7 @@ const FullBodyCheckupCard = () => {
               </div>
               <button
                 onClick={handleAddToCart}
-                className="bg-gradient-to-t from-[#f3ab46] to-[#ffb347] font-bold text-white px-6 py-2 text-lg rounded-lg hover:opacity-90 transition-opacity"
+                className="bg-gradient-to-t from-[#f3ab46] to-[#ffb347] font-bold text-white md:px-6 py-2 px-3 text-sm md:text-lg rounded-lg hover:opacity-90 transition-opacity"
               >
                 {checkupData.priceDetails.cartButton}
               </button>
