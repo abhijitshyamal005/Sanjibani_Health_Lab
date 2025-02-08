@@ -49,42 +49,42 @@ function HeroSection() {
                 </div>
             </div>
 
-            <div className="mt-4 text-center text-gray-600 text-xs md:text-sm">
-                Get <span className='text-orange-500 font-medium'>15% OFF*</span> on orders above <span className='font-semibold'>₹500</span> | Use: <span className='font-semibold'>RXTU4569</span>
+            <div className="text-center mt-6 md:mt-8 px-4">
+                <p className="text-sm md:text-base text-gray-600">
+                    Get <span className="text-orange-500 font-semibold">15% OFF*</span> on orders above ₹500 | 
+                    Use code: <span className="font-semibold text-gray-700">RXTU4569</span>
+                </p>
             </div>
 
-            {/* Additional Section below the offer with margin */}
-            <div className="flex flex-col md:flex-row justify-center gap-8 mt-10 px-4">
-                {/* In-house labs */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-6">
-                    <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaFlask className="w-6 h-6 text-[#ff970a]" />
+            {/* Features Grid - Improved mobile layout */}
+            <div className="grid md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 px-4 max-w-6xl mx-auto">
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaFlask className="text-orange-500 text-xl" />
                     </div>
-                    <div className='ml-4 md:ml-6'>
-                        <div className="text-gray-700 font-medium">In-house labs</div>
-                        <div className="text-gray-500 text-sm">NABL certified</div>
-                    </div>
-                </div>
-
-                {/* 60 mins collection */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-6">
-                    <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaClock className="w-6 h-6 text-[#ff970a]" />
-                    </div>
-                    <div className='ml-4 md:ml-6'>
-                        <div className="text-gray-700 font-medium">60 mins collection</div>
-                        <div className="text-gray-500 text-sm">6 AM - 10 PM</div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">NABL Certified Labs</h3>
+                        <p className="text-sm text-gray-500">Accurate & Reliable Testing</p>
                     </div>
                 </div>
 
-                {/* Reports in 6 hours */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-6">
-                    <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaFileAlt className="w-6 h-6 text-[#ff970a]" />
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaClock className="text-orange-500 text-xl" />
                     </div>
-                    <div className='ml-4 md:ml-6'>
-                        <div className="text-gray-700 font-medium">Reports in</div>
-                        <div className="text-gray-500 text-sm">6 hours</div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">Quick Sample Collection</h3>
+                        <p className="text-sm text-gray-500">6 AM - 10 PM Daily</p>
+                    </div>
+                </div>
+
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaFileAlt className="text-orange-500 text-xl" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">Fast Digital Reports</h3>
+                        <p className="text-sm text-gray-500">Within 6 Hours</p>
                     </div>
                 </div>
             </div>

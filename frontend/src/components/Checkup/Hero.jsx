@@ -10,7 +10,7 @@ function HeroSection() {
             {/* Breadcrumb */}
             <div className='flex items-center ml-4 mt-3 text-sm md:ml-10 lg:ml-52'>
                 <Link to='/' className='font-semibold text-gray-500 text-xs md:text-sm'>Home {'>'}</Link>
-                <span className='ml-2 font-semibold text-gray-600 text-xs md:text-sm'>Health Checkups Kolkata</span>
+                <span className='ml-2 font-semibold  text-gray-600 text-xs md:text-sm'>Health Checkups Kolkata</span>
             </div>
             
             {/* Hero Section */}
@@ -23,7 +23,7 @@ function HeroSection() {
 
                 {/* Text Section on the left side of the image */}
                 <div className="absolute w-full md:w-1/2 lg:max-w-xl left-0 -mt-16 md:mt-10 md:-ml-11 md:left-1/4 p-4 px-6 md:px-10 z-20">
-                    <h2 className="text-xl md:text-3xl font-bold text-gray-600 mb-4">Full Body Checkups in Kolkata.</h2>
+                    <h2 className="text-xl md:text-2xl lg:w-full w-3/4   font-bold text-gray-600 mb-4">Full Body Checkups in Kolkata.</h2>
                     <p className="text-gray-700 text-sm md:text-base font-semibold leading-relaxed mt-3 hidden md:block">
                         In today's fast-paced world, it's essential to prioritize your health and not let it take a back seat. Experience hassle-free testing by booking our comprehensive full body checkup near you in Kolkata.
                     </p>
@@ -53,42 +53,42 @@ function HeroSection() {
             </div>
 
             {/* Offer Section */}
-            <div className="mt-4 text-center text-gray-600 text-sm md:text-base">
-                Get <span className='text-orange-500 font-medium'>15% OFF*</span> on orders above <span className='font-semibold'>₹500</span> | Use: <span className='font-semibold'>RXTU4569</span>
+            <div className="text-center mt-6 md:mt-8 px-4">
+                <p className="text-sm md:text-base text-gray-600">
+                    Get <span className="text-orange-500 font-semibold">15% OFF*</span> on orders above ₹500 | 
+                    Use code: <span className="font-semibold text-gray-700">RXTU4569</span>
+                </p>
             </div>
 
-            {/* Features Section */}
-            <div className="flex flex-wrap justify-center gap-6 mt-8 md:mt-10">
-                {/* In-house labs */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-4 w-full md:w-64">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaFlask className="w-6 h-6 text-[#ff970a]" />
+            {/* Features Grid - Improved mobile layout */}
+            <div className="grid md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 px-4 max-w-6xl mx-auto">
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaFlask className="text-orange-500 text-xl" />
                     </div>
-                    <div className='ml-4'>
-                        <div className="text-gray-700 font-medium">In-house labs</div>
-                        <div className="text-gray-500 text-sm">NABL certified</div>
-                    </div>
-                </div>
-
-                {/* 60 mins collection */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-4 w-full md:w-64">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaClock className="w-6 h-6 text-[#ff970a]" />
-                    </div>
-                    <div className='ml-4'>
-                        <div className="text-gray-700 font-medium">60 mins collection</div>
-                        <div className="text-gray-500 text-sm">6 AM - 10 PM</div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">NABL Certified Labs</h3>
+                        <p className="text-sm text-gray-500">Accurate & Reliable Testing</p>
                     </div>
                 </div>
 
-                {/* Reports in 6 hours */}
-                <div className="flex items-center justify-center rounded-lg bg-white shadow-md p-4 w-full md:w-64">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <FaFileAlt className="w-6 h-6 text-[#ff970a]" />
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaClock className="text-orange-500 text-xl" />
                     </div>
-                    <div className='ml-4'>
-                        <div className="text-gray-700 font-medium">Reports in</div>
-                        <div className="text-gray-500 text-sm">6 hours</div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">Quick Sample Collection</h3>
+                        <p className="text-sm text-gray-500">6 AM - 10 PM Daily</p>
+                    </div>
+                </div>
+
+                <div className="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-orange-100 p-3 rounded-lg mr-4">
+                        <FaFileAlt className="text-orange-500 text-xl" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-1">Fast Digital Reports</h3>
+                        <p className="text-sm text-gray-500">Within 6 Hours</p>
                     </div>
                 </div>
             </div>

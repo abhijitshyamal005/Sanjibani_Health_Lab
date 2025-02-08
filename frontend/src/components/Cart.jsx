@@ -85,6 +85,9 @@ export default function Cart({ onClose }) {
                     <p className="text-gray-500">Loading cart...</p>
                 ) : cartItems.length === 0 ? (
                     <div className="flex flex-col justify-center items-center h-full text-center p-6">
+                        <div className=" bg-gray-200 p-10 rounded-full  mb-4">
+                        <FaShoppingCart className="h-40 w-40 text-gray-400" />
+                        </div>
                         <p className="text-lg font-semibold text-gray-700">Your cart is empty. Please add test / checkup to your cart!</p>
                         <p className="mt-4 text-sm text-gray-600">You can explore our services and find the perfect test or checkup for you and your loved ones.</p>
                         <button 
