@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import { useCart } from "../context/CartContext";
 import { MdDeleteSweep } from "react-icons/md";
 import { FaShoppingCart } from "react-icons/fa";
+import PaymentPopup from "./Checkout";
+
 
 export default function Cart({ onClose }) {
     const navigate = useNavigate();
@@ -16,9 +18,10 @@ export default function Cart({ onClose }) {
     const [totalPrice, setTotalPrice] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+
     const { cartVersion, refreshCart } = useCart();
-    
+
     useEffect(() => {
         const loadCartData = async () => {
             try {
@@ -56,15 +59,23 @@ export default function Cart({ onClose }) {
         } catch (err) {
             toast.error(`Removal failed: ${err.message}`);
         }
-    };    const handleNavigation = async () => {
+    };
+
+    const handleNavigation = async () => {
         try {
             const user = await getUserDetails();
-            onClose();
-            navigate(cartItems.length > 0 ? "/checkout" : user ? "/" : "/login");
+            if (!user) {
+                navigate('/login');
+                onClose();
+                return;
+            }
+            setIsCheckingOut(true);
         } catch (err) {
-            toast.error('Navigation failed');
+            toast.error('Please login to proceed');
+            navigate('/login');
         }
     };
+
     if (error) {
         return (
             <div className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl p-4">
@@ -72,6 +83,7 @@ export default function Cart({ onClose }) {
             </div>
         );
     }
+
     return (
         <div className="fixed top-0 right-0 h-full w-full sm:w-[440px] bg-[#ebefed] shadow-2xl border-l z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
             <div className="flex justify-between items-center p-6 border-gray-200">
@@ -85,13 +97,13 @@ export default function Cart({ onClose }) {
                     <p className="text-gray-500">Loading cart...</p>
                 ) : cartItems.length === 0 ? (
                     <div className="flex flex-col justify-center items-center h-full text-center p-6">
-                        <div className=" bg-gray-200 p-10 rounded-full  mb-4">
-                        <FaShoppingCart className="h-40 w-40 text-gray-400" />
+                        <div className="bg-gray-200 p-10 rounded-full mb-4">
+                            <FaShoppingCart className="h-40 w-40 text-gray-400" />
                         </div>
                         <p className="text-lg font-semibold text-gray-700">Your cart is empty. Please add test / checkup to your cart!</p>
                         <p className="mt-4 text-sm text-gray-600">You can explore our services and find the perfect test or checkup for you and your loved ones.</p>
-                        <button 
-                            onClick={onClose} 
+                        <button
+                            onClick={onClose}
                             className="mt-6 bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-500 text-white py-2 px-6 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 active:scale-95"
                         >
                             Add test/checkups
@@ -126,19 +138,43 @@ export default function Cart({ onClose }) {
                 </div>
             )}
             {cartItems.length > 0 && (
-                <div className="p-6 border-t border-gray-200 bg-white flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <FaShoppingCart className="text-gray-500 bg-gray-100 h-7 w-7 p-1 rounded-md" />
+                <div className="p-6 border-t border-gray-200 bg-white flex flex-col gap-4">
+                    {/* Price Section & Checkout Button in One Row */}
+                    <div className="flex justify-between items-center w-full">
+                        {/* Price Section (Left Side) */}
+                        <div className="flex items-center gap-4">
+                            <FaShoppingCart className="text-gray-500 bg-gray-100 h-7 w-7 p-1 rounded-md" />
+                            <div>
+                                <div className="font-semibold text-lg text-[#01B37A]">₹ {totalPrice.toLocaleString()}</div>
+                                <p className="font-semibold text-sm">{cartItems.length} Checkups</p>
+                            </div>
+                        </div>
                         <div>
-                            <div className="font-semibold text-lg text-[#01B37A]">₹ {totalPrice.toLocaleString()}</div>
-                            <p className="font-semibold text-sm">{cartItems.length} Checkups</p>
+                            {!isCheckingOut ? (
+                                <button
+                                    onClick={handleNavigation}
+                                    className="bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-500 text-white py-2 px-6 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 active:scale-95"
+                                >
+                                    Proceed
+                                </button>
+                            ) : (
+                                <PaymentPopup
+                                    totalPrice={totalPrice}
+                                    cartItems={cartItems}
+                                    refreshCart={refreshCart}
+                                    onClose={() => setIsCheckingOut(false)}
+                                    navigate={navigate}
+                                    onPaymentSuccess={() => {
+                                        setIsCheckingOut(false);
+                                        onClose();
+                                    }}
+                                />
+                            )}
                         </div>
                     </div>
-                    <button onClick={handleNavigation} className="max-w-2xl bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-500 text-white py-2 px-6 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 active:scale-95">
-                        Proceed
-                    </button>
                 </div>
             )}
+
         </div>
     );
 }
