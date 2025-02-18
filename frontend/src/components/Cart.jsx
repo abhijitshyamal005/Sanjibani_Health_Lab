@@ -9,8 +9,7 @@ import { toast } from "react-toastify";
 import { useCart } from "../context/CartContext";
 import { MdDeleteSweep } from "react-icons/md";
 import { FaShoppingCart } from "react-icons/fa";
-import PaymentPopup from "./Checkout";
-
+import { PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function Cart({ onClose }) {
     const navigate = useNavigate();
@@ -19,6 +18,7 @@ export default function Cart({ onClose }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [userDetail, setUserDetail] = useState(null);
 
     const { cartVersion, refreshCart } = useCart();
 
@@ -45,6 +45,18 @@ export default function Cart({ onClose }) {
         loadCartData();
     }, [cartVersion]);
 
+    useEffect(() => {
+        const loadUser = async () => {
+            try {
+                const user = await getUserDetails();
+                setUserDetail(user);
+            } catch (error) {
+                setUserDetail(null);
+            }
+        };
+        loadUser();
+    }, []);
+
     const handleRemoveItem = async (productName, productPrice, _id) => {
         try {
             const token = localStorage.getItem('token');
@@ -65,6 +77,7 @@ export default function Cart({ onClose }) {
         try {
             const user = await getUserDetails();
             if (!user) {
+                toast.error('Please login to proceed');
                 navigate('/login');
                 onClose();
                 return;
@@ -139,9 +152,7 @@ export default function Cart({ onClose }) {
             )}
             {cartItems.length > 0 && (
                 <div className="p-6 border-t border-gray-200 bg-white flex flex-col gap-4">
-                    {/* Price Section & Checkout Button in One Row */}
                     <div className="flex justify-between items-center w-full">
-                        {/* Price Section (Left Side) */}
                         <div className="flex items-center gap-4">
                             <FaShoppingCart className="text-gray-500 bg-gray-100 h-7 w-7 p-1 rounded-md" />
                             <div>
@@ -158,23 +169,49 @@ export default function Cart({ onClose }) {
                                     Proceed
                                 </button>
                             ) : (
-                                <PaymentPopup
-                                    totalPrice={totalPrice}
-                                    cartItems={cartItems}
-                                    refreshCart={refreshCart}
-                                    onClose={() => setIsCheckingOut(false)}
-                                    navigate={navigate}
-                                    onPaymentSuccess={() => {
-                                        setIsCheckingOut(false);
-                                        onClose();
-                                    }}
-                                />
+                                <div className="paypal-buttons-container">
+                                    <PayPalButtons
+                                        style={{ layout: "horizontal" }}
+                                        disabled={!userDetail}
+                                        createOrder={(data, actions) => {
+                                            return actions.order.create({
+                                                purchase_units: [
+                                                    {
+                                                        amount: {
+                                                            value: totalPrice.toFixed(2),
+                                                            currency_code: "INR"
+                                                        }
+                                                    }
+                                                ]
+                                            });
+                                        }}
+                                        onApprove={async (data, actions) => {
+                                            try {
+                                                await actions.order.capture();
+                                                toast.success("Payment successful!");
+                                                await refreshCart();
+                                                onClose();
+                                                setIsCheckingOut(false);
+                                                navigate('/order-success');
+                                            } catch (err) {
+                                                toast.error("Payment processing failed.");
+                                            }
+                                        }}
+                                        onCancel={() => {
+                                            toast.info("Payment cancelled.");
+                                            setIsCheckingOut(false);
+                                        }}
+                                        onError={(err) => {
+                                            toast.error("Payment error: " + err.message);
+                                            setIsCheckingOut(false);
+                                        }}
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
             )}
-
         </div>
     );
 }
