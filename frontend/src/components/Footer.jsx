@@ -51,12 +51,12 @@ const Footer = () => {
 
                         <div>
                             <h3 className="font-semibold text-base"><span className='font-thin'>Q5:</span> Can I cancel a test booking?</h3>
-                            <p className='mt-3 text-sm text-gray-600'>For any queries about canceling a test booking, just chat with us via WhatsApp at 9008111144. We’re here to help, and we’ll get back to you in a flash!</p>
+                            <p className='mt-3 text-sm text-gray-600'>For any queries about canceling a test booking, just chat with us via WhatsApp at 6296390743. We’re here to help, and we’ll get back to you in a flash!</p>
                         </div>
 
                         <div>
                             <h3 className="font-semibold text-base"><span className='font-thin'>Q6:</span> Can I reschedule a booked test?</h3>
-                            <p className='mt-3 text-sm text-gray-600'>If the need to reschedule a booked test arises or if you’re seeking answers on our diagnostic lab services, simply chat with us via WhatsApp at 9008111144. Our team is primed to swiftly address your queries and provide the support you seek.</p>
+                            <p className='mt-3 text-sm text-gray-600'>If the need to reschedule a booked test arises or if you’re seeking answers on our diagnostic lab services, simply chat with us via WhatsApp at 6296390743. Our team is primed to swiftly address your queries and provide the support you seek.</p>
                         </div>
                     </div>
                 </div>

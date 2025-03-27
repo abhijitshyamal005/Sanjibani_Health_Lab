@@ -6,7 +6,7 @@ import OfferHead from './OfferHead';
 function AppLayout() {
   const location = useLocation();
 
-  const isExcludedPage = ['/', '/Login', '/Signup'].includes(location.pathname);
+  const isExcludedPage = ['/', '/login', '/signup'].includes(location.pathname);
 
   return (
     <>

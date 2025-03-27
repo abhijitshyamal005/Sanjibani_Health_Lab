@@ -11,8 +11,7 @@ export default function LoginPopup() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    // eslint-disable-next-line no-unused-vars
+    const [isLoading, setIsLoading] = useState(false);  
     const [ userId, setUserId] = useState('');
     const navigate = useNavigate();
 

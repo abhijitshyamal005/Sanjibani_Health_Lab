@@ -23,13 +23,9 @@ import Checkup from './pages/Checkup.jsx';
 import ViewDetails from '../src/components/ViewDetails/ViewDetails.jsx';
 import FullBody  from './pages/FullBody.jsx';
 import Heart from './pages/Heart.jsx';
-
 import Liver from './pages/Liver.jsx';
-
 import Kidney from './pages/Kidney.jsx';  
-
 import Fiver from './pages/Fiver.jsx';
-
 import SexHealth from './pages/SexHealth.jsx';
 import Signup from './pages/Signup.jsx';
 import Login from './pages/Login.jsx';
