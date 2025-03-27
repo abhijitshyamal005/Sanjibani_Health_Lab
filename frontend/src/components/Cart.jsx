@@ -21,7 +21,7 @@ export default function Cart({ onClose }) {
     const [userDetail, setUserDetail] = useState(null);
 
     const { cartVersion, refreshCart } = useCart();
-    const user = getUserDetails();
+    const user1 = localStorage.getItem("user");
 
     useEffect(() => {
         const loadCartData = async () => {
@@ -119,7 +119,7 @@ export default function Cart({ onClose }) {
                         <button
                             onClick={() => {
                                 onClose();
-                                if (!user) navigate("/login");
+                                if (!user1) navigate("/login");
                             }}
                             className="mt-6 bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-500 text-white py-2 px-6 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 active:scale-95"
                         >
