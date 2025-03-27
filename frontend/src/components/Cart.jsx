@@ -116,7 +116,10 @@ export default function Cart({ onClose }) {
                         <p className="text-lg font-semibold text-gray-700">Your cart is empty. Please add test / checkup to your cart!</p>
                         <p className="mt-4 text-sm text-gray-600">You can explore our services and find the perfect test or checkup for you and your loved ones.</p>
                         <button
-                            onClick={onClose}
+                            onClick={() => {
+                                onClose();
+                                navigate("/login");
+                            }}
                             className="mt-6 bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-500 text-white py-2 px-6 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 active:scale-95"
                         >
                             Add test/checkups
