@@ -95,7 +95,6 @@ function App() {
           <Route path={router.Login} element={<Login/>} />
           <Route path={router.Signup} element={<Signup/>} />
           {/* Add more routes as needed */}
-
         </Route>
 
         {/* For routes without header/footer */}
