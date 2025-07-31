@@ -31,6 +31,16 @@ const sendVerificationEmail = async (email, code) => {
     await transporter.sendMail(mailOptions);
 };
 
+const ConfirmationMail = async (email, name) => {
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Welcome to SanjiBani HealthLab",
+        text: `Dear ${name},\n\nThank you for registering with SanjiBani HealthLab! Your account has been successfully created.\n\nBest regards,\nSanjiBani HealthLab Team`,
+    };
+    await transporter.sendMail(mailOptions);
+}
+
 // Register User (Step 1)
 export const register = async (req, res) => {
     const { name, email, mobileNumber, password } = req.body;
@@ -66,6 +76,8 @@ export const verifyemail = async (req, res) => {
             password: hashedPassword,
             isVerified: true,
         });
+        // Send confirmation email
+        await ConfirmationMail(storedData.email, storedData.name);
         verificationCodes.delete(email);
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
         res.status(201).json({ message: "Email verified successfully!", token, userId: user._id });
