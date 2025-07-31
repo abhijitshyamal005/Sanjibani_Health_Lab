@@ -35,8 +35,8 @@ const ConfirmationMail = async (email, name) => {
     const mailOptions = {
         from: process.env.EMAIL,
         to: email,
-        subject: "Welcome to SanjiBani HealthLab",
-        text: `Dear ${name},\n\nThank you for registering with SanjiBani HealthLab! Your account has been successfully created.\n\nBest regards,\nSanjiBani HealthLab Team`,
+        subject: "Welcome to SanjiBani HealthLab – Your Account is Ready!",
+        text: `Dear ${name},\n\nThank you for registering with SanjiBani HealthLab. Your account has been successfully created, and you now have access to our healthcare services and tools.\n\nWe’re excited to have you on board and look forward to supporting your health journey. If you have any questions, feel free to reach out to our support team.\n\nBest regards,\nSanjiBani HealthLab Team\nEmail:support@sanjibanihealthlab.com\nPhone: +91-6296390743\n\n`,
     };
     await transporter.sendMail(mailOptions);
 }
