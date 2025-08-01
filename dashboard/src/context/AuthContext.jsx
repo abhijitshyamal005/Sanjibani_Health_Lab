@@ -16,19 +16,41 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if admin is logged in from localStorage
+    // Check if admin is logged in from localStorage and not expired (2h)
     const adminData = localStorage.getItem('adminData');
     if (adminData) {
-      setAdmin(JSON.parse(adminData));
-      setIsAuthenticated(true);
+      const parsed = JSON.parse(adminData);
+      const now = Date.now();
+      // 2 hours in ms = 2 * 60 * 60 * 1000 = 7200000
+      if (
+        parsed.username === 'abhijitshyamal005@gmail.com' &&
+        parsed.loginTime &&
+        now - parsed.loginTime < 7200000
+      ) {
+        setAdmin(parsed);
+        setIsAuthenticated(true);
+      } else {
+        setAdmin(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('adminData');
+      }
+    } else {
+      setAdmin(null);
+      setIsAuthenticated(false);
     }
     setLoading(false);
   }, []);
 
   const login = (adminData) => {
-    setAdmin(adminData);
+    // Always store the admin username in localStorage with loginTime
+    const adminObj = {
+      ...adminData,
+      username: 'abhijitshyamal005@gmail.com',
+      loginTime: Date.now(),
+    };
+    setAdmin(adminObj);
     setIsAuthenticated(true);
-    localStorage.setItem('adminData', JSON.stringify(adminData));
+    localStorage.setItem('adminData', JSON.stringify(adminObj));
   };
 
   const logout = () => {

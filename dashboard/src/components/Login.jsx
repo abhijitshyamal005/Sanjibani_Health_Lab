@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 
@@ -11,6 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -26,14 +28,18 @@ const Login = () => {
 
     try {
       // Simple admin authentication (in production, this should be API-based)
-      if (formData.username === 'admin' && formData.password === 'admin123') {
+      if (
+        formData.username === 'abhijitshyamal005@gmail.com' &&
+        formData.password === 'Abhijit@2002'
+      ) {
         login({
           id: 1,
           username: formData.username,
           name: 'Admin User'
         });
+        navigate('/');
       } else {
-        setError('Invalid credentials. Use admin/admin123 for demo.');
+        setError('Only one admin is allowed. Use the provided credentials.');
       }
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
@@ -132,7 +138,15 @@ const Login = () => {
             </div>
 
             <div className="text-center text-xs text-gray-500">
-              Demo credentials: admin / admin123
+              Not an admin?{' '}
+              <a
+                href="https://sanjibani-health-lab.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-600 underline hover:text-orange-800"
+              >
+                Log in as a patient
+              </a>
             </div>
           </form>
         </div>
