@@ -4,24 +4,24 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Img from '../assets/Login/loginImg.webp';
-import { getUserDetails, setUserDetails } from '../utils/userUtils'; 
+import { getUserDetails, setUserDetails } from '../utils/userUtils';
 
 export default function LoginPopup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);  
-    const [ userId, setUserId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [userId, setUserId] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const user = await getUserDetails(); 
+            const user = await getUserDetails();
             if (user) {
                 setSuccessMessage('You are already logged in!');
                 setTimeout(() => {
-                    navigate('/'); 
+                    navigate('/');
                 }, 2000);
             }
         };
@@ -34,13 +34,13 @@ export default function LoginPopup() {
         setError('');
         setSuccessMessage('');
         setIsLoading(true);
-    
+
         try {
             const response = await axios.post('https://sanjibanihealth-lab.onrender.com/api/auth/login', {
                 email,
                 password,
             });
-    
+
             // Check if response contains the user data and _id
             const userData = response.data.user;
             if (userData && userData._id) {
@@ -48,12 +48,12 @@ export default function LoginPopup() {
                 localStorage.setItem('token', response.data.token);
                 setUserId(userData._id);
                 localStorage.setItem('userId', userData._id);
-                setUserDetails(userData); 
+                setUserDetails(userData);
                 setSuccessMessage('Login successful! Redirecting to home page...');
             } else {
                 setError('User data is missing or invalid');
             }
-    
+
             setIsLoading(false);
             setTimeout(() => {
                 navigate('/');
@@ -63,7 +63,7 @@ export default function LoginPopup() {
             setError('Invalid credentials or user not found');
         }
     };
-    
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -81,7 +81,7 @@ export default function LoginPopup() {
                     <div className="text-center">
                         <p className="text-sm text-green-500 mb-4">{successMessage}</p>
                         <button
-                            onClick={() => navigate('/')} 
+                            onClick={() => navigate('/')}
                             className="px-4 py-2 bg-green-600 text-white rounded-md"
                         >
                             OK
@@ -108,7 +108,7 @@ export default function LoginPopup() {
                         <button
                             type="submit"
                             className="w-full py-2 bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-500 hover:to-orange-300 transition-all text-white rounded-md"
-                            disabled={isLoading} 
+                            disabled={isLoading}
                         >
                             {isLoading ? 'Logging in...' : 'Login'}
                         </button>
@@ -123,6 +123,17 @@ export default function LoginPopup() {
                         Sign up
                     </Link>
                 </p>
+                <div className="text-center text-xs pt-1 text-gray-500">
+                    Not a patient ?{' '}
+                    <a
+                        href="https://sanjibani-health-lab-xvrr.vercel.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-orange-600 underline hover:text-orange-800"
+                    >
+                        Log in as an admin
+                    </a>
+                </div>
                 <Link
                     to="/"
                     aria-label="Close login popup"

@@ -164,6 +164,17 @@ export default function Signup() {
                         Login
                     </a>
                 </p>
+                <div className="text-center text-xs pt-1 text-gray-500">
+                    Not a patient ?{' '}
+                    <a
+                        href="https://sanjibani-health-lab-xvrr.vercel.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-orange-600 underline hover:text-orange-800"
+                    >
+                        Log in as an admin
+                    </a>
+                </div>
                 <a
                     href="/"
                     aria-label="Close signup popup"

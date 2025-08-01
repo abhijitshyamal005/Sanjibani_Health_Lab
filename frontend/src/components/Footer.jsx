@@ -123,6 +123,17 @@ const Footer = () => {
                                     <a href="#"><img src={play} alt="Google Play Store" className="w-32" /></a>
                                     <a href="#"><img src={apple} alt="App Store" className="w-32" /></a>
                                 </div>
+                                <div className="text-center text-sm pt-1 text-gray-500">
+
+                                    <a
+                                        href="https://sanjibani-health-lab-xvrr.vercel.app"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-orange-600 underline hover:text-orange-800"
+                                    >
+                                        Log in as an admin
+                                    </a>
+                                </div>
                             </div>
 
                         </div>
