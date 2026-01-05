@@ -63,6 +63,10 @@ const Login = () => {
             <p className="mt-2 text-sm text-gray-600">
               Sign in to access the admin panel
             </p>
+            <div className='mt-4 text-sm text-gray-500'>
+              <p>username: abhijitshyamal005@gmail.com</p>
+              <p>password: Abhijit@2002</p>
+            </div>
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
