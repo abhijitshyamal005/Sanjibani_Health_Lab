@@ -70,3 +70,10 @@ export const TIME_SLOTS = [
 ];
 
 export const MAX_BOOKING_DAYS_AHEAD = 30;
+
+export const FAMILY_RELATIONS = ['spouse', 'father', 'mother', 'son', 'daughter', 'brother', 'sister', 'grandparent', 'other'];
+export const MAX_FAMILY_MEMBERS = 8;
+
+// A patient can move a booking to another slot this many times, until the collector sets off.
+export const MAX_RESCHEDULES = 3;
+export const RESCHEDULABLE_FIELD_STATUSES = [undefined, null, 'assigned'];

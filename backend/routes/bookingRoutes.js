@@ -7,6 +7,7 @@ import {
   getBooking,
   myBookings,
   recentReviews,
+  rescheduleBooking,
   validateCoupon,
 } from '../controllers/bookingController.js';
 import { assertObjectId } from '../controllers/partnerController.js';
@@ -18,6 +19,7 @@ bookingRouter.post('/', requireRole('patient'), createBooking);
 bookingRouter.get('/me', requireRole('patient'), myBookings);
 bookingRouter.get('/:id', assertObjectId, getBooking);
 bookingRouter.get('/:id/report', assertObjectId, downloadReport);
+bookingRouter.patch('/:id/reschedule', assertObjectId, requireRole('patient'), rescheduleBooking);
 bookingRouter.patch('/:id/cancel', assertObjectId, requireRole('patient'), cancelBooking);
 
 export const reviewRouter = Router();

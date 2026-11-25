@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectEmail, login } from './helpers';
+import { bookingCode, expectEmail, login } from './helpers';
 
 test.describe('Patient', () => {
   test('home page shows categories, popular tests and labs', async ({ page }) => {
@@ -86,7 +86,7 @@ test.describe('Patient', () => {
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
     await expect(page.getByText('Pending').first()).toBeVisible();
     await expect(page.getByText('Complete Blood Count (CBC)')).toBeVisible();
-    const code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+    const code = await bookingCode(page);
     await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Booking #${code} placed with Lifeline Pathology`));
     await expectEmail(request, null, new RegExp(`New booking #${code}`));
     await expect(page.getByTestId('cart-link')).not.toContainText(/\d/);

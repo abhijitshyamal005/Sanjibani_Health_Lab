@@ -578,3 +578,44 @@ export function upiRejectedForLab(bookingId) {
     );
   });
 }
+
+/** The patient moved a booking to another slot. `from` = the old { date, time }. */
+export function bookingRescheduled(bookingId, { from, previousCollectorId } = {}) {
+  fire(async () => {
+    const b = await loadBooking(bookingId);
+    if (!b) return;
+    const was = from ? `${esc(from.date)}, ${esc(from.time)}` : 'the earlier slot';
+    const now = `${esc(b.slot.date)}, ${esc(b.slot.time)}`;
+    await send(
+      b.user?.email,
+      `Booking #${b.code} moved to ${b.slot.date}, ${b.slot.time}`,
+      'Your booking is rescheduled',
+      hi(b.patient.name) +
+        p(`Your booking with ${esc(b.lab.name)} has moved from <b>${was}</b> to <b>${now}</b>.`) +
+        (previousCollectorId ? p(`The lab will assign a ${b.collectionType === 'assisted_visit' ? 'staff member' : 'sample collector'} for the new time and we'll email you their details.`) : '') +
+        bookingBlock(b) +
+        button(bookingLink(b), 'View booking')
+    );
+    await toLabs(
+      await labEmail(b.lab),
+      `Booking #${b.code} rescheduled to ${b.slot.date}, ${b.slot.time}`,
+      'A patient changed their slot',
+      labHi(b.lab) +
+        p(`${esc(b.patient.name)} moved booking <b>#${esc(b.code)}</b> from <b>${was}</b> to <b>${now}</b>.`) +
+        (previousCollectorId ? p('The collector you had assigned has been released. <b>Please assign a collector for the new time.</b>') : '') +
+        bookingBlock(b, { forLab: true }) +
+        button(appUrl('/partner/bookings'), 'Open bookings')
+    );
+    if (previousCollectorId) {
+      const prev = await User.findById(previousCollectorId).select('name email');
+      if (prev?.email) {
+        await toCollector(
+          prev.email,
+          `Job #${b.code} rescheduled — removed from your list`,
+          'This job moved to another time',
+          hi(prev.name) + p(`The patient moved job <b>#${esc(b.code)}</b> from ${was} to ${now}. You no longer need to visit at the old time; ${esc(b.lab.name)} will reassign it.`) + button(appUrl('/collector'), 'Open your jobs')
+        );
+      }
+    }
+  });
+}

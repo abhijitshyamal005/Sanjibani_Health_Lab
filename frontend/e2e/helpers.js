@@ -34,3 +34,10 @@ export async function expectEmail(request, to, subject) {
     }, { message: `email to ${to || 'anyone'} matching ${subject}` })
     .toBe(true);
 }
+
+/** The code of the booking page that is open, read once its heading ("Booking #SJB…") has rendered. */
+export async function bookingCode(page) {
+  const heading = page.getByRole('heading', { level: 1, name: /^Booking #/ });
+  await expect(heading).toBeVisible();
+  return (await heading.innerText()).replace('Booking #', '').trim();
+}

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import { ROLES } from '../utils/constants.js';
+import { FAMILY_RELATIONS, MAX_FAMILY_MEMBERS, ROLES } from '../utils/constants.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -39,6 +39,24 @@ const userSchema = new mongoose.Schema(
       area: { type: String, trim: true, maxlength: 80 },
       city: { type: String, trim: true, maxlength: 60 },
       pincode: { type: String, trim: true, match: [/^(\d{6})?$/, 'Pincode must be 6 digits'] },
+    },
+    // People a patient books tests for (parents, children, spouse…), picked at checkout.
+    familyMembers: {
+      type: [
+        new mongoose.Schema({
+          name: { type: String, required: [true, 'Name is required'], trim: true, maxlength: [80, 'Name is too long'] },
+          relation: { type: String, enum: { values: FAMILY_RELATIONS, message: 'Select a relation' }, required: [true, 'Select a relation'] },
+          gender: { type: String, enum: { values: ['male', 'female', 'other'], message: 'Select a gender' }, required: [true, 'Select a gender'] },
+          dateOfBirth: {
+            type: String,
+            required: [true, 'Date of birth is required'],
+            match: [/^\d{4}-\d{2}-\d{2}$/, 'Invalid date of birth'],
+          },
+          phone: { type: String, trim: true, match: [/^([6-9]\d{9})?$/, 'Please enter a valid 10-digit mobile number'] },
+        }),
+      ],
+      default: [],
+      validate: [(v) => v.length <= MAX_FAMILY_MEMBERS, `You can save up to ${MAX_FAMILY_MEMBERS} family members`],
     },
     isActive: { type: Boolean, default: true },
     // For sample collectors: the lab that employs them.

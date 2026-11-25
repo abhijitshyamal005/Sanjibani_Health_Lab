@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext';
 import { api } from '../lib/api';
 import { inr, slotDate, slotTime, ymd } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
+import { RELATIONS, ageFrom } from '../lib/family';
 
 const FALLBACK_SLOTS = ['07:00-08:00', '08:00-09:00', '09:00-10:00', '10:00-11:00', '17:00-18:00'];
 const IN_PERSON = ['lab_visit', 'assisted_visit'];
@@ -182,7 +183,19 @@ export default function Cart() {
     setErrors((e) => ({ ...e, [`slot:${labId}`]: undefined }));
   };
 
-  const [patient, setPatient] = useState({ name: user?.name || '', age: '', gender: user?.gender || '', phone: user?.phone || '' });
+  const [patient, setPatient] = useState({ name: user?.name || '', age: ageFrom(user?.dateOfBirth), gender: user?.gender || '', phone: user?.phone || '' });
+  const [who, setWho] = useState('self'); // 'self' or a saved family member's id
+  const family = user?.familyMembers || [];
+  const pickWho = (id) => {
+    setWho(id);
+    setErrors((e) => ({ ...e, name: undefined, age: undefined, gender: undefined, phone: undefined }));
+    if (id === 'self') {
+      setPatient({ name: user?.name || '', age: ageFrom(user?.dateOfBirth), gender: user?.gender || '', phone: user?.phone || '' });
+      return;
+    }
+    const m = family.find((f) => f._id === id);
+    if (m) setPatient({ name: m.name, age: ageFrom(m.dateOfBirth), gender: m.gender, phone: m.phone || user?.phone || '' });
+  };
   const [address, setAddress] = useState({
     line: user?.address?.line || '',
     area: user?.address?.area || '',
@@ -210,7 +223,7 @@ export default function Cart() {
     if (!user) return;
     setPatient((p) => ({
       name: p.name || user.name || '',
-      age: p.age,
+      age: p.age === '' ? ageFrom(user.dateOfBirth) : p.age,
       gender: p.gender || user.gender || '',
       phone: p.phone || user.phone || '',
     }));
@@ -249,6 +262,7 @@ export default function Cart() {
   if (cart.count === 0) {
     return (
       <div className="container-page py-16">
+        <h1 className="sr-only">Your cart</h1>
         <EmptyState
           icon={ShoppingBag}
           title="Your cart is empty"
@@ -358,7 +372,7 @@ export default function Cart() {
           </span>
         </p>
       )}
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="mt-6 grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <div>
             <h2 className="mb-3 font-bold">1. {multi ? 'Tests and slot for each lab' : 'Tests, sample collection and slot'}</h2>
@@ -385,6 +399,30 @@ export default function Cart() {
           <section className="card p-5">
             <h2 className="font-bold">2. Patient details</h2>
             {multi && <p className="mt-1 text-sm text-ink-muted">Shared with every lab in this order.</p>}
+            {user && (
+              <div className="mt-4">
+                <p className="text-sm font-semibold">Who is this test for?</p>
+                <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Who is this test for?">
+                  {[{ _id: 'self', name: 'Myself' }, ...family].map((m) => (
+                    <button
+                      key={m._id}
+                      type="button"
+                      role="radio"
+                      aria-checked={who === m._id}
+                      onClick={() => pickWho(m._id)}
+                      className={`chip ${who === m._id ? 'chip-on' : 'chip-off'}`}
+                      data-testid="patient-choice"
+                    >
+                      {m.name}
+                      {m.relation && <span className="text-[11px] font-semibold opacity-75">· {RELATIONS[m.relation]}</span>}
+                    </button>
+                  ))}
+                  <Link to="/profile#family" className="chip chip-off text-brand-700" data-testid="manage-family">
+                    + {family.length ? 'Manage family' : 'Add family member'}
+                  </Link>
+                </div>
+              </div>
+            )}
             {!user && (
               <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
                 <Link to="/login?next=/cart" className="font-bold underline">Log in</Link> or <Link to="/register?next=/cart" className="font-bold underline">create an account</Link> to place your booking.

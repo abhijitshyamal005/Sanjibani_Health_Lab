@@ -7,7 +7,14 @@ import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import * as events from '../services/events.js';
 import { storage } from '../services/storage.js';
-import { CANCELLABLE_BY_PATIENT, COLLECTION_TYPES, MAX_BOOKING_DAYS_AHEAD, TIME_SLOTS } from '../utils/constants.js';
+import {
+  CANCELLABLE_BY_PATIENT,
+  COLLECTION_TYPES,
+  MAX_BOOKING_DAYS_AHEAD,
+  MAX_RESCHEDULES,
+  RESCHEDULABLE_FIELD_STATUSES,
+  TIME_SLOTS,
+} from '../utils/constants.js';
 import { resolveCoupon } from '../utils/coupons.js';
 import { ApiError, pick, slotPassed, todayIST } from '../utils/helpers.js';
 
@@ -363,4 +370,75 @@ export async function recentReviews(_req, res) {
       createdAt: r.createdAt,
     })),
   });
+}
+
+/**
+ * PATCH /api/bookings/:id/reschedule — patient moves a booking to another slot.
+ * Allowed before sample collection and before the collector sets off; an assigned collector
+ * is released so the lab can assign someone free at the new time.
+ */
+export async function rescheduleBooking(req, res) {
+  const booking = await Booking.findOne({ _id: req.params.id, user: req.user._id }).populate('lab', 'name slotCapacity status');
+  if (!booking) throw new ApiError(404, 'Booking not found');
+  if (!CANCELLABLE_BY_PATIENT.includes(booking.status)) {
+    throw new ApiError(400, 'This booking can no longer be rescheduled');
+  }
+  if (!RESCHEDULABLE_FIELD_STATUSES.includes(booking.fieldStatus)) {
+    throw new ApiError(400, 'Your collector is already on the way. Call the lab to change the time.');
+  }
+  if ((booking.reschedules?.length || 0) >= MAX_RESCHEDULES) {
+    throw new ApiError(400, `A booking can be rescheduled up to ${MAX_RESCHEDULES} times. Please cancel and book again.`);
+  }
+  if (booking.lab?.status !== 'approved') throw new ApiError(400, 'This lab is not accepting bookings right now');
+
+  const date = String(req.body?.date || '');
+  const time = String(req.body?.time || '');
+  const today = todayIST();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < today || date > todayIST(MAX_BOOKING_DAYS_AHEAD)) {
+    throw new ApiError(400, `Pick a date between today and the next ${MAX_BOOKING_DAYS_AHEAD} days`);
+  }
+  if (!TIME_SLOTS.includes(time)) throw new ApiError(400, 'Pick a valid time slot');
+  if (slotPassed(date, time)) throw new ApiError(400, 'This time slot has already passed');
+  if (booking.slot.date === date && booking.slot.time === time) throw new ApiError(400, 'Pick a different slot from your current one');
+
+  const taken = await Booking.countDocuments({
+    _id: { $ne: booking._id },
+    lab: booking.lab._id,
+    'slot.date': date,
+    'slot.time': time,
+    collectionType: booking.collectionType,
+    status: { $ne: 'cancelled' },
+  });
+  if (taken >= (booking.lab.slotCapacity || 4)) throw new ApiError(409, 'This slot is fully booked. Please pick another time.');
+
+  // Same rule as checkout: the patient can't be at two labs at once.
+  if (booking.orderCode) {
+    const clash = await Booking.findOne({
+      orderCode: booking.orderCode,
+      user: req.user._id,
+      _id: { $ne: booking._id },
+      status: { $ne: 'cancelled' },
+      'slot.date': date,
+      'slot.time': time,
+    }).populate('lab', 'name');
+    if (clash && (IN_PERSON.has(clash.collectionType) || IN_PERSON.has(booking.collectionType))) {
+      throw new ApiError(400, `You already have ${clash.lab?.name || 'another lab'} at that time. Pick a different slot.`);
+    }
+  }
+
+  const from = { date: booking.slot.date, time: booking.slot.time };
+  const previousCollector = booking.collector;
+  booking.reschedules.push({ from, to: { date, time }, at: new Date(), reason: String(req.body?.reason || '').slice(0, 300) || undefined });
+  booking.slot = { date, time };
+  if (previousCollector) {
+    booking.collector = undefined;
+    booking.collectorAssignedAt = undefined;
+    booking.collectorEarning = undefined;
+    booking.fieldStatus = undefined;
+  }
+  await booking.save();
+  events.bookingRescheduled(booking._id, { from, previousCollectorId: previousCollector });
+
+  await booking.populate('lab', LAB_SUMMARY);
+  res.json({ booking });
 }

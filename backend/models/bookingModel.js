@@ -106,6 +106,16 @@ const bookingSchema = new mongoose.Schema(
     cancelReason: { type: String, trim: true, maxlength: 300 },
     cancelledBy: { type: String, enum: ['patient', 'lab', 'admin'] },
     reviewed: { type: Boolean, default: false },
+    // Slot changes made by the patient, oldest first.
+    reschedules: [
+      {
+        _id: false,
+        from: { date: String, time: String },
+        to: { date: String, time: String },
+        at: { type: Date, default: Date.now },
+        reason: { type: String, trim: true, maxlength: 300 },
+      },
+    ],
   },
   { timestamps: true }
 );

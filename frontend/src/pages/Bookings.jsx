@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, Download, FileText, House, Layers, Phone, Star } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, Download, FileText, History, House, Layers, Phone, RotateCcw, Star } from 'lucide-react';
 import { LabCover } from '../components/Brand';
 import { Button, EmptyState, ErrorState, Field, Modal, PaymentBadge, Spinner, StatusBadge, Tabs } from '../components/ui';
 import { useApp } from '../context/AppContext';
+import { useCart } from '../context/CartContext';
+import { MAX_RESCHEDULES, canReschedule } from '../lib/family';
 import { api, apiDownload } from '../lib/api';
 import UpiPay from '../components/UpiPay';
-import { COLLECTION_TYPES, FIELD_FLOW, FIELD_STATUS, FLOW, STATUS, dateTime, inr, slotDate, slotTime } from '../lib/format';
+import { COLLECTION_TYPES, FIELD_FLOW, FIELD_STATUS, FLOW, STATUS, dateTime, inr, slotDate, slotTime, ymd } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
 
 export function BookingList() {
@@ -199,6 +201,128 @@ function ReviewForm({ booking, onDone }) {
   );
 }
 
+/** Pick a new date and time for a booking; shows live availability at the lab. */
+function RescheduleModal({ booking: b, open, onClose, onDone }) {
+  const { toast } = useApp();
+  const dates = useMemo(() => Array.from({ length: 14 }, (_, i) => ymd(i)), []);
+  const [date, setDate] = useState(b.slot.date >= ymd(0) ? b.slot.date : ymd(1));
+  const [time, setTime] = useState('');
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+  const availability = useAsync(
+    () => (open ? api(`/labs/${b.lab.slug}/availability`, { params: { date, type: b.collectionType } }) : Promise.resolve(null)),
+    [open, date, b.lab.slug, b.collectionType]
+  );
+  const slots = (availability.data?.slots || []).filter((s) => !s.past);
+  const left = MAX_RESCHEDULES - (b.reschedules?.length || 0);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await api(`/bookings/${b._id}/reschedule`, { method: 'PATCH', body: { date, time, reason: reason || undefined } });
+      toast(`Moved to ${slotDate(date)}, ${slotTime(time)}`);
+      onDone(res.booking);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Reschedule booking"
+      size="lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Keep current slot</Button>
+          <Button loading={saving} disabled={!time} onClick={save} data-testid="confirm-reschedule">Move booking</Button>
+        </>
+      }
+    >
+      <p className="text-sm text-ink-muted">
+        Now: <b className="text-ink">{slotDate(b.slot.date)}, {slotTime(b.slot.time)}</b> · You can reschedule {left} more {left === 1 ? 'time' : 'times'}.
+        {b.collector && ' Your assigned collector will be released and the lab will assign someone for the new time.'}
+      </p>
+      <div className="scrollbar-none -mx-5 mt-4 flex gap-2 overflow-x-auto px-5" role="group" aria-label="Date">
+        {dates.map((d, i) => (
+          <button
+            key={d}
+            onClick={() => { setDate(d); setTime(''); }}
+            aria-pressed={date === d}
+            className={`flex w-[64px] shrink-0 flex-col items-center rounded-2xl border-2 py-2 text-sm transition ${date === d ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 hover:border-brand-300'}`}
+            data-testid="reschedule-date"
+          >
+            <span className="text-xs font-semibold opacity-80">{i === 0 ? 'Today' : i === 1 ? 'Tmrw' : slotDate(d).split(',')[0]}</span>
+            <span className="text-lg font-extrabold">{d.slice(8)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {availability.loading && !availability.data && <Spinner className="col-span-full py-6" />}
+        {slots.map((s) => {
+          const current = date === b.slot.date && s.time === b.slot.time;
+          const full = s.available === 0 && !current;
+          return (
+            <button
+              key={s.time}
+              disabled={full || current}
+              onClick={() => setTime(s.time)}
+              className={`chip flex-col justify-center gap-0 py-2 leading-tight disabled:cursor-not-allowed disabled:opacity-50 ${time === s.time ? 'chip-on' : 'chip-off'}`}
+              data-testid="reschedule-slot"
+            >
+              <span>{slotTime(s.time)}</span>
+              <span className="text-[11px] font-semibold">{current ? 'Current' : full ? 'Full' : `${s.available} available`}</span>
+            </button>
+          );
+        })}
+        {availability.data && slots.length === 0 && <p className="col-span-full text-sm text-ink-muted">No slots left on this day — pick another date.</p>}
+      </div>
+      <Field label="Reason (optional)" className="mt-4">
+        <input className="input" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Travelling that day" />
+      </Field>
+    </Modal>
+  );
+}
+
+/** Put the tests from an earlier booking back in the cart (only those the lab still offers, at today's price). */
+function useBookAgain() {
+  const cart = useCart();
+  const { toast } = useApp();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const run = async (b) => {
+    setBusy(true);
+    try {
+      const { lab, tests } = await api(`/labs/${b.lab.slug}`);
+      const wanted = new Set(b.items.map((i) => String(i.test)));
+      const found = tests.filter((t) => wanted.has(String(t._id)));
+      if (found.length === 0) {
+        toast(`${lab.name} no longer offers these tests`, 'error');
+        return;
+      }
+      let added = 0;
+      for (const t of found) {
+        if (cart.add(lab, t) === 'limit') {
+          toast('Your cart already has tests from 5 labs. Remove one to add these.', 'error');
+          return;
+        }
+        added += 1;
+      }
+      const missing = b.items.length - added;
+      toast(missing ? `Added ${added} test${added === 1 ? '' : 's'} · ${missing} no longer available` : `Added ${added} test${added === 1 ? '' : 's'} to your cart`);
+      navigate('/cart');
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { busy, run };
+}
+
 export function BookingDetail() {
   const { id } = useParams();
   const { toast, meta } = useApp();
@@ -208,6 +332,8 @@ export function BookingDetail() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const bookAgain = useBookAgain();
 
   if (error) return <div className="container-page py-16"><ErrorState error={error} onRetry={reload} /></div>;
   if (loading && !data) return <Spinner className="min-h-[50vh]" />;
@@ -268,7 +394,7 @@ export function BookingDetail() {
       )}
       {data.order && <OrderSiblings order={data.order} />}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="mt-6 grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           {b.status === 'report_ready' || b.status === 'completed' ? (
             <div className="card flex gap-3 border-brand-200 bg-brand-50/60 p-5">
@@ -302,6 +428,11 @@ export function BookingDetail() {
                 <div>
                   <p className="font-semibold">{slotDate(b.slot.date)}</p>
                   <p className="text-ink-muted">{slotTime(b.slot.time)}</p>
+                  {b.reschedules?.length > 0 && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-amber-700" data-testid="rescheduled-note">
+                      <History className="h-3.5 w-3.5" /> Rescheduled from {slotDate(b.reschedules.at(-1).from.date)}, {slotTime(b.reschedules.at(-1).from.time)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-3">
@@ -368,6 +499,16 @@ export function BookingDetail() {
               <p className="mt-1">Transaction ID {b.upiRef}. {b.lab.name} will confirm it shortly — you’ll get a receipt by email.</p>
             </div>
           )}
+          {canReschedule(b) && (
+            <Button variant="outline" className="w-full" onClick={() => setRescheduleOpen(true)} data-testid="reschedule-booking">
+              <CalendarClock className="h-4 w-4" /> Reschedule
+            </Button>
+          )}
+          {!['pending', 'confirmed'].includes(b.status) && (
+            <Button variant={b.status === 'cancelled' ? 'primary' : 'outline'} className="w-full" loading={bookAgain.busy} onClick={() => bookAgain.run(b)} data-testid="book-again">
+              <RotateCcw className="h-4 w-4" /> Book these tests again
+            </Button>
+          )}
           {canCancel && (
             <Button variant="danger" className="w-full" onClick={() => setCancelOpen(true)} data-testid="cancel-booking">
               Cancel booking
@@ -375,6 +516,18 @@ export function BookingDetail() {
           )}
         </aside>
       </div>
+
+      {rescheduleOpen && (
+        <RescheduleModal
+          booking={b}
+          open={rescheduleOpen}
+          onClose={() => setRescheduleOpen(false)}
+          onDone={(nb) => {
+            setRescheduleOpen(false);
+            setData((d) => ({ ...d, booking: { ...d.booking, ...nb, lab: d.booking.lab, user: d.booking.user, collector: nb.collector ? d.booking.collector : undefined } }));
+          }}
+        />
+      )}
 
       <Modal
         open={cancelOpen}

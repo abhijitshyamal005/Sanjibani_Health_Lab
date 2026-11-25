@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, logout } from './helpers';
+import { bookingCode, login, logout } from './helpers';
 
 test('free UPI: patient pays by QR + UTR, admin confirms, patient sees it paid', async ({ page }) => {
   await login(page, 'patient');
@@ -25,7 +25,7 @@ test('free UPI: patient pays by QR + UTR, admin confirms, patient sees it paid',
   });
   expect(overflow).toEqual([]);
   await page.locator('#upi-pay').screenshot({ path: test.info().outputPath('upi-card.png') });
-  const code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+  const code = await bookingCode(page);
   const utr = String(Date.now()).slice(-12).padStart(12, '7');
   await upi.locator('input[name="utr"]').fill(utr);
   await upi.getByTestId('submit-utr').click();

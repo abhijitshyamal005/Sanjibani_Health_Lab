@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectEmail, login, logout } from './helpers';
+import { bookingCode, expectEmail, login, logout } from './helpers';
 
 const COLLECTOR = { email: 'collector1@sanjibani.in', password: 'Collector@123' };
 
@@ -21,7 +21,7 @@ test.describe.serial('Sample collector & assisted visit', () => {
     await page.locator('input[name="patientAge"]').fill('29');
     await page.getByTestId('place-booking').click();
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
-    code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+    code = await bookingCode(page);
     expect(code).toMatch(/^SJB/);
     await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Booking #${code} placed`));
     await expectEmail(request, null, new RegExp(`New booking #${code}`));

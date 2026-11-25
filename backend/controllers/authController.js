@@ -3,7 +3,8 @@ import User from '../models/userModel.js';
 import * as events from '../services/events.js';
 import { emails, notify } from '../services/notify.js';
 import Lab from '../models/labModel.js';
-import { ApiError, pick } from '../utils/helpers.js';
+import { MAX_FAMILY_MEMBERS } from '../utils/constants.js';
+import { ApiError, pick, todayIST } from '../utils/helpers.js';
 import { signToken } from '../utils/token.js';
 
 const SELF_REGISTER_ROLES = ['patient', 'lab'];
@@ -108,4 +109,48 @@ export async function resetPassword(req, res) {
   await user.save();
   events.passwordChanged(user);
   res.json(await authPayload(user));
+}
+
+const FAMILY_FIELDS = ['name', 'relation', 'gender', 'dateOfBirth', 'phone'];
+
+function readFamilyMember(body = {}) {
+  const member = pick(body, FAMILY_FIELDS);
+  if (member.dateOfBirth && member.dateOfBirth > todayIST()) throw new ApiError(400, 'Date of birth cannot be in the future');
+  return member;
+}
+
+async function loadPatient(req) {
+  if (req.user.role !== 'patient') throw new ApiError(403, 'Only patients can save family members');
+  return User.findById(req.user._id);
+}
+
+/** POST /api/auth/me/family — save someone the patient books tests for. */
+export async function addFamilyMember(req, res) {
+  const user = await loadPatient(req);
+  if (user.familyMembers.length >= MAX_FAMILY_MEMBERS) {
+    throw new ApiError(400, `You can save up to ${MAX_FAMILY_MEMBERS} family members`);
+  }
+  user.familyMembers.push(readFamilyMember(req.body));
+  await user.save();
+  res.status(201).json({ user: user.toJSON(), member: user.familyMembers.at(-1) });
+}
+
+/** PUT /api/auth/me/family/:memberId */
+export async function updateFamilyMember(req, res) {
+  const user = await loadPatient(req);
+  const member = user.familyMembers.id(req.params.memberId);
+  if (!member) throw new ApiError(404, 'Family member not found');
+  member.set(readFamilyMember(req.body));
+  await user.save();
+  res.json({ user: user.toJSON(), member });
+}
+
+/** DELETE /api/auth/me/family/:memberId */
+export async function removeFamilyMember(req, res) {
+  const user = await loadPatient(req);
+  const member = user.familyMembers.id(req.params.memberId);
+  if (!member) throw new ApiError(404, 'Family member not found');
+  member.deleteOne();
+  await user.save();
+  res.json({ user: user.toJSON() });
 }

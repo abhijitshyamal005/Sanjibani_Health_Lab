@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectEmail, login, logout } from './helpers';
+import { bookingCode, expectEmail, login, logout } from './helpers';
 
 const LAB2 = { email: 'lab2@sanjibani.in', password: 'Lab@1234' }; // CarePoint Diagnostics
 
@@ -66,13 +66,13 @@ test.describe.serial('One patient, tests from several labs', () => {
 
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
     await expect(page.getByText('2 bookings placed — one with each lab')).toBeVisible();
-    codes.lifeline = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+    codes.lifeline = await bookingCode(page);
     const sibling = page.getByTestId('order-sibling');
     await expect(sibling).toHaveCount(1);
     await expect(sibling).toContainText('CarePoint Diagnostics');
     await sibling.click();
     await expect(page.getByTestId('order-sibling')).toContainText('Lifeline Pathology');
-    codes.carepoint = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+    codes.carepoint = await bookingCode(page);
     expect(codes.carepoint).not.toBe(codes.lifeline);
     await expect(page.getByTestId('cart-link')).not.toContainText(/\d/);
 
