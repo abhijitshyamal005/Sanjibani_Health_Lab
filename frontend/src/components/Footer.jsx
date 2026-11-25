@@ -35,6 +35,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm">
             <li><Link className="hover:text-white" to="/register?role=lab">Register your lab</Link></li>
             <li><Link className="hover:text-white" to="/login">Partner login</Link></li>
+            <li><a className="hover:text-white" href={`mailto:${SUPPORT.labsEmail}`}>{SUPPORT.labsEmail}</a></li>
           </ul>
         </div>
       </div>

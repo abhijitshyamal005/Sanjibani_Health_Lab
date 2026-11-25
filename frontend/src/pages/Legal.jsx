@@ -38,7 +38,7 @@ const PAGES = {
     title: 'Refund & Cancellation Policy',
     body: [
       ['Cancelling a booking', 'You can cancel a booking from “My bookings” any time before the sample is collected. After sample collection a booking cannot be cancelled.'],
-      ['Refunds for UPI payments', 'If you paid by UPI and the booking is cancelled by you before sample collection, or by the Lab for any reason, the full amount is refunded to the UPI account you paid from within 3 working days.'],
+      ['Refunds for UPI payments', `If you paid by UPI and the booking is cancelled by you before sample collection, or by the Lab for any reason, the full amount is refunded to the UPI account you paid from within 3 working days. Questions about a payment or refund: ${SUPPORT.paymentsEmail}.`],
       ['Partial refunds', 'If a Lab is unable to perform one of the booked tests, the price of that test is refunded.'],
       ['Pay at collection', 'If you chose to pay at collection, nothing is charged until the sample is collected, so no refund is needed for cancellations.'],
       ['Report issues', `If your report is delayed beyond the stated time or you have a complaint about a Lab, contact us at ${SUPPORT.email} — we will work with the Lab to resolve it.`],
@@ -59,7 +59,9 @@ function Contact() {
       {[
         { icon: Phone, label: 'Call us', value: SUPPORT.phone, href: `tel:${SUPPORT.phone.replace(/\s/g, '')}` },
         { icon: MessageCircle, label: 'WhatsApp', value: SUPPORT.phone, href: SUPPORT.whatsappUrl },
-        { icon: Mail, label: 'Email', value: SUPPORT.email, href: `mailto:${SUPPORT.email}` },
+        { icon: Mail, label: 'Patient support', value: SUPPORT.email, href: `mailto:${SUPPORT.email}` },
+        { icon: Mail, label: 'Lab partners', value: SUPPORT.labsEmail, href: `mailto:${SUPPORT.labsEmail}` },
+        { icon: Mail, label: 'Payments & refunds', value: SUPPORT.paymentsEmail, href: `mailto:${SUPPORT.paymentsEmail}` },
         { icon: MapPin, label: 'Office', value: SUPPORT.address },
       ].map(({ icon: Icon, label, value, href }) => (
         <div key={label} className="card flex gap-4 p-5">

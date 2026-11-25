@@ -8,7 +8,7 @@ import Booking from '../models/bookingModel.js';
 import Lab from '../models/labModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
-import { esc, layout, sendEmail } from './notify.js';
+import { BRAND, esc, layout, sendEmail } from './notify.js';
 
 const pending = new Set();
 function fire(task) {
@@ -30,7 +30,10 @@ function appUrl(path = '') {
 const button = (href, label) =>
   `<p style="margin:20px 0 4px"><a href="${href}" style="background:#ea580c;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:bold;display:inline-block">${esc(label)}</a></p>`;
 const p = (html) => `<p style="margin:0 0 10px;line-height:1.5">${html}</p>`;
-const send = (to, subject, title, body) => to && sendEmail({ to, subject, html: layout(title, body) });
+const send = (to, subject, title, body, replyTo) => to && sendEmail({ to, subject, html: layout(title, body), replyTo });
+// Replies go to the right team: lab partners → labs@, payments → payments@, everyone else → care@ (default).
+const toLabs = (to, subject, title, body) => send(to, subject, title, body, BRAND.labsEmail || undefined);
+const toPayments = (to, subject, title, body) => send(to, subject, title, body, BRAND.paymentsEmail || undefined);
 
 const TYPE = { home: 'Home collection', lab_visit: 'Lab visit', assisted_visit: 'Assisted visit (pickup, lab visit & drop)' };
 const addr = (a) => [a?.line, a?.area, a?.city, a?.pincode].filter(Boolean).join(', ');
@@ -93,7 +96,7 @@ const bookingLink = (b) => appUrl(`/bookings/${b._id}`);
 export function userRegistered(user) {
   fire(async () => {
     if (user.role === 'lab') {
-      await send(
+      await toLabs(
         user.email,
         'Welcome to SanjiBani for labs',
         `Welcome, ${user.name}!`,
@@ -130,7 +133,7 @@ export function collectorAccountCreated(collectorId) {
   fire(async () => {
     const c = await User.findById(collectorId).populate('lab', 'name phone');
     if (!c) return;
-    await send(
+    await toLabs(
       c.email,
       `You're now a sample collector for ${c.lab?.name}`,
       `Welcome, ${c.name}!`,
@@ -147,7 +150,7 @@ export function labSubmitted(labId, { resubmitted = false } = {}) {
   fire(async () => {
     const lab = await Lab.findById(labId);
     if (!lab) return;
-    await send(
+    await toLabs(
       await labEmail(lab),
       `${lab.name} ${resubmitted ? 're-submitted' : 'submitted'} for verification`,
       'Your lab is under review',
@@ -201,7 +204,7 @@ export function bookingPlaced(bookingId) {
       'Your booking is placed',
       p(`Hi ${esc(b.patient.name)}, ${esc(b.lab.name)} will confirm your booking shortly.`) + bookingBlock(b) + button(bookingLink(b), 'Track your booking')
     );
-    await send(
+    await toLabs(
       await labEmail(b.lab),
       `New booking #${b.code} — ${b.patient.name}`,
       'You have a new booking',
@@ -267,7 +270,7 @@ export function bookingStatusChanged(bookingId, { by = 'lab' } = {}) {
     }
     // Keep the lab informed of changes it didn't make itself.
     if (by !== 'lab' && ['cancelled', 'sample_collected'].includes(b.status)) {
-      await send(
+      await toLabs(
         await labEmail(b.lab),
         b.status === 'cancelled' ? `Booking #${b.code} cancelled by patient` : `Sample collected — booking #${b.code}`,
         b.status === 'cancelled' ? 'A patient cancelled a booking' : `${b.collector?.name || 'Your collector'} collected the sample`,
@@ -342,8 +345,8 @@ export function paymentReceived(bookingId) {
     if (!b) return;
     const how =
       b.paymentMethod === 'upi_direct' ? `by UPI (transaction ID ${esc(b.upiRef)})` : 'at collection';
-    await send(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received ✅', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
-    await send(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} received ${how} from ${esc(b.patient.name)}.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
+    await toPayments(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received ✅', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
+    await toLabs(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} received ${how} from ${esc(b.patient.name)}.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
   });
 }
 
@@ -351,7 +354,7 @@ export function reviewPosted(reviewId) {
   fire(async () => {
     const r = await Review.findById(reviewId).populate('lab', 'name email owner').populate('user', 'name');
     if (!r) return;
-    await send(
+    await toLabs(
       await labEmail(r.lab),
       `New ${r.rating}★ review for ${r.lab.name}`,
       'You received a new review',
@@ -375,7 +378,7 @@ export function upiSubmitted(bookingId) {
         p('Check your bank or UPI app for this transaction, then mark it as received (or not received) on the booking.') +
         button(appUrl(b.upiPayee === 'platform' ? '/admin/bookings' : '/partner/bookings'), 'Verify payment')
     );
-    await send(
+    await toPayments(
       b.user?.email,
       `UPI payment submitted — booking #${b.code}`,
       'We are verifying your payment',
@@ -390,7 +393,7 @@ export function upiRejected(bookingId, utr) {
   fire(async () => {
     const b = await loadBooking(bookingId);
     if (!b) return;
-    await send(
+    await toPayments(
       b.user?.email,
       `UPI payment not found — booking #${b.code}`,
       'We could not verify your UPI payment',

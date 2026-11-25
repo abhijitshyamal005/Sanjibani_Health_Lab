@@ -20,18 +20,18 @@ function getTransporter() {
 export const outbox = [];
 
 /** Send an email. Never throws; when email is disabled it only logs a summary (outside tests). */
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, replyTo }) {
   if (!to) return;
   try {
     if (process.env.NODE_ENV === 'test') {
-      outbox.push({ to, subject, html });
+      outbox.push({ to, subject, html, replyTo });
       return;
     }
     if (!emailEnabled()) {
       if (process.env.NODE_ENV !== 'test') console.log(`[email:disabled] to=${to} subject="${subject}"`);
       return;
     }
-    await getTransporter().sendMail({ from: `"${BRAND.name}" <${process.env.EMAIL}>`, to, subject, html, replyTo: BRAND.supportEmail || undefined });
+    await getTransporter().sendMail({ from: `"${BRAND.name}" <${process.env.EMAIL}>`, to, subject, html, replyTo: replyTo || BRAND.supportEmail || undefined });
   } catch (err) {
     console.error(`[email:error] to=${to} subject="${subject}": ${err.message}`);
   }
@@ -44,9 +44,11 @@ export function notify(message) {
 
 export const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-const BRAND = {
+export const BRAND = {
   name: process.env.COMPANY_NAME || 'SanjiBani Health',
   supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL || '',
+  labsEmail: process.env.LABS_EMAIL || '',
+  paymentsEmail: process.env.PAYMENTS_EMAIL || '',
   supportPhone: process.env.SUPPORT_PHONE || '',
   url: () => (process.env.APP_URL || (process.env.CLIENT_ORIGINS || '').split(',')[0] || '').trim().replace(/\/$/, ''),
 };

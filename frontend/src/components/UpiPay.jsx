@@ -4,6 +4,7 @@ import { CircleCheck, Copy, Smartphone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../lib/api';
 import { inr } from '../lib/format';
+import { SUPPORT } from '../lib/support';
 import { Button, Field, Spinner } from './ui';
 
 const isPhone = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -68,6 +69,9 @@ export default function UpiPay({ booking, onSubmitted }) {
             {info.upiId} <Copy className="h-3.5 w-3.5" />
           </button>
           <p className="text-xs text-ink-muted">Note: {info.note} · No extra charges</p>
+          <p className="text-xs text-ink-muted">
+            Payment questions: <a className="font-semibold text-brand-700" href={`mailto:${SUPPORT.paymentsEmail}`}>{SUPPORT.paymentsEmail}</a>
+          </p>
           {isPhone() ? (
             <a href={info.uri} className="mt-1 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-forest-from to-forest-to px-4 text-sm font-bold text-white">
               <Smartphone className="h-4 w-4" /> Open UPI app
