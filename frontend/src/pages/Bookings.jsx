@@ -185,7 +185,7 @@ export function BookingDetail() {
   const downloadReport = async () => {
     setDownloading(true);
     try {
-      await apiDownload(`/bookings/${b._id}/report`, `Patholy-Report-${b.code}.pdf`);
+      await apiDownload(`/bookings/${b._id}/report`, `Sanjibani-Report-${b.code}.pdf`);
     } catch (e) {
       toast(e.message, 'error');
     } finally {

@@ -21,7 +21,7 @@ fs.mkdirSync(dbPath, { recursive: true });
 const mongod = await MongoMemoryServer.create({
   instance: { dbPath, storageEngine: 'wiredTiger', port: Number(process.env.LOCAL_MONGO_PORT) || 27027 },
 });
-await connectDB(mongod.getUri('patholy'));
+await connectDB(mongod.getUri('sanjibani'));
 
 if ((await User.estimatedDocumentCount()) === 0) {
   console.log('Empty database — seeding demo data…');
@@ -33,7 +33,7 @@ if ((await User.estimatedDocumentCount()) === 0) {
 
 const PORT = Number(process.env.PORT) || 5001;
 const server = createApp().listen(PORT, () =>
-  console.log(`Patholy API running on http://localhost:${PORT} (local embedded MongoDB)`)
+  console.log(`Sanjibani API running on http://localhost:${PORT} (local embedded MongoDB)`)
 );
 
 let stopping = false;

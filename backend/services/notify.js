@@ -36,7 +36,7 @@ function getTransporter() {
 /** Build the HTTPS request for an API provider (exported for tests). */
 export function httpRequest(channel, { to, subject, html, replyTo }, env = process.env) {
   const from = fromAddress(env);
-  const name = env.COMPANY_NAME || 'Patholy';
+  const name = env.COMPANY_NAME || 'SanjiBani Health';
   if (channel === 'brevo') {
     return {
       url: 'https://api.brevo.com/v3/smtp/email',
@@ -98,7 +98,7 @@ export function notify(message) {
 export const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export const BRAND = {
-  name: process.env.COMPANY_NAME || 'Patholy',
+  name: process.env.COMPANY_NAME || 'SanjiBani Health',
   supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL || '',
   labsEmail: process.env.LABS_EMAIL || '',
   paymentsEmail: process.env.PAYMENTS_EMAIL || '',
@@ -142,7 +142,7 @@ export function layout(title, bodyHtml) {
 export const emails = {
   resetCode: (to, name, code) => ({
     to,
-    subject: 'Your Patholy password reset code',
+    subject: 'Your SanjiBani password reset code',
     html: layout(
       'Reset your password',
       `<p style="margin:0 0 10px">Hi ${esc(name)}, use this code to reset your password. It expires in <b>15 minutes</b>.</p>

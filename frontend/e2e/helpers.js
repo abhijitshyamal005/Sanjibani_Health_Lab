@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test';
 
 export const ACCOUNTS = {
-  patient: { email: 'patient@patholy.in', password: 'Patient@123' },
-  lab: { email: 'lab1@patholy.in', password: 'Lab@1234' },
-  admin: { email: 'admin@patholy.in', password: 'Admin@123' },
+  patient: { email: 'patient@sanjibani.in', password: 'Patient@123' },
+  lab: { email: 'lab1@sanjibani.in', password: 'Lab@1234' },
+  admin: { email: 'admin@sanjibani.in', password: 'Admin@123' },
 };
 
 export async function login(page, who, next) {
@@ -17,7 +17,7 @@ export async function login(page, who, next) {
 
 export async function logout(page) {
   await page.evaluate(() => {
-    localStorage.removeItem('patholy.token');
-    localStorage.removeItem('patholy.cart');
+    localStorage.removeItem('sanjibani.token');
+    localStorage.removeItem('sanjibani.cart');
   });
 }

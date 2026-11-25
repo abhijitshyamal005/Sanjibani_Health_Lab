@@ -53,7 +53,7 @@ export default function Labs() {
   return (
     <div className="container-page py-8">
       <h1 className="text-3xl font-extrabold tracking-tight">Diagnostic labs {city && <span className="text-brand-600">in {city}</span>}</h1>
-      <p className="mt-1 text-ink-muted">Every lab is verified before it goes live on Patholy.</p>
+      <p className="mt-1 text-ink-muted">Every lab is verified before it goes live on Sanjibani.</p>
 
       <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
         <form

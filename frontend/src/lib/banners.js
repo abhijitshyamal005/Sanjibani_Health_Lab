@@ -67,7 +67,7 @@ export const BANNERS = [
   {
     id: 'partner',
     eyebrow: 'For diagnostic labs',
-    title: 'List your lab on Patholy — free',
+    title: 'List your lab on Sanjibani — free',
     text: 'Reach new patients, manage tests & prices and run your bookings from one dashboard.',
     cta: 'Register your lab',
     to: '/register?role=lab',

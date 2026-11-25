@@ -69,7 +69,7 @@ export function Testimonials() {
   if (items.length === 0) return null;
   return (
     <section className="container-page mt-16">
-      <SectionTitle title="Loved by patients" subtitle="Real reviews from completed bookings on Patholy" />
+      <SectionTitle title="Loved by patients" subtitle="Real reviews from completed bookings on Sanjibani" />
       <div className="scrollbar-none -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
         {items.slice(0, 6).map((r) => (
           <figure key={r._id} className="card relative w-[85%] shrink-0 snap-center p-5 sm:w-auto" data-testid="testimonial">
@@ -100,7 +100,7 @@ export function Testimonials() {
 
 const FAQS = [
   ['How does home sample collection work?', 'Pick a lab, add tests and choose “Home collection” with a time slot. A trained phlebotomist from the lab visits your address with a sealed kit, collects the sample and takes it to the lab.'],
-  ['Are the labs on Patholy verified?', 'Yes. Every lab is reviewed by our team before it goes live, and accreditations such as NABL, CAP or ISO 15189 are shown on each lab’s page.'],
+  ['Are the labs on Sanjibani verified?', 'Yes. Every lab is reviewed by our team before it goes live, and accreditations such as NABL, CAP or ISO 15189 are shown on each lab’s page.'],
   ['When and how do I pay?', 'Pay by UPI at checkout (scan the QR with Google Pay, PhonePe or Paytm — no extra charges), or pay at the time of sample collection or lab visit. Prices shown are final — there are no hidden charges beyond the home collection fee shown in your cart.'],
   ['How will I get my report?', 'The lab uploads your report when it is ready. You can download it from “My bookings” and you also get an email when it is ready.'],
   ['Can I cancel or reschedule?', 'You can cancel any booking before the sample is collected from the booking page. To reschedule, cancel and book a new slot, or call the lab directly.'],

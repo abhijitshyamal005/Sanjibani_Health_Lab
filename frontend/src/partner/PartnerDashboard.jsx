@@ -11,7 +11,7 @@ function StatusBanner({ lab, totalTests }) {
   const content = {
     pending: ['Your lab is under review', 'Our team usually verifies new labs within 24 hours. Meanwhile, add your tests and prices so you’re ready to go live.', 'bg-amber-50 text-amber-900 border-amber-200'],
     rejected: ['Your lab was not approved', lab.statusNote ? `Reason: ${lab.statusNote}. Update your profile to resubmit.` : 'Update your profile to resubmit.', 'bg-red-50 text-red-900 border-red-200'],
-    suspended: ['Your lab is suspended', lab.statusNote || 'Contact Patholy support to restore your listing.', 'bg-slate-100 text-slate-800 border-slate-200'],
+    suspended: ['Your lab is suspended', lab.statusNote || 'Contact Sanjibani support to restore your listing.', 'bg-slate-100 text-slate-800 border-slate-200'],
   }[lab.status];
   return (
     <div className={`mb-6 rounded-2xl border p-4 ${content[2]}`}>

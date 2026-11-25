@@ -41,7 +41,7 @@ const TEST_BODY = (name, price, extra = {}) => ({
 
 before(async () => {
   mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri('patholy-test'));
+  await mongoose.connect(mongod.getUri('sanjibani-test'));
   app = createApp();
 });
 
@@ -50,7 +50,7 @@ after(async () => {
   await mongod.stop();
 });
 
-describe('Patholy API', () => {
+describe('Sanjibani API', () => {
   const ctx = {};
 
   test('health check', async () => {
@@ -230,7 +230,7 @@ describe('Patholy API', () => {
       assert.equal(res.body.booking.collectionFee, 50);
       assert.equal(res.body.booking.total, 500);
       assert.equal(res.body.booking.status, 'pending');
-      assert.match(res.body.booking.code, /^PTL/);
+      assert.match(res.body.booking.code, /^SJB/);
       ctx.bookingId = res.body.booking._id;
     });
 
@@ -385,7 +385,7 @@ describe('Patholy API', () => {
       const meta = await api().get('/api/meta');
       assert.equal(meta.body.stats.labs, 5);
       assert.equal(meta.body.cities.length, 4);
-      const login = await api().post('/api/auth/login').send({ email: 'patient@patholy.in', password: 'Patient@123' });
+      const login = await api().post('/api/auth/login').send({ email: 'patient@sanjibani.in', password: 'Patient@123' });
       assert.equal(login.status, 200);
       const mine = await api().get('/api/bookings/me').set(auth(login.body.token));
       assert.ok(mine.body.items.length > 0);

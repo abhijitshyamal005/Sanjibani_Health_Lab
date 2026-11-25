@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const DEV_SECRET = 'patholy-dev-secret-change-me';
+const DEV_SECRET = 'sanjibani-dev-secret-change-me';
 
 function secretKey() {
   const secret = process.env.JWT_SECRET?.trim() || DEV_SECRET;

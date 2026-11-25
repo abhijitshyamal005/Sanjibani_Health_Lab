@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const SITE = 'https://patholy.dpdns.org';
+const SITE = 'https://sanjibanilabs.dpdns.org';
 
 const head = (page) =>
   page.evaluate(() => {
@@ -45,7 +45,7 @@ test.describe('SEO', () => {
     await page.goto('/');
     await expect(page.getByTestId('lab-card').first()).toBeVisible();
     const h = await head(page);
-    expect(h.title).toContain('Patholy');
+    expect(h.title).toContain('Sanjibani');
     expect(h.title).toMatch(/lab tests/i);
     expect(h.description.length).toBeGreaterThan(70);
     expect(h.description.length).toBeLessThanOrEqual(160);
@@ -112,7 +112,7 @@ test.describe('SEO', () => {
 
   test('legal pages are titled; private pages and 404s are noindex; defaults return on navigation', async ({ page }) => {
     await page.goto('/legal/privacy');
-    await expect.poll(async () => (await head(page)).title).toBe('Privacy Policy | Patholy');
+    await expect.poll(async () => (await head(page)).title).toBe('Privacy Policy | Sanjibani');
     expect((await head(page)).canonical).toBe(`${SITE}/legal/privacy`);
 
     await page.goto('/cart');

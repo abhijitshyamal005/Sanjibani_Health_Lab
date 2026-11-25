@@ -189,7 +189,7 @@ export default function PartnerBookings() {
                   </div>
                 )}
                 {b.paymentStatus === 'verifying' && b.upiPayee === 'platform' && (
-                  <p className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">Paid by UPI to Patholy (UTR {b.upiRef}) — Patholy will confirm it.</p>
+                  <p className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">Paid by UPI to SanjiBani (UTR {b.upiRef}) — SanjiBani will confirm it.</p>
                 )}
                 {b.paymentStatus === 'verifying' && b.upiPayee !== 'platform' && (
                   <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-violet-50 px-3 py-2.5 text-sm text-violet-900 ring-1 ring-violet-200" data-testid="upi-verify">

@@ -43,13 +43,13 @@ before(async () => {
   app = createApp();
   await seedDatabase({ reset: true });
 
-  ctx.patient = (await loginAs('patient@patholy.in', 'Patient@123')).token;
-  ctx.lab = (await loginAs('lab1@patholy.in', 'Lab@1234')).token; // Lifeline Pathology
-  ctx.lab2 = (await loginAs('lab2@patholy.in', 'Lab@1234')).token; // CarePoint
-  const c1 = await loginAs('collector1@patholy.in', 'Collector@123');
+  ctx.patient = (await loginAs('patient@sanjibani.in', 'Patient@123')).token;
+  ctx.lab = (await loginAs('lab1@sanjibani.in', 'Lab@1234')).token; // Lifeline Pathology
+  ctx.lab2 = (await loginAs('lab2@sanjibani.in', 'Lab@1234')).token; // CarePoint
+  const c1 = await loginAs('collector1@sanjibani.in', 'Collector@123');
   ctx.collector = c1.token;
   ctx.collectorLogin = c1;
-  ctx.collector3 = (await loginAs('collector3@patholy.in', 'Collector@123')).token;
+  ctx.collector3 = (await loginAs('collector3@sanjibani.in', 'Collector@123')).token;
 
   ctx.lifeline = await Lab.findOne({ name: 'Lifeline Pathology' });
   ctx.greenleaf = await Lab.findOne({ name: 'GreenLeaf Labs' });
@@ -203,8 +203,8 @@ describe('visit modes, capacity and availability', () => {
 
 describe('assignment and field workflow', () => {
   test('lab assigns a collector to a home collection; rules are enforced', async () => {
-    const bikash = await User.findOne({ email: 'collector1@patholy.in' });
-    const tanmoy = await User.findOne({ email: 'collector3@patholy.in' });
+    const bikash = await User.findOne({ email: 'collector1@sanjibani.in' });
+    const tanmoy = await User.findOne({ email: 'collector3@sanjibani.in' });
     const url = `/api/partner/bookings/${ctx.homeBookingId}/assign`;
 
     assert.equal((await api().patch(url).set(auth(ctx.lab)).send({ collectorId: tanmoy._id })).status, 400, 'other lab collector');
@@ -299,7 +299,7 @@ describe('assignment and field workflow', () => {
   });
 
   test('unassigning clears the collector and earning', async () => {
-    const bikash = await User.findOne({ email: 'collector1@patholy.in' });
+    const bikash = await User.findOne({ email: 'collector1@sanjibani.in' });
     const open = await Booking.findOne({ collector: bikash._id, status: 'confirmed' });
     assert.ok(open, 'seed gives collector1 an upcoming job');
     const un = await api().patch(`/api/partner/bookings/${open._id}/assign`).set(auth(ctx.lab)).send({ collectorId: null });
@@ -331,7 +331,7 @@ describe('assignment and field workflow', () => {
   });
 
   test('admin sees collectors with their lab', async () => {
-    const admin = (await loginAs('admin@patholy.in', 'Admin@123')).token;
+    const admin = (await loginAs('admin@sanjibani.in', 'Admin@123')).token;
     const users = await api().get('/api/admin/users').query({ role: 'collector' }).set(auth(admin));
     assert.ok(users.body.items.length >= 3);
     assert.ok(users.body.items.every((u) => u.role === 'collector' && u.lab?.name));

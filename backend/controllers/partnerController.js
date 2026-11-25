@@ -454,7 +454,7 @@ export async function verifyUpiPayment(req, res) {
   const booking = await Booking.findOne({ _id: req.params.id, lab: lab._id });
   if (!booking) throw new ApiError(404, 'Booking not found');
   if (booking.paymentStatus === 'verifying' && booking.upiPayee === 'platform') {
-    throw new ApiError(400, 'This payment went to Patholy — the Patholy team will verify it');
+    throw new ApiError(400, 'This payment went to SanjiBani — the SanjiBani team will verify it');
   }
   await applyUpiDecision(booking, req.body?.action);
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);

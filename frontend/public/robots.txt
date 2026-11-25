@@ -10,4 +10,4 @@ Disallow: /partner
 Disallow: /admin
 Disallow: /collector
 
-Sitemap: https://patholy.dpdns.org/sitemap.xml
+Sitemap: https://sanjibanilabs.dpdns.org/sitemap.xml

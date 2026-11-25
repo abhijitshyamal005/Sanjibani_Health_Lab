@@ -20,7 +20,7 @@ test('home shows offer strip, reviews and FAQ', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('offer-strip')).toContainText('SANJI15');
   await expect(page.getByTestId('testimonial').first()).toBeVisible();
-  await page.getByRole('button', { name: 'Are the labs on Patholy verified?' }).click();
+  await page.getByRole('button', { name: 'Are the labs on Sanjibani verified?' }).click();
   await expect(page.getByText(/reviewed by our team before it goes live/)).toBeVisible();
 });
 
@@ -82,7 +82,7 @@ test('lab uploads a PDF report and the patient downloads it', async ({ page }) =
   await page.getByTestId('confirm-status').click();
   await logout(page);
 
-  const emailFor = { 'Riya Sen': 'patient@patholy.in' };
+  const emailFor = { 'Riya Sen': 'patient@sanjibani.in' };
   const email = emailFor[patientName] || `${patientName.split(' ')[0].toLowerCase()}@example.com`;
   const password = email === 'amit@example.com' ? 'NewPass@123' : 'Patient@123';
   await login(page, { email, password });
@@ -91,7 +91,7 @@ test('lab uploads a PDF report and the patient downloads it', async ({ page }) =
   const downloadPromise = page.waitForEvent('download');
   await page.getByTestId('download-report').click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/^Patholy-Report-PTL.+\.pdf$/);
+  expect(download.suggestedFilename()).toMatch(/^Sanjibani-Report-SJB.+\.pdf$/);
 });
 
 test('legal pages and help button', async ({ page }) => {

@@ -3,7 +3,7 @@ import { CircleAlert, CircleCheck, X } from 'lucide-react';
 import { api } from '../lib/api';
 
 const AppContext = createContext(null);
-const CITY_KEY = 'patholy.city';
+const CITY_KEY = 'sanjibani.city';
 
 /** App-wide: platform metadata, selected city, and toasts. */
 export function AppProvider({ children }) {

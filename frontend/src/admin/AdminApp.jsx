@@ -46,7 +46,7 @@ function Overview() {
 
   return (
     <>
-      <PageHeader title="Platform overview" subtitle="Everything happening on Patholy" />
+      <PageHeader title="Platform overview" subtitle="Everything happening on Sanjibani" />
       {labs.pending > 0 && (
         <Link to="/admin/labs?status=pending" className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 hover:bg-amber-100">
           <span className="font-semibold">{labs.pending} {labs.pending === 1 ? 'lab is' : 'labs are'} waiting for approval</span>

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Read-only smoke checks against a deployed site. Creates no data.
-// Run: LIVE_URL=https://patholy.dpdns.org npm run test:live
+// Run: LIVE_URL=https://sanjibanilabs.dpdns.org npm run test:live
 
 test.describe('Live site', () => {
   test('home page loads labs from the API without CORS errors', async ({ page }) => {
@@ -32,13 +32,13 @@ test.describe('Live site', () => {
   test('robots.txt, sitemap and share image are served', async ({ request }) => {
     const robots = await request.get('/robots.txt');
     expect(robots.ok()).toBe(true);
-    expect(await robots.text()).toContain('Sitemap: https://patholy.dpdns.org/sitemap.xml');
+    expect(await robots.text()).toContain('Sitemap: https://sanjibanilabs.dpdns.org/sitemap.xml');
 
     const sitemap = await request.get('/sitemap.xml');
     expect(sitemap.ok()).toBe(true);
     const xml = await sitemap.text();
     expect(xml).toContain('<urlset');
-    expect(xml).toMatch(/<loc>https:\/\/patholy\.dpdns\.org\/labs\/[a-z0-9-]+<\/loc>/);
+    expect(xml).toMatch(/<loc>https:\/\/sanjibanilabs\.dpdns\.org\/labs\/[a-z0-9-]+<\/loc>/);
 
     const og = await request.get('/og-image.png');
     expect(og.headers()['content-type']).toContain('image/png');
@@ -46,7 +46,7 @@ test.describe('Live site', () => {
 
   test('pages carry canonical and share tags', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://patholy.dpdns.org/');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://sanjibanilabs.dpdns.org/');
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /og-image\.png$/);
     await expect(page.locator('#seo-jsonld')).toHaveCount(1);
   });

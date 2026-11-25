@@ -16,16 +16,16 @@ test('EMAIL_FROM overrides the Gmail account as sender', () => {
 });
 
 test('builds the Brevo request', () => {
-  const r = httpRequest('brevo', { to: 'p@x.com', subject: 'Hi', html: '<b>x</b>', replyTo: 'care@x.org' }, { BREVO_API_KEY: 'key1', EMAIL_FROM: 'noreply@x.org', COMPANY_NAME: 'Patholy' });
+  const r = httpRequest('brevo', { to: 'p@x.com', subject: 'Hi', html: '<b>x</b>', replyTo: 'care@x.org' }, { BREVO_API_KEY: 'key1', EMAIL_FROM: 'noreply@x.org', COMPANY_NAME: 'SanjiBani' });
   assert.equal(r.url, 'https://api.brevo.com/v3/smtp/email');
   assert.equal(r.headers['api-key'], 'key1');
-  assert.deepEqual(r.body, { sender: { name: 'Patholy', email: 'noreply@x.org' }, to: [{ email: 'p@x.com' }], subject: 'Hi', htmlContent: '<b>x</b>', replyTo: { email: 'care@x.org' } });
+  assert.deepEqual(r.body, { sender: { name: 'SanjiBani', email: 'noreply@x.org' }, to: [{ email: 'p@x.com' }], subject: 'Hi', htmlContent: '<b>x</b>', replyTo: { email: 'care@x.org' } });
 });
 
 test('builds the Resend request', () => {
   const r = httpRequest('resend', { to: 'p@x.com', subject: 'Hi', html: 'h' }, { RESEND_API_KEY: 'rk', EMAIL_FROM: 'n@x.org' });
   assert.equal(r.headers.authorization, 'Bearer rk');
-  assert.deepEqual(r.body, { from: 'Patholy <n@x.org>', to: ['p@x.com'], subject: 'Hi', html: 'h' });
+  assert.deepEqual(r.body, { from: 'SanjiBani Health <n@x.org>', to: ['p@x.com'], subject: 'Hi', html: 'h' });
 });
 
 test('sendViaHttp posts JSON and surfaces provider errors', async () => {

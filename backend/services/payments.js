@@ -8,7 +8,7 @@ const UPI_RE = /^[\w.\-]{2,256}@[a-z]{2,64}$/;
 /** Platform-wide UPI ID used when a lab has not set its own (UPI_ID / UPI_NAME env vars). */
 export function platformUpi() {
   const id = (process.env.UPI_ID || '').trim().toLowerCase();
-  return UPI_RE.test(id) ? { upiId: id, upiName: (process.env.UPI_NAME || 'Patholy').trim() } : null;
+  return UPI_RE.test(id) ? { upiId: id, upiName: (process.env.UPI_NAME || 'SanjiBani Health').trim() } : null;
 }
 
 /** Which UPI ID a booking at this lab should be paid to: the lab's own, else the platform's. */

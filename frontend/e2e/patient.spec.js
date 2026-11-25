@@ -65,7 +65,7 @@ test.describe('Patient', () => {
     // Logged-out users are sent to log in and come back to the cart.
     await page.getByTestId('place-booking').click();
     await expect(page).toHaveURL(/\/login\?next=(%2F|\/)cart/);
-    await page.getByLabel('Email').fill('patient@patholy.in');
+    await page.getByLabel('Email').fill('patient@sanjibani.in');
     await page.getByLabel('Password', { exact: true }).fill('Patient@123');
     await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page).toHaveURL(/\/cart/);

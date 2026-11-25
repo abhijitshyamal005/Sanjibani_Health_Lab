@@ -8,7 +8,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: [['list']],
   use: {
-    baseURL: process.env.LIVE_URL ?? 'https://patholy.dpdns.org',
+    baseURL: process.env.LIVE_URL ?? 'https://sanjibanilabs.dpdns.org',
     trace: 'retain-on-failure',
     channel: process.env.PW_CHANNEL ?? 'chrome',
   },

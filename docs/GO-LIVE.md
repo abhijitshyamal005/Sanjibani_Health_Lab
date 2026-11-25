@@ -22,7 +22,7 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
    `mongodb+srv://USER:PASS@cluster0.xxxx.mongodb.net/sanjibani?retryWrites=true&w=majority`
 
 ## 2. Report storage: Cloudflare R2
-1. Sign up at https://dash.cloudflare.com, open **R2**, and create a bucket named `patholy-reports`. Keep it private.
+1. Sign up at https://dash.cloudflare.com, open **R2**, and create a bucket named `sanjibani-reports`. Keep it private.
 2. Under **R2 → Manage API tokens**, create a token with *Object Read & Write* on that bucket.
 3. Note these values:
    - Access Key ID and Secret Access Key
@@ -46,11 +46,11 @@ For local development you can still use Gmail SMTP instead: set `EMAIL` and an a
 |---|---|
 | `MONGO_URI` | from step 1 |
 | `JWT_SECRET` | Render generates this automatically |
-| `CLIENT_ORIGINS` | your Vercel URL(s), comma-separated, e.g. `https://patholy.vercel.app,https://www.yourdomain.in` |
+| `CLIENT_ORIGINS` | your Vercel URL(s), comma-separated, e.g. `https://sanjibani.vercel.app,https://www.yourdomain.in` |
 | `EMAIL_ENABLED` | `true` |
 | `BREVO_API_KEY`, `EMAIL_FROM` | from step 3 |
 | `STORAGE_DRIVER` | `s3` |
-| `S3_BUCKET` | `patholy-reports` |
+| `S3_BUCKET` | `sanjibani-reports` |
 | `S3_REGION` | `auto` |
 | `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | from step 2 |
 | `UPI_ID`, `UPI_NAME` | your UPI ID and name — used for labs that have not added their own UPI ID |

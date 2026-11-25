@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect } from 'react';
 
 /** The one address search engines should index. Copies on onrender.com / vercel.app point here. */
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://patholy.dpdns.org').replace(/\/$/, '');
-export const SITE_NAME = 'Patholy';
-export const DEFAULT_TITLE = 'Patholy — Book lab tests from trusted labs near you';
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://sanjibanilabs.dpdns.org').replace(/\/$/, '');
+export const SITE_NAME = 'Sanjibani';
+export const DEFAULT_TITLE = 'Sanjibani — Book lab tests from trusted labs near you';
 export const DEFAULT_DESCRIPTION =
   'Compare lab test prices across trusted diagnostic labs near you and book home sample collection in minutes.';
 export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
@@ -114,7 +114,7 @@ export const organizationJsonLd = {
     {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
-      name: 'Patholy',
+      name: 'Sanjibani Health',
       url: SITE_URL,
       logo: `${SITE_URL}/logo-512.png`,
     },

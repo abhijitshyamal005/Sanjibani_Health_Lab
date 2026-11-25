@@ -36,7 +36,7 @@ export function createApp() {
   if (env !== 'test') app.use(morgan(env === 'production' ? 'combined' : 'dev'));
   app.use(express.json({ limit: '1mb' }));
 
-  app.get('/', (_req, res) => res.json({ name: 'Patholy API', status: 'ok' }));
+  app.get('/', (_req, res) => res.json({ name: 'Sanjibani API', status: 'ok' }));
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
   const authLimiter = rateLimit({

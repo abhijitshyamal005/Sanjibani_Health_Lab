@@ -1,5 +1,5 @@
 const BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
-const TOKEN_KEY = 'patholy.token';
+const TOKEN_KEY = 'sanjibani.token';
 
 let unauthorizedHandler = null;
 

@@ -40,6 +40,6 @@ test.describe('Admin dashboard', () => {
     await page.getByRole('link', { name: 'Users', exact: true }).click();
     await page.getByRole('tab', { name: 'Patients' }).click();
     await expect(page.getByTestId('admin-user-row').first()).toBeVisible();
-    await expect(page.getByTestId('admin-user-row').filter({ hasText: 'patient@patholy.in' })).toBeVisible();
+    await expect(page.getByTestId('admin-user-row').filter({ hasText: 'patient@sanjibani.in' })).toBeVisible();
   });
 });
