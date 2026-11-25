@@ -15,8 +15,10 @@ export function validateEnv() {
     if (!process.env.CLIENT_ORIGINS) errors.push('CLIENT_ORIGINS — comma-separated frontend URLs, e.g. https://sanjibani.vercel.app');
   }
 
+  const gmailRelay = process.env.GMAIL_SCRIPT_URL && process.env.GMAIL_SCRIPT_SECRET;
   const mailApi = process.env.BREVO_API_KEY || process.env.RESEND_API_KEY;
   if (process.env.EMAIL_ENABLED !== 'true') warnings.push('Email notifications are OFF (set EMAIL_ENABLED=true plus BREVO_API_KEY, or EMAIL + EMAIL_PASSWORD locally)');
+  else if (gmailRelay) { /* Gmail Apps Script relay: sender is the script owner's Gmail, nothing else needed */ }
   else if (!mailApi && !(process.env.EMAIL && process.env.EMAIL_PASSWORD)) warnings.push('EMAIL_ENABLED=true but no BREVO_API_KEY / RESEND_API_KEY or EMAIL / EMAIL_PASSWORD is set');
   else if (mailApi && !(process.env.EMAIL_FROM || process.env.EMAIL)) errors.push('EMAIL_FROM — the verified sender address for the email API');
   else if (!mailApi && env === 'production') warnings.push('Sending email over SMTP — Render free instances block SMTP ports; set BREVO_API_KEY to send over HTTPS');

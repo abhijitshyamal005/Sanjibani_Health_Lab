@@ -38,16 +38,23 @@ test.describe('Patient', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('in Kolkata');
   });
 
-  test('cart holds tests from one lab and asks before switching', async ({ page }) => {
+  test('cart holds tests from several labs, grouped by lab', async ({ page }) => {
     await page.goto('/tests?q=Vitamin D');
     const offers = page.getByTestId('offer-card');
     await offers.nth(0).getByTestId('add-to-cart').click();
     await expect(page.getByTestId('cart-link')).toContainText('1');
 
+    // A second lab is added alongside the first — no "replace cart" prompt.
     await offers.nth(1).getByTestId('add-to-cart').click();
-    const dialog = page.getByRole('dialog', { name: 'Replace cart?' });
-    await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Replace' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByTestId('cart-link')).toContainText('2');
+
+    await page.goto('/cart');
+    await expect(page.getByTestId('lab-part')).toHaveCount(2);
+    await expect(page.getByTestId('multi-lab-note')).toBeVisible();
+    await page.getByTestId('lab-part').first().getByTestId('remove-lab').click();
+    await expect(page.getByTestId('lab-part')).toHaveCount(1);
+    await expect(page.getByTestId('multi-lab-note')).toHaveCount(0);
     await expect(page.getByTestId('cart-link')).toContainText('1');
   });
 

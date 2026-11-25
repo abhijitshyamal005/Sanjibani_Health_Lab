@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BadgeCheck, Check, Clock, House, MapPin, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { MAX_CART_LABS, useCart } from '../context/CartContext';
 import { categoryMeta } from '../lib/categories';
 import { inr } from '../lib/format';
 import { LabCover } from './Brand';
-import { Badge, Button, Modal, Rating } from './ui';
+import { Badge, Button, Rating } from './ui';
 
 export function LabCard({ lab }) {
   return (
@@ -49,54 +49,25 @@ export function LabCard({ lab }) {
   );
 }
 
-/** Add-to-cart with the "replace cart?" prompt when switching labs. */
+/** Add-to-cart. Tests from different labs can share one cart — each lab becomes its own booking. */
 export function useAddToCart() {
   const cart = useCart();
   const { user } = useAuth();
   const { toast } = useApp();
-  const [pending, setPending] = useState(null);
 
   const add = (lab, test) => {
     if (user && user.role !== 'patient') {
       toast('Switch to a patient account to book tests', 'error');
       return;
     }
+    const isNewLab = cart.count > 0 && !cart.hasLab(lab._id);
     const result = cart.add(lab, test);
-    if (result === 'conflict') setPending({ lab, test });
+    if (result === 'limit') toast(`You can book from up to ${MAX_CART_LABS} labs at a time`, 'error');
+    else if (isNewLab) toast(`${test.name} added — your cart now has tests from ${cart.labCount + 1} labs`);
     else toast(`${test.name} added to cart`);
   };
 
-  const modal = (
-    <Modal
-      open={!!pending}
-      onClose={() => setPending(null)}
-      title="Replace cart?"
-      footer={
-        <>
-          <Button variant="outline" onClick={() => setPending(null)}>
-            Keep current
-          </Button>
-          <Button
-            variant="accent"
-            onClick={() => {
-              cart.replaceWith(pending.lab, pending.test);
-              toast(`Cart now has tests from ${pending.lab.name}`);
-              setPending(null);
-            }}
-          >
-            Replace
-          </Button>
-        </>
-      }
-    >
-      <p className="text-sm text-ink-soft">
-        Your cart has tests from <b>{cart.lab?.name}</b>. You can book from one lab at a time. Clear the cart and add{' '}
-        <b>{pending?.test.name}</b> from <b>{pending?.lab.name}</b>?
-      </p>
-    </Modal>
-  );
-
-  return { add, modal, has: cart.has };
+  return { add, modal: null, has: cart.has };
 }
 
 export function AddButton({ added, onAdd, size = 'sm' }) {

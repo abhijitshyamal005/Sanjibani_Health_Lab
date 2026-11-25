@@ -130,7 +130,7 @@ export default function PartnerBookings() {
                       <span className="text-sm text-ink-muted">{b.patient.age} yrs · {b.patient.gender}</span>
                       <StatusBadge status={b.status} />
                     </div>
-                    <p className="mt-0.5 text-xs text-ink-muted">#{b.code} · booked {dateTime(b.createdAt)}</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">#{b.code} · booked {dateTime(b.createdAt)}{b.orderCode && <span className="font-semibold text-brand-700" data-testid="multi-lab-tag"> · Multi-lab order #{b.orderCode} — patient also booked other labs</span>}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-extrabold">{inr(b.total)}</p>

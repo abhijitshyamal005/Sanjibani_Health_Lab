@@ -384,7 +384,7 @@ function AdminBookings() {
               <tbody className="divide-y divide-slate-100">
                 {data.items.map((b) => (
                   <tr key={b._id}>
-                    <td className="px-5 py-3"><p className="font-semibold">#{b.code}</p><p className="text-xs text-ink-muted">{dateTime(b.createdAt)}</p></td>
+                    <td className="px-5 py-3"><p className="font-semibold">#{b.code}</p>{b.orderCode && <p className="text-xs font-semibold text-brand-700">Order #{b.orderCode}</p>}<p className="text-xs text-ink-muted">{dateTime(b.createdAt)}</p></td>
                     <td className="px-3 py-3"><p>{b.patient.name}</p><p className="text-xs text-ink-muted">{b.user?.email}</p></td>
                     <td className="px-3 py-3"><p>{b.lab?.name}</p><p className="text-xs text-ink-muted">{b.lab?.address?.city}</p></td>
                     <td className="px-3 py-3 text-ink-soft">{slotDate(b.slot.date)}<br /><span className="text-xs">{b.collectionType === 'home' ? 'Home' : 'Lab visit'}</span></td>

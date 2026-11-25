@@ -42,7 +42,7 @@ export default function LabDetail() {
   if (error) return <div className="container-page py-16"><ErrorState error={error} onRetry={reload} /></div>;
   if (loading && !data) return <Spinner className="min-h-[60vh]" />;
   const { lab, reviews } = data;
-  const inCart = cart.lab?._id === lab._id && cart.count > 0;
+  const inCart = cart.hasLab(lab._id);
 
   return (
     <div className="pb-24">
@@ -151,7 +151,7 @@ export default function LabDetail() {
         <div className="fixed inset-x-0 bottom-4 z-30 px-4">
           <Link to="/cart" className="mx-auto flex max-w-xl items-center justify-between rounded-2xl bg-brand-600 px-5 py-3.5 font-bold text-white shadow-lift hover:bg-brand-700" data-testid="view-cart-bar">
             <span>
-              {cart.count} {cart.count === 1 ? 'test' : 'tests'} · {inr(cart.subtotal)}
+              {cart.count} {cart.count === 1 ? 'test' : 'tests'}{cart.labCount > 1 ? ` from ${cart.labCount} labs` : ''} · {inr(cart.subtotal)}
             </span>
             <span className="flex items-center gap-2">
               View cart <ShoppingBag className="h-5 w-5" />

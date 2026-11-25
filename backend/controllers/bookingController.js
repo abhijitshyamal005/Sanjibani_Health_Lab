@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import Booking from '../models/bookingModel.js';
 import Coupon from '../models/couponModel.js';
@@ -36,44 +37,83 @@ export async function loadCart(labId, items) {
   return { lab, tests, subtotal: tests.reduce((sum, t) => sum + t.price, 0) };
 }
 
+/**
+ * Give a coupon use back when a booking is cancelled. In a multi-lab order the coupon is shared,
+ * so it is only released once every booking that carries it is cancelled.
+ */
 export async function releaseCoupon(booking) {
-  if (booking.couponCode) {
-    await Coupon.updateOne({ code: booking.couponCode, usedCount: { $gt: 0 } }, { $inc: { usedCount: -1 } });
+  if (!booking.couponCode) return;
+  if (booking.orderCode) {
+    const stillActive = await Booking.exists({
+      orderCode: booking.orderCode,
+      couponCode: booking.couponCode,
+      _id: { $ne: booking._id },
+      status: { $ne: 'cancelled' },
+    });
+    if (stillActive) return;
   }
+  await Coupon.updateOne({ code: booking.couponCode, usedCount: { $gt: 0 } }, { $inc: { usedCount: -1 } });
 }
 
-/** POST /api/coupons/validate */
+export const MAX_LABS_PER_ORDER = 5;
+const MAX_TESTS_PER_ORDER = 20;
+const IN_PERSON = new Set(['lab_visit', 'assisted_visit']);
+
+/**
+ * A checkout is one or more lab groups: [{ labId, items, collectionType, slot }].
+ * The legacy single-lab body ({ labId, items, collectionType, slot }) is treated as one group.
+ */
+function readGroups(body = {}) {
+  const groups = Array.isArray(body.groups)
+    ? body.groups.map((g) => ({
+        labId: g?.labId,
+        items: g?.items,
+        collectionType: g?.collectionType ?? body.collectionType,
+        slot: g?.slot ?? body.slot ?? {},
+      }))
+    : [{ labId: body.labId, items: body.items, collectionType: body.collectionType, slot: body.slot || {} }];
+  if (groups.length === 0) throw new ApiError(400, 'Add at least one test');
+  if (groups.length > MAX_LABS_PER_ORDER) throw new ApiError(400, `You can book from up to ${MAX_LABS_PER_ORDER} labs at a time`);
+  const labIds = groups.map((g) => String(g.labId));
+  if (new Set(labIds).size !== labIds.length) throw new ApiError(400, 'Each lab can appear only once in an order');
+  const testCount = groups.reduce((n, g) => n + (Array.isArray(g.items) ? g.items.length : 0), 0);
+  if (testCount > MAX_TESTS_PER_ORDER) throw new ApiError(400, `You can book up to ${MAX_TESTS_PER_ORDER} tests at a time`);
+  return groups;
+}
+
+/** POST /api/coupons/validate — works for a single lab ({ labId, items }) or a multi-lab cart ({ groups }). */
 export async function validateCoupon(req, res) {
-  const { code, labId, items } = req.body || {};
-  const { subtotal } = await loadCart(labId, items);
-  const { coupon, discount } = await resolveCoupon(code, subtotal);
+  const groups = readGroups(req.body);
+  let subtotal = 0;
+  for (const g of groups) subtotal += (await loadCart(g.labId, g.items)).subtotal;
+  const { coupon, discount } = await resolveCoupon(req.body?.code, subtotal);
   res.json({ code: coupon.code, description: coupon.description, discount, subtotal });
 }
 
-/** POST /api/bookings — patient books tests from a single lab. */
-export async function createBooking(req, res) {
-  const { labId, items, collectionType, slot = {}, patient = {}, address = {}, notes, couponCode } = req.body || {};
+const collectionFeeFor = (lab, type) =>
+  type === 'home' ? lab.homeCollectionFee || 0 : type === 'assisted_visit' ? lab.assistedVisitFee || 0 : 0;
+
+/** Validate one lab's part of a checkout: tests, visit type, address and slot availability. */
+async function prepareLabPart({ labId, items, collectionType, slot = {} }, address) {
+  const { lab, tests, subtotal } = await loadCart(labId, items);
+  const at = (msg) => `${lab.name}: ${msg}`;
 
   if (!COLLECTION_TYPES.includes(collectionType)) {
-    throw new ApiError(400, 'Choose home collection, lab visit or assisted visit');
+    throw new ApiError(400, at('Choose home collection, lab visit or assisted visit'));
   }
-  const { lab, tests, subtotal } = await loadCart(labId, items);
-
   if (collectionType === 'home') {
-    if (!lab.homeCollection) throw new ApiError(400, 'This lab does not offer home collection');
+    if (!lab.homeCollection) throw new ApiError(400, at('This lab does not offer home collection'));
     const notHome = tests.filter((t) => !t.homeCollection);
     if (notHome.length) {
-      throw new ApiError(400, `Home collection is not available for: ${notHome.map((t) => t.name).join(', ')}`);
+      throw new ApiError(400, at(`Home collection is not available for: ${notHome.map((t) => t.name).join(', ')}`));
     }
     if (!hasFullAddress(address)) {
       throw new ApiError(400, 'Enter a full address with a 6-digit pincode for home collection');
     }
   }
-
-
   if (collectionType === 'assisted_visit') {
     // Field staff escorts the patient to the lab, so any active test is fine (including lab-only ones).
-    if (!lab.assistedVisit) throw new ApiError(400, 'This lab does not offer assisted visits');
+    if (!lab.assistedVisit) throw new ApiError(400, at('This lab does not offer assisted visits'));
     if (!hasFullAddress(address)) throw new ApiError(400, 'Enter a full pickup address with a 6-digit pincode');
   }
 
@@ -93,46 +133,95 @@ export async function createBooking(req, res) {
     status: { $ne: 'cancelled' },
   });
   if (taken >= (lab.slotCapacity || 4)) {
-    throw new ApiError(409, 'This slot is fully booked. Please pick another time.');
+    throw new ApiError(409, at('This slot is fully booked. Please pick another time.'));
+  }
+  return { lab, tests, subtotal, collectionType, slot: { date: slot.date, time: slot.time }, collectionFee: collectionFeeFor(lab, collectionType) };
+}
+
+/** Split an order-level discount across lab bookings in proportion to their test totals. */
+function splitDiscount(discount, subtotals) {
+  const total = subtotals.reduce((a, b) => a + b, 0);
+  if (!discount || !total) return subtotals.map(() => 0);
+  const shares = subtotals.map((s) => Math.floor((discount * s) / total));
+  let rest = discount - shares.reduce((a, b) => a + b, 0);
+  for (let i = 0; rest > 0; i = (i + 1) % shares.length) {
+    if (shares[i] < subtotals[i]) {
+      shares[i] += 1;
+      rest -= 1;
+    }
+  }
+  return shares;
+}
+
+const newOrderCode = () => `ORD${crypto.randomInt(100000, 999999)}${crypto.randomBytes(1).toString('hex').toUpperCase()}`;
+
+/**
+ * POST /api/bookings — patient books tests for one patient, from one lab or several.
+ * Each lab gets its own booking (its own lab team, collector, payment and report);
+ * bookings placed together share an orderCode.
+ */
+export async function createBooking(req, res) {
+  const body = req.body || {};
+  const { patient = {}, address = {}, notes, couponCode } = body;
+  const groups = readGroups(body);
+
+  const parts = [];
+  for (const g of groups) parts.push(await prepareLabPart(g, address));
+
+  // The patient cannot be in two places at once: only home collections may share a time slot.
+  for (let i = 0; i < parts.length; i += 1) {
+    for (let j = i + 1; j < parts.length; j += 1) {
+      const a = parts[i];
+      const b = parts[j];
+      const sameTime = a.slot.date === b.slot.date && a.slot.time === b.slot.time;
+      if (sameTime && (IN_PERSON.has(a.collectionType) || IN_PERSON.has(b.collectionType))) {
+        throw new ApiError(400, `${a.lab.name} and ${b.lab.name} are at the same time. Pick different slots for a lab visit.`);
+      }
+    }
   }
 
+  const subtotal = parts.reduce((s, p) => s + p.subtotal, 0);
   let coupon = null;
   let discount = 0;
   if (couponCode && String(couponCode).trim()) {
     ({ coupon, discount } = await resolveCoupon(couponCode, subtotal));
   }
-  const collectionFee =
-    collectionType === 'home' ? lab.homeCollectionFee : collectionType === 'assisted_visit' ? lab.assistedVisitFee || 0 : 0;
+  const discounts = splitDiscount(discount, parts.map((p) => p.subtotal));
+  const orderCode = parts.length > 1 ? newOrderCode() : undefined;
 
-  const booking = new Booking({
-    user: req.user._id,
-    lab: lab._id,
-    items: tests.map((t) => ({
-      test: t._id,
-      name: t.name,
-      category: t.category,
-      type: t.type,
-      mrp: t.mrp,
-      price: t.price,
-      sampleType: t.sampleType,
-      preparation: t.preparation,
-    })),
-    subtotal,
-    collectionFee,
-    discount,
-    couponCode: coupon?.code,
-    total: subtotal + collectionFee - discount,
-    collectionType,
-    slot: { date: slot.date, time: slot.time },
-    patient: pick(patient, ['name', 'age', 'gender', 'phone']),
-    address: collectionType === 'lab_visit' ? undefined : pick(address, ['line', 'area', 'city', 'pincode']),
-    notes,
+  const bookings = parts.map((p, i) => {
+    const booking = new Booking({
+      user: req.user._id,
+      orderCode,
+      lab: p.lab._id,
+      items: p.tests.map((t) => ({
+        test: t._id,
+        name: t.name,
+        category: t.category,
+        type: t.type,
+        mrp: t.mrp,
+        price: t.price,
+        sampleType: t.sampleType,
+        preparation: t.preparation,
+      })),
+      subtotal: p.subtotal,
+      collectionFee: p.collectionFee,
+      discount: discounts[i],
+      couponCode: coupon ? coupon.code : undefined,
+      total: p.subtotal + p.collectionFee - discounts[i],
+      collectionType: p.collectionType,
+      slot: p.slot,
+      patient: pick(patient, ['name', 'age', 'gender', 'phone']),
+      address: p.collectionType === 'lab_visit' ? undefined : pick(address, ['line', 'area', 'city', 'pincode']),
+      notes,
+    });
+    booking.setStatus('pending', parts.length > 1 ? `Booking placed (order #${orderCode}, ${parts.length} labs)` : 'Booking placed');
+    return booking;
   });
-  booking.setStatus('pending', 'Booking placed');
-  await booking.validate();
+  for (const b of bookings) await b.validate();
 
   if (coupon) {
-    // Atomically claim one use of the coupon (respects usageLimit under concurrency).
+    // Atomically claim one use of the coupon for the whole order (respects usageLimit under concurrency).
     const claimed = await Coupon.findOneAndUpdate(
       {
         _id: coupon._id,
@@ -142,16 +231,19 @@ export async function createBooking(req, res) {
     );
     if (!claimed) throw new ApiError(400, 'This coupon has reached its usage limit');
   }
+  const saved = [];
   try {
-    await booking.save();
+    for (const b of bookings) saved.push(await b.save());
   } catch (err) {
+    if (saved.length) await Booking.deleteMany({ _id: { $in: saved.map((b) => b._id) } });
     if (coupon) await Coupon.updateOne({ _id: coupon._id }, { $inc: { usedCount: -1 } });
     throw err;
   }
 
-  events.bookingPlaced(booking._id);
+  for (const b of saved) events.bookingPlaced(b._id);
 
-  res.status(201).json({ booking: await booking.populate('lab', LAB_SUMMARY) });
+  await Booking.populate(saved, { path: 'lab', select: LAB_SUMMARY });
+  res.status(201).json({ booking: saved[0], bookings: saved, orderCode });
 }
 
 /** GET /api/bookings/me */
@@ -180,7 +272,18 @@ export async function getBooking(req, res) {
   const booking = await loadVisibleBooking(req);
   const json = booking.toJSON();
   delete json.lab.owner;
-  res.json({ booking: json });
+  // Other labs' bookings in the same order — shown to the patient and admins, not to other labs.
+  let order;
+  const me = String(req.user._id);
+  if (booking.orderCode && (req.user.role === 'admin' || String(booking.user?._id) === me)) {
+    const siblings = await Booking.find({ orderCode: booking.orderCode, user: booking.user._id, _id: { $ne: booking._id } })
+      .select('code status lab items.name slot collectionType total collector fieldStatus')
+      .populate('lab', 'name slug coverTheme')
+      .populate('collector', COLLECTOR_SUMMARY)
+      .sort({ createdAt: 1 });
+    order = { code: booking.orderCode, bookings: siblings };
+  }
+  res.json({ booking: json, order });
 }
 
 /** GET /api/bookings/:id/report — download the uploaded PDF report. */

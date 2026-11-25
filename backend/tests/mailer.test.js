@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { emailChannel, fromAddress, httpRequest, sendViaHttp } from '../services/notify.js';
+import { emailBaseUrl, emailChannel, fromAddress, httpRequest, sendViaHttp } from '../services/notify.js';
 
 test('picks an HTTPS provider before SMTP, and nothing when disabled', () => {
   assert.equal(emailChannel({ EMAIL_ENABLED: 'false', BREVO_API_KEY: 'k' }), null);
@@ -36,4 +36,28 @@ test('sendViaHttp posts JSON and surfaces provider errors', async () => {
   assert.equal(JSON.parse(seen.init.body).to[0].email, 'p@x.com');
   const bad = async () => ({ ok: false, status: 401, text: async () => '{"message":"Key not found"}' });
   await assert.rejects(sendViaHttp('brevo', { to: 'p@x.com', subject: 's', html: 'h' }, { BREVO_API_KEY: 'k', EMAIL_FROM: 'f' }, bad), /brevo 401: .*Key not found/);
+});
+
+test('prefers the Gmail Apps Script relay when configured', () => {
+  const env = { EMAIL_ENABLED: 'true', GMAIL_SCRIPT_URL: 'https://script.google.com/macros/s/x/exec', GMAIL_SCRIPT_SECRET: 's', BREVO_API_KEY: 'k' };
+  assert.equal(emailChannel(env), 'gscript');
+  assert.equal(emailChannel({ ...env, GMAIL_SCRIPT_SECRET: '' }), 'brevo');
+  const r = httpRequest('gscript', { to: 'p@x.com', subject: 'Hi', html: '<p>Hello <a href="https://a.b/c">open</a></p>', replyTo: 'r@x.com' }, env);
+  assert.equal(r.url, env.GMAIL_SCRIPT_URL);
+  assert.equal(r.body.secret, 's');
+  assert.equal(r.body.text, 'Hello open (https://a.b/c)');
+  assert.equal(r.body.replyTo, 'r@x.com');
+});
+
+test('gscript errors are surfaced even on HTTP 200', async () => {
+  const env = { GMAIL_SCRIPT_URL: 'https://s', GMAIL_SCRIPT_SECRET: 's' };
+  const denied = async () => ({ ok: true, json: async () => ({ ok: false, error: 'unauthorized' }) });
+  await assert.rejects(sendViaHttp('gscript', { to: 'p@x.com', subject: 's', html: 'h' }, env, denied), /gscript: unauthorized/);
+  const fine = async () => ({ ok: true, json: async () => ({ ok: true, remaining: 99 }) });
+  await sendViaHttp('gscript', { to: 'p@x.com', subject: 's', html: 'h' }, env, fine);
+});
+
+test('EMAIL_LINK_URL keeps email links off the main domain', () => {
+  assert.equal(emailBaseUrl({ APP_URL: 'https://main.example', EMAIL_LINK_URL: 'https://clean.example/' }), 'https://clean.example');
+  assert.equal(emailBaseUrl({ APP_URL: 'https://main.example/' }), 'https://main.example');
 });

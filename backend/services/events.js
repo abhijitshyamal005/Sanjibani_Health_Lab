@@ -8,7 +8,7 @@ import Booking from '../models/bookingModel.js';
 import Lab from '../models/labModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
-import { BRAND, MAIL, esc, layout, sendEmail } from './notify.js';
+import { BRAND, MAIL, emailBaseUrl, esc, layout, sendEmail } from './notify.js';
 
 const pending = new Set();
 function fire(task) {
@@ -24,8 +24,7 @@ export async function flushEmails() {
 }
 
 function appUrl(path = '') {
-  const base = (process.env.APP_URL || (process.env.CLIENT_ORIGINS || '').split(',')[0] || 'http://localhost:5173').trim();
-  return base.replace(/\/$/, '') + path;
+  return emailBaseUrl() + path;
 }
 const button = (href, label) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="background:${MAIL.accent};border-radius:6px"><a href="${href}" style="display:inline-block;padding:11px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600">${esc(label)}</a></td></tr></table>`;

@@ -19,3 +19,16 @@ test('header logo and menu button fit side by side on a phone', async ({ page })
   expect(l.x + l.width).toBeLessThanOrEqual(m.x);
   await page.screenshot({ path: 'test-results/mobile-logo.png', clip: { x: 0, y: 0, width: 412, height: 80 } });
 });
+
+test('multi-lab checkout fits a phone screen', async ({ page }) => {
+  await page.goto('/tests?q=Vitamin D');
+  const offers = page.getByTestId('offer-card');
+  await offers.nth(0).getByTestId('add-to-cart').click();
+  await offers.nth(1).getByTestId('add-to-cart').click();
+  await page.goto('/cart');
+  await expect(page.getByTestId('lab-part')).toHaveCount(2);
+  await expect(page.getByTestId('multi-lab-note')).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.screenshot({ path: 'test-results/mobile-multi-lab-cart.png', fullPage: true });
+});

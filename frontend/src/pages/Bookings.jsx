@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, Download, FileText, House, Phone, Star } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, Download, FileText, House, Layers, Phone, Star } from 'lucide-react';
 import { LabCover } from '../components/Brand';
 import { Button, EmptyState, ErrorState, Field, Modal, PaymentBadge, Spinner, StatusBadge, Tabs } from '../components/ui';
 import { useApp } from '../context/AppContext';
@@ -52,6 +52,7 @@ export function BookingList() {
                 <span>{slotDate(b.slot.date)} · {slotTime(b.slot.time)}</span>
                 <span>{COLLECTION_TYPES[b.collectionType]?.label}</span>
                 <span>#{b.code}</span>
+                {b.orderCode && <span className="font-semibold text-brand-700" data-testid="order-tag">Order #{b.orderCode}</span>}
               </p>
             </div>
             <div className="text-right">
@@ -61,6 +62,41 @@ export function BookingList() {
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** The other labs' bookings placed in the same checkout for this patient. */
+function OrderSiblings({ order }) {
+  return (
+    <div className="card mt-5 p-5" data-testid="order-siblings">
+      <div className="flex flex-wrap items-center gap-2">
+        <Layers className="h-5 w-5 text-brand-700" />
+        <h2 className="font-bold">Order #{order.code}</h2>
+        <span className="text-sm text-ink-muted">· {order.bookings.length + 1} labs, one patient</span>
+      </div>
+      <p className="mt-1 text-sm text-ink-muted">This booking is part of a multi-lab order. Other labs in this order:</p>
+      <ul className="mt-3 divide-y divide-slate-100">
+        {order.bookings.map((o) => (
+          <li key={o._id}>
+            <Link to={`/bookings/${o._id}`} className="flex items-center gap-3 py-3 hover:text-brand-700" data-testid="order-sibling">
+              <LabCover lab={o.lab} className="h-10 w-10 shrink-0 rounded-xl [&>div]:hidden" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold">{o.lab?.name}</p>
+                  <StatusBadge status={o.status} />
+                </div>
+                <p className="truncate text-xs text-ink-muted">
+                  {o.items.map((i) => i.name).join(', ')} · {slotDate(o.slot.date)}, {slotTime(o.slot.time)} · {COLLECTION_TYPES[o.collectionType]?.label}
+                </p>
+                {o.collector && <p className="text-xs text-brand-700">Collector: {o.collector.name}</p>}
+              </div>
+              <span className="text-sm font-bold">{inr(o.total)}</span>
+              <ChevronRight className="h-4 w-4 text-ink-muted" />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -222,10 +258,15 @@ export function BookingDetail() {
           <CircleCheck className="h-6 w-6 shrink-0 text-coral-600" />
           <div>
             <p className="font-bold text-coral-700">Booking placed successfully!</p>
-            <p className="text-sm text-coral-700/80">{b.lab.name} will confirm your slot shortly. We’ll email you at every step.</p>
+            <p className="text-sm text-coral-700/80">
+              {data.order
+                ? `${data.order.bookings.length + 1} bookings placed — one with each lab. Each lab confirms its own slot and sends its own sample collector. We’ll email you at every step.`
+                : `${b.lab.name} will confirm your slot shortly. We’ll email you at every step.`}
+            </p>
           </div>
         </div>
       )}
+      {data.order && <OrderSiblings order={data.order} />}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">

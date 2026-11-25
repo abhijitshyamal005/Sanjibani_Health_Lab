@@ -4,6 +4,8 @@ let transporter = null;
 
 /**
  * Delivery channels, first match wins:
+ *  - GMAIL_SCRIPT_URL + GMAIL_SCRIPT_SECRET → Gmail via a Google Apps Script web app (see scripts/gmail-relay.gs);
+ *    mail comes from a real @gmail.com sender, which Gmail trusts far more than a new or free domain
  *  - BREVO_API_KEY  → Brevo HTTPS API (free 300/day)
  *  - RESEND_API_KEY → Resend HTTPS API
  *  - EMAIL + EMAIL_PASSWORD → Gmail SMTP (local only: Render's free tier blocks SMTP ports 25/465/587)
@@ -11,6 +13,7 @@ let transporter = null;
  */
 export function emailChannel(env = process.env) {
   if (env.EMAIL_ENABLED !== 'true') return null;
+  if (env.GMAIL_SCRIPT_URL && env.GMAIL_SCRIPT_SECRET) return 'gscript';
   if (env.BREVO_API_KEY) return 'brevo';
   if (env.RESEND_API_KEY) return 'resend';
   if (env.EMAIL && env.EMAIL_PASSWORD) return 'smtp';
@@ -33,10 +36,35 @@ function getTransporter() {
   return transporter;
 }
 
+/** Plain-text alternative of an HTML email (spam filters penalise HTML-only mail). */
+export function htmlToText(html = '') {
+  return html
+    .replace(/<(style|title|head)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<span style="display:none[^>]*>[\s\S]*?<\/span>/gi, '')
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_, href, label) => {
+      const t = label.replace(/<[^>]+>/g, '').trim();
+      return !t || href.startsWith('mailto:') || href === t ? t : `${t} (${href})`;
+    })
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|h1|h2|tr|div|table)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Build the HTTPS request for an API provider (exported for tests). */
 export function httpRequest(channel, { to, subject, html, replyTo }, env = process.env) {
   const from = fromAddress(env);
   const name = env.COMPANY_NAME || 'SanjiBani Health';
+  if (channel === 'gscript') {
+    return {
+      url: env.GMAIL_SCRIPT_URL,
+      headers: { 'content-type': 'application/json' },
+      body: { secret: env.GMAIL_SCRIPT_SECRET, to, subject, html, text: htmlToText(html), name, ...(replyTo ? { replyTo } : {}) },
+    };
+  }
   if (channel === 'brevo') {
     return {
       url: 'https://api.brevo.com/v3/smtp/email',
@@ -58,6 +86,11 @@ export async function sendViaHttp(channel, message, env = process.env, fetchImpl
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`${channel} ${res.status}: ${text.slice(0, 300)}`);
+  }
+  if (channel === 'gscript') {
+    // Apps Script answers 200 even when the script fails, so read its own ok flag.
+    const data = await res.json().catch(() => null);
+    if (!data?.ok) throw new Error(`gscript: ${data?.error || 'unexpected response (is the web app deployed for "Anyone"?)'}`);
   }
   return res;
 }
@@ -100,17 +133,26 @@ export const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&am
 
 export const BRAND = {
   name: process.env.COMPANY_NAME || 'SanjiBani Health',
-  supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL || '',
-  labsEmail: process.env.LABS_EMAIL || '',
-  paymentsEmail: process.env.PAYMENTS_EMAIL || '',
+  // EMAIL_REPLY_TO overrides every reply/contact address in emails (use it when the site domain hurts deliverability).
+  supportEmail: process.env.EMAIL_REPLY_TO || process.env.SUPPORT_EMAIL || process.env.EMAIL || '',
+  labsEmail: process.env.EMAIL_REPLY_TO || process.env.LABS_EMAIL || '',
+  paymentsEmail: process.env.EMAIL_REPLY_TO || process.env.PAYMENTS_EMAIL || '',
   supportPhone: process.env.SUPPORT_PHONE || '',
   url: () => (process.env.APP_URL || (process.env.CLIENT_ORIGINS || '').split(',')[0] || '').trim().replace(/\/$/, ''),
 };
 
+/**
+ * Base URL for every link and image inside emails. EMAIL_LINK_URL wins: spam filters check each linked domain
+ * against blocklists, so emails can point at a clean host (e.g. the onrender.com URL) even if the main domain is listed.
+ */
+export function emailBaseUrl(env = process.env) {
+  return (env.EMAIL_LINK_URL || env.APP_URL || (env.CLIENT_ORIGINS || '').split(',')[0] || 'http://localhost:5173').trim().replace(/\/$/, '');
+}
+
 /** Public site used for the logo and footer links — inbox images must load from a real https URL, never localhost. */
-const CANONICAL = 'https://sanjibanilabs.dpdns.org';
+const CANONICAL = 'https://sanjibanilabs.onrender.com';
 function publicSite() {
-  const site = BRAND.url();
+  const site = emailBaseUrl();
   return /^https:\/\//.test(site) ? site : CANONICAL;
 }
 

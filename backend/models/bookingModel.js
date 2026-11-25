@@ -10,6 +10,8 @@ const bookingSchema = new mongoose.Schema(
       default: () => `SJB${crypto.randomInt(100000, 999999)}${crypto.randomBytes(1).toString('hex').toUpperCase()}`,
     },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    // Shared by every lab booking placed in one checkout (a patient can book tests from several labs at once).
+    orderCode: { type: String, index: true },
     lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', required: true, index: true },
     items: {
       type: [
