@@ -5,6 +5,7 @@ import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import * as events from '../services/events.js';
+import { refundIfPaidOnline } from './paymentController.js';
 import { storage } from '../services/storage.js';
 import { CANCELLABLE_BY_PATIENT, COLLECTION_TYPES, MAX_BOOKING_DAYS_AHEAD, TIME_SLOTS } from '../utils/constants.js';
 import { resolveCoupon } from '../utils/coupons.js';
@@ -213,6 +214,7 @@ export async function cancelBooking(req, res) {
   booking.setStatus('cancelled', reason);
   await booking.save();
   await releaseCoupon(booking);
+  await refundIfPaidOnline(booking);
   events.bookingStatusChanged(booking._id, { by: 'patient' });
   res.json({ booking: await booking.populate('lab', LAB_SUMMARY) });
 }

@@ -223,7 +223,7 @@ export async function ensureDemoCollectors() {
   for (const [name, email, phone, labName] of COLLECTORS) {
     let c = await User.findOne({ email });
     if (!c && labs[labName]) {
-      c = await User.create({ name, email, phone, password: DEMO_ACCOUNTS.collector.password, role: 'collector', lab: labs[labName]._id, city: 'Kolkata' });
+      c = await User.create({ name, email, phone, password: pw(DEMO_ACCOUNTS.collector.password), role: 'collector', lab: labs[labName]._id, city: 'Kolkata' });
     }
     if (c) collectors[email] = c;
   }
@@ -270,26 +270,44 @@ export async function ensureDemoCollectors() {
   }
 }
 
+// Optional override so demo accounts on a live database don't use the public demo passwords.
+let passwordOverride = null;
+const pw = (fallback) => passwordOverride || fallback;
+
 const roundPrice = (n) => Math.max(49, Math.round(n / 10) * 10 - 1);
 
-export async function seedDatabase({ reset = false, log = () => {} } = {}) {
+/**
+ * @param reset       wipe everything first (local/dev only)
+ * @param append      add demo data to a database that already has real data (e.g. production with a real admin)
+ * @param includeAdmin create the demo admin account (never on a live site)
+ * @param demoPassword one private password for every demo login instead of the public demo passwords
+ */
+export async function seedDatabase({ reset = false, append = false, includeAdmin = true, demoPassword = null, log = () => {} } = {}) {
+  passwordOverride = demoPassword;
   if (reset) {
     await Promise.all([User, Lab, LabTest, Booking, Review, Coupon].map((m) => m.deleteMany({})));
+  } else if (append) {
+    if (await Lab.exists({ name: LABS[0].name })) {
+      log('Demo data is already present — nothing to add.');
+      return;
+    }
   } else if (await User.exists({})) {
-    log('Database already has data — skipping seed (use --reset to start over).');
+    log('Database already has data — skipping seed (use --reset to start over, or --append to add demo data).');
     return;
   }
   const rand = rng(42);
 
   await ensureDemoCoupons();
 
-  await User.create({ name: 'Sanjibani Admin', email: DEMO_ACCOUNTS.admin.email, phone: '9000000001', password: DEMO_ACCOUNTS.admin.password, role: 'admin' });
+  if (includeAdmin) {
+    await User.create({ name: 'Sanjibani Admin', email: DEMO_ACCOUNTS.admin.email, phone: '9000000001', password: pw(DEMO_ACCOUNTS.admin.password), role: 'admin' });
+  }
 
   const patients = [];
   for (const [name, email, phone, gender, age] of PATIENTS) {
     const user = await User.create({
       name, email, phone, gender, role: 'patient',
-      password: email === DEMO_ACCOUNTS.patient.email ? DEMO_ACCOUNTS.patient.password : 'Patient@123',
+      password: pw(email === DEMO_ACCOUNTS.patient.email ? DEMO_ACCOUNTS.patient.password : 'Patient@123'),
       city: 'Kolkata',
       address: { line: '14B Lake View Road', area: 'Ballygunge', city: 'Kolkata', pincode: '700029' },
     });
@@ -299,7 +317,7 @@ export async function seedDatabase({ reset = false, log = () => {} } = {}) {
   const labs = [];
   for (const def of LABS) {
     const [ownerName, ownerEmail, ownerPhone] = def.owner;
-    const owner = await User.create({ name: ownerName, email: ownerEmail, phone: ownerPhone, password: DEMO_ACCOUNTS.lab.password, role: 'lab' });
+    const owner = await User.create({ name: ownerName, email: ownerEmail, phone: ownerPhone, password: pw(DEMO_ACCOUNTS.lab.password), role: 'lab' });
     const { factor, skip = [], include = () => true, owner: _o, ...labData } = def;
     const lab = await Lab.create({ ...labData, ...(LAB_EXTRAS[labData.name] || {}), slotCapacity: 4, owner: owner._id, homeCollection: true, opensAt: '07:00', closesAt: '20:00' });
 
@@ -323,7 +341,7 @@ export async function seedDatabase({ reset = false, log = () => {} } = {}) {
   let reviewIdx = 0;
 
   for (const { lab, tests } of labs.filter((l) => l.lab.status === 'approved')) {
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 8; i++) {
       const { user, gender, age } = patients[(i + labs.indexOf(labs.find((l) => l.lab === lab))) % patients.length];
       const status = statuses[i % statuses.length];
       const picks = [...tests].filter((t) => t.homeCollection).sort(() => rand() - 0.5).slice(0, 1 + Math.floor(rand() * 3));
@@ -344,12 +362,22 @@ export async function seedDatabase({ reset = false, log = () => {} } = {}) {
         paymentStatus: status === 'completed' ? 'paid' : 'unpaid',
       });
       const created = new Date(Date.now() - daysAgo * 86400000 - 3600000);
+      // Demo payments: half the completed bookings were paid online; one cancellation was a refunded online payment.
+      const paidOnline = (status === 'completed' && i % 2 === 0) || (status === 'cancelled' && i % 2 === 1);
+      if (paidOnline) {
+        booking.paymentMethod = 'online';
+        booking.paymentStatus = 'paid';
+        booking.paymentId = `pay_demo${String(booking._id).slice(-10)}`;
+        booking.paymentOrderId = `order_demo${String(booking._id).slice(-10)}`;
+        booking.paidAt = created;
+      }
       if (status === 'cancelled') {
         booking.statusHistory.push({ status: 'pending', at: created, note: 'Booking placed' });
         booking.statusHistory.push({ status: 'cancelled', at: created, note: 'Plans changed' });
         booking.status = 'cancelled';
         booking.cancelledBy = 'patient';
         booking.cancelReason = 'Plans changed';
+        if (paidOnline) booking.refund = { id: `rfnd_demo${String(booking._id).slice(-10)}`, amount: booking.total, status: 'processed', createdAt: created, processedAt: created };
       } else {
         flow.slice(0, flow.indexOf(status) + 1).forEach((s, k) =>
           booking.statusHistory.push({ status: s, at: new Date(created.getTime() + k * 3 * 3600000), note: s === 'pending' ? 'Booking placed' : undefined })
@@ -381,9 +409,11 @@ export async function seedDatabase({ reset = false, log = () => {} } = {}) {
   await ensureDemoCollectors();
 
   log(`Seeded ${await Coupon.countDocuments()} coupons (SANJI15, FIRST100), ${await User.countDocuments()} users, ${await Lab.countDocuments()} labs, ${await LabTest.countDocuments()} tests, ${await Booking.countDocuments()} bookings.`);
+  const shown = (def) => (demoPassword ? '(your private demo password)' : def);
   log('Demo logins:');
-  log(`  Admin   ${DEMO_ACCOUNTS.admin.email} / ${DEMO_ACCOUNTS.admin.password}`);
-  log(`  Patient ${DEMO_ACCOUNTS.patient.email} / ${DEMO_ACCOUNTS.patient.password}`);
-  log(`  Lab     ${DEMO_ACCOUNTS.lab.email} / ${DEMO_ACCOUNTS.lab.password}  (lab1…lab6, lab6 is pending approval)`);
-  log(`  Collector ${DEMO_ACCOUNTS.collector.email} / ${DEMO_ACCOUNTS.collector.password}  (collector1–3)`);
+  if (includeAdmin) log(`  Admin   ${DEMO_ACCOUNTS.admin.email} / ${shown(DEMO_ACCOUNTS.admin.password)}`);
+  log(`  Patient ${DEMO_ACCOUNTS.patient.email} / ${shown(DEMO_ACCOUNTS.patient.password)}`);
+  log(`  Lab     ${DEMO_ACCOUNTS.lab.email} / ${shown(DEMO_ACCOUNTS.lab.password)}  (lab1…lab6, lab6 is pending approval)`);
+  log(`  Collector ${DEMO_ACCOUNTS.collector.email} / ${shown(DEMO_ACCOUNTS.collector.password)}  (collector1–3)`);
+  passwordOverride = null;
 }

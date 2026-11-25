@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Building2, CarFront, ClipboardList, FileCheck2, House, Phone, Route, Search, Upload } from 'lucide-react';
-import { Badge, Button, EmptyState, ErrorState, Field, Modal, PageHeader, Spinner, StatusBadge, Tabs } from '../components/ui';
+import { Badge, Button, EmptyState, PaymentBadge, ErrorState, Field, Modal, PageHeader, Spinner, StatusBadge, Tabs } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { api, apiUpload } from '../lib/api';
 import { COLLECTION_TYPES, FIELD_STATUS, NEXT_ACTION, STATUS, dateTime, inr, slotDate, slotTime } from '../lib/format';
@@ -119,7 +119,10 @@ export default function PartnerBookings() {
                     </div>
                     <p className="mt-0.5 text-xs text-ink-muted">#{b.code} · booked {dateTime(b.createdAt)}</p>
                   </div>
-                  <p className="text-lg font-extrabold">{inr(b.total)}</p>
+                  <div className="text-right">
+                    <p className="text-lg font-extrabold">{inr(b.total)}</p>
+                    <PaymentBadge booking={b} />
+                  </div>
                 </div>
                 <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
                   <div>

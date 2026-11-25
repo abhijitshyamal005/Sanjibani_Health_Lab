@@ -83,6 +83,14 @@ const bookingSchema = new mongoose.Schema(
     paymentStatus: { type: String, enum: ['unpaid', 'paid'], default: 'unpaid' },
     paymentId: { type: String },
     paymentOrderId: { type: String },
+    paidAt: { type: Date },
+    refund: {
+      type: new mongoose.Schema(
+        { id: String, amount: Number, status: { type: String, enum: ['pending', 'processed', 'failed'] }, error: String, createdAt: Date, processedAt: Date },
+        { _id: false }
+      ),
+      default: undefined,
+    },
     report: {
       type: new mongoose.Schema(
         { fileName: String, originalName: String, size: Number, uploadedAt: Date },

@@ -9,6 +9,7 @@ import * as events from '../services/events.js';
 import { storage } from '../services/storage.js';
 import { BOOKING_STATUSES, BOOKING_TRANSITIONS } from '../utils/constants.js';
 import { releaseCoupon } from './bookingController.js';
+import { refundIfPaidOnline } from './paymentController.js';
 import { ApiError, escapeRegex, pick, todayIST } from '../utils/helpers.js';
 
 const LAB_FIELDS = [
@@ -174,7 +175,10 @@ export async function updateBookingStatus(req, res) {
   }
   booking.setStatus(status, cleanNote);
   await booking.save();
-  if (status === 'cancelled') await releaseCoupon(booking);
+  if (status === 'cancelled') {
+    await releaseCoupon(booking);
+    await refundIfPaidOnline(booking);
+  }
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
   events.bookingStatusChanged(booking._id, { by: 'lab' });
   if (status === 'completed' && wasUnpaid) events.paymentReceived(booking._id);

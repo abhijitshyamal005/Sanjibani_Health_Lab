@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, CreditCard, Download, FileText, House, Phone, Star } from 'lucide-react';
 import { LabCover } from '../components/Brand';
-import { Button, EmptyState, ErrorState, Field, Modal, Spinner, StatusBadge, Tabs } from '../components/ui';
+import { Button, EmptyState, ErrorState, Field, Modal, PaymentBadge, Spinner, StatusBadge, Tabs } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { api, apiDownload } from '../lib/api';
 import { payForBooking } from '../lib/payments';
@@ -310,9 +310,12 @@ export function BookingDetail() {
               <div className="flex justify-between"><dt className="text-ink-muted">Collection fee</dt><dd>{b.collectionFee ? inr(b.collectionFee) : 'Free'}</dd></div>
               {b.discount > 0 && <div className="flex justify-between text-coral-700"><dt>Coupon {b.couponCode}</dt><dd>− {inr(b.discount)}</dd></div>}
               <div className="flex justify-between text-base font-extrabold"><dt>Total</dt><dd>{inr(b.total)}</dd></div>
-              <p className={`text-xs ${b.paymentStatus === 'paid' ? 'font-semibold text-coral-700' : 'text-ink-muted'}`}>
-                {b.paymentStatus === 'paid' ? `Paid${b.paymentMethod === 'online' ? ' online' : ''}` : 'Pay at sample collection'}
-              </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <PaymentBadge booking={b} />
+                {b.paymentId && <span className="text-ink-muted">Payment ID {b.paymentId}</span>}
+              </div>
+              {b.refund?.status === 'pending' && <p className="text-xs text-ink-muted">Refunds usually reach your account in 5–7 working days.</p>}
+              {b.refund?.status === 'failed' && <p className="text-xs text-red-600">We couldn’t refund automatically — our team will process it manually within 2 working days.</p>}
             </dl>
           </div>
 

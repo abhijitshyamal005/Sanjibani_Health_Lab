@@ -243,7 +243,11 @@ const PATIENT_STATUS = {
     body:
       p(by === 'patient' ? 'Your booking has been cancelled as requested.' : `${esc(b.lab.name)} had to cancel your booking.`) +
       (b.cancelReason ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') +
-      (b.paymentMethod === 'online' && b.paymentStatus === 'paid' ? p('Your online payment will be refunded to the original payment method within 5–7 working days.') : ''),
+      (b.refund?.status === 'failed'
+        ? p('We could not start the refund of your online payment automatically. Our team will process it manually within 2 working days.')
+        : b.paymentMethod === 'online' && b.paymentStatus === 'paid'
+          ? p(`A full refund of <b>₹${b.refund?.amount ?? b.total}</b> has been started to your original payment method. It usually reaches you in 5–7 working days.`)
+          : ''),
     cta: 'Book again',
     href: appUrl('/tests'),
   }),

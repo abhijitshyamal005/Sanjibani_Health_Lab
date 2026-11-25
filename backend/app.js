@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoutes.js';
 import { bookingRouter, couponRouter, reviewRouter } from './routes/bookingRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import { razorpayWebhook } from './controllers/paymentController.js';
 import publicRoutes from './routes/publicRoutes.js';
 
 const DEFAULT_ORIGINS = [
@@ -34,6 +35,8 @@ export function createApp() {
   app.use(compression());
   app.use(cors({ origin: origins, credentials: true, exposedHeaders: ['Content-Disposition'] }));
   if (env !== 'test') app.use(morgan(env === 'production' ? 'combined' : 'dev'));
+  // Razorpay webhooks need the exact raw body to verify their signature.
+  app.post('/api/payments/webhook', express.raw({ type: '*/*', limit: '1mb' }), razorpayWebhook);
   app.use(express.json({ limit: '1mb' }));
 
   app.get('/', (_req, res) => res.json({ name: 'Sanjibani API', status: 'ok' }));

@@ -26,6 +26,7 @@ import {
   LabStatusBadge,
   Modal,
   PageHeader,
+  PaymentBadge,
   Spinner,
   StatCard,
   StatusBadge,
@@ -358,7 +359,7 @@ function AdminBookings() {
                     <td className="px-3 py-3"><p>{b.patient.name}</p><p className="text-xs text-ink-muted">{b.user?.email}</p></td>
                     <td className="px-3 py-3"><p>{b.lab?.name}</p><p className="text-xs text-ink-muted">{b.lab?.address?.city}</p></td>
                     <td className="px-3 py-3 text-ink-soft">{slotDate(b.slot.date)}<br /><span className="text-xs">{b.collectionType === 'home' ? 'Home' : 'Lab visit'}</span></td>
-                    <td className="px-3 py-3 text-right font-semibold">{inr(b.total)}</td>
+                    <td className="px-3 py-3 text-right font-semibold">{inr(b.total)}<div className="mt-1"><PaymentBadge booking={b} /></div></td>
                     <td className="px-5 py-3"><StatusBadge status={b.status} /></td>
                   </tr>
                 ))}
