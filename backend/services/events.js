@@ -403,3 +403,133 @@ export function upiRejected(bookingId, utr) {
     );
   });
 }
+
+/* ---------------- Admin & account actions ---------------- */
+
+const ROLE_HOME = { lab: '/partner', collector: '/collector', admin: '/admin', patient: '/profile' };
+
+/**
+ * An account was deactivated or re-activated. `by` = 'admin' (SanjiBani team) or 'lab' (the collector's lab).
+ * Lab owners and collectors get replies routed to labs@.
+ */
+export function accountStatusChanged(userId, { by = 'admin' } = {}) {
+  fire(async () => {
+    const u = await User.findById(userId).populate('lab', 'name');
+    if (!u) return;
+    const who = by === 'lab' ? esc(u.lab?.name || 'Your lab') : 'The SanjiBani team';
+    const mail = ['lab', 'collector'].includes(u.role) ? toLabs : send;
+    if (u.isActive) {
+      await mail(
+        u.email,
+        'Your SanjiBani account is active again',
+        'Your account is active again',
+        p(`Hi ${esc(u.name)}, ${who} has re-activated your SanjiBani account. You can log in again.`) + button(appUrl('/login'), 'Log in')
+      );
+    } else {
+      await mail(
+        u.email,
+        'Your SanjiBani account has been deactivated',
+        'Your account has been deactivated',
+        p(`Hi ${esc(u.name)}, ${who} has deactivated your SanjiBani account, so you can no longer log in.`) +
+          p(by === 'lab' ? 'Please contact your lab if you think this is a mistake.' : 'Reply to this email if you think this is a mistake.')
+      );
+    }
+  });
+}
+
+/** A patient, lab owner or collector edited their own profile (password changes have their own email). */
+export function profileUpdated(user) {
+  fire(() =>
+    send(
+      user.email,
+      'Your SanjiBani profile was updated',
+      'Profile updated',
+      p(`Hi ${esc(user.name)}, the details on your SanjiBani account were just updated.`) +
+        p("If this wasn't you, change your password and contact support.") +
+        button(appUrl(ROLE_HOME[user.role] || '/'), 'Review your account')
+    )
+  );
+}
+
+/** A lab changed a collector's details or password. */
+export function collectorUpdated(collectorId, { passwordChanged: pw = false } = {}) {
+  fire(async () => {
+    const c = await User.findById(collectorId).populate('lab', 'name');
+    if (!c) return;
+    await toLabs(
+      c.email,
+      pw ? 'Your collector password was reset' : 'Your collector details were updated',
+      pw ? 'Password reset by your lab' : 'Details updated',
+      p(`Hi ${esc(c.name)}, <b>${esc(c.lab?.name || 'your lab')}</b> ${pw ? 'has set a new password for your account. Ask your lab for it, or use "Forgot password".' : `updated your details: ${esc(c.name)} · ${esc(c.phone)}.`}`) +
+        button(appUrl('/login'), 'Open the collector app')
+    );
+  });
+}
+
+/** A collector was taken off a job (cleared, or replaced by another collector). */
+export function collectorUnassigned(bookingId, previousCollectorId) {
+  fire(async () => {
+    const [b, prev] = await Promise.all([loadBooking(bookingId), User.findById(previousCollectorId).select('name email')]);
+    if (!b || !prev) return;
+    await send(prev.email, `Job #${b.code} removed`, 'This job was taken off your list', p(`${esc(b.lab.name)} has removed you from this job. You no longer need to visit this patient.`) + jobBlock(b) + button(appUrl('/collector'), 'Open your jobs'));
+    if (!b.collector) {
+      await send(
+        b.user?.email,
+        `Collector changed — booking #${b.code}`,
+        'Your collector has changed',
+        p(`${esc(b.lab.name)} will assign a new ${b.collectionType === 'assisted_visit' ? 'assistant' : 'sample collector'} for your booking. You'll get their name and phone number by email.`) +
+          bookingBlock(b) +
+          button(bookingLink(b), 'Track your booking')
+      );
+    }
+  });
+}
+
+/** A lab added, edited or removed a test in its catalogue. */
+export function testCatalogChanged(labId, test, action) {
+  fire(async () => {
+    const lab = await Lab.findById(labId);
+    if (!lab) return;
+    const verb = { added: 'added', updated: 'updated', removed: 'removed' }[action] || 'updated';
+    const line = `<b>${esc(test.name)}</b>${action === 'removed' ? '' : ` — ₹${test.price}${test.mrp && test.mrp > test.price ? ` (MRP ₹${test.mrp})` : ''}`}`;
+    await toLabs(
+      await labEmail(lab),
+      `Test ${verb}: ${test.name}`,
+      `Test ${verb}`,
+      p(`${line} was ${verb} ${action === 'removed' ? 'from' : 'in'} the ${esc(lab.name)} catalogue.`) +
+        p(action === 'removed' ? 'Patients can no longer book it.' : lab.status === 'approved' ? 'Patients see this price now.' : 'Patients will see it once your lab is live.') +
+        button(appUrl('/partner/tests'), 'Manage tests')
+    );
+  });
+}
+
+/** A lab saved its profile without needing re-review. */
+export function labProfileUpdated(labId) {
+  fire(async () => {
+    const lab = await Lab.findById(labId);
+    if (!lab) return;
+    await toLabs(
+      await labEmail(lab),
+      `${lab.name} profile updated`,
+      'Lab profile updated',
+      p(`The profile of <b>${esc(lab.name)}</b> was updated. Patients see the new details right away.`) +
+        p("If you didn't make this change, change your password and contact SanjiBani.") +
+        button(appUrl('/partner/profile'), 'Review profile')
+    );
+  });
+}
+
+/** The SanjiBani team rejected a UPI payment that went to the platform — keep the lab in the loop. */
+export function upiRejectedForLab(bookingId) {
+  fire(async () => {
+    const b = await loadBooking(bookingId);
+    if (!b) return;
+    await toLabs(
+      await labEmail(b.lab),
+      `UPI payment not verified — booking #${b.code}`,
+      'Payment not verified',
+      p(`The SanjiBani team could not verify ${esc(b.patient.name)}'s UPI payment. The booking is now <b>pay at collection</b> — please collect ₹${b.total}.`) +
+        button(appUrl('/partner/bookings'), 'Open bookings')
+    );
+  });
+}

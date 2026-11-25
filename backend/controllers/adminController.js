@@ -139,6 +139,7 @@ export async function setUserActive(req, res) {
     { new: true }
   );
   if (!user) throw new ApiError(404, 'User not found');
+  events.accountStatusChanged(user._id, { by: 'admin' });
   res.json({ user });
 }
 
@@ -194,7 +195,9 @@ export async function deleteCoupon(req, res) {
 export async function verifyBookingPayment(req, res) {
   const booking = await Booking.findById(req.params.id);
   if (!booking) throw new ApiError(404, 'Booking not found');
+  const toLab = booking.paymentStatus === 'verifying' && booking.upiPayee === 'platform';
   await applyUpiDecision(booking, req.body?.action);
+  if (toLab && req.body?.action === 'reject') events.upiRejectedForLab(booking._id);
   await booking.populate([{ path: 'lab', select: 'name address.city' }, { path: 'user', select: 'name email' }]);
   res.json({ booking });
 }

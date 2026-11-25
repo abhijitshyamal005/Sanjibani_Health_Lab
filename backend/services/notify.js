@@ -62,7 +62,7 @@ export async function sendViaHttp(channel, message, env = process.env, fetchImpl
   return res;
 }
 
-/** Emails "sent" while NODE_ENV=test, so tests can assert who was notified. */
+/** Emails "sent" while NODE_ENV=test (or EMAIL_CAPTURE=true on the e2e server), so tests can assert who was notified. */
 export const outbox = [];
 
 /** Send an email. Never throws; when email is disabled it only logs a summary (outside tests). */
@@ -73,6 +73,7 @@ export async function sendEmail({ to, subject, html, replyTo }) {
       outbox.push({ to, subject, html, replyTo });
       return;
     }
+    if (process.env.EMAIL_CAPTURE === 'true') outbox.push({ to, subject, html, replyTo });
     const channel = emailChannel();
     if (!channel) {
       console.log(`[email:disabled] to=${to} subject="${subject}"`);

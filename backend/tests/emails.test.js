@@ -168,4 +168,71 @@ describe('email notifications across the whole flow', () => {
     await api().patch('/api/auth/me').set(auth(ctx.patient)).send({ currentPassword: 'secret123', newPassword: 'newpass123' });
     expectMail(await mails(), PATIENT.email, /password was changed/);
   });
+
+  test('profile edits email the account owner and the lab', async () => {
+    await api().patch('/api/auth/me').set(auth(ctx.patient)).send({ city: 'Howrah' });
+    expectMail(await mails(), PATIENT.email, /profile was updated/);
+
+    await api().put('/api/partner/lab').set(auth(ctx.owner)).send({ phone: '03399999999' });
+    expectMail(await mails(), LAB_EMAIL, /Alpha Labs profile updated/);
+  });
+
+  test('test catalogue changes email the lab', async () => {
+    const t = await api().post('/api/partner/tests').set(auth(ctx.owner)).send({ name: 'Lipid Profile', category: 'Heart', mrp: 900, price: 600 });
+    let m = await mails();
+    assert.match(expectMail(m, LAB_EMAIL, /Test added: Lipid Profile/).html, /₹600/);
+
+    await api().put(`/api/partner/tests/${t.body.test._id}`).set(auth(ctx.owner)).send({ price: 550 });
+    m = await mails();
+    assert.match(expectMail(m, LAB_EMAIL, /Test updated: Lipid Profile/).html, /₹550/);
+
+    await api().delete(`/api/partner/tests/${t.body.test._id}`).set(auth(ctx.owner));
+    expectMail(await mails(), LAB_EMAIL, /Test removed: Lipid Profile/);
+  });
+
+  test('reassigning or removing a collector emails the old collector and the patient', async () => {
+    const second = await api().post('/api/partner/collectors').set(auth(ctx.owner)).send({ name: 'Mitu', email: 'mitu@test.com', phone: '9830077772', password: 'secret123' });
+    const b = await api().post('/api/bookings').set(auth(ctx.patient)).send({
+      labId: ctx.labId, items: [ctx.testId], collectionType: 'home', slot: { date: todayIST(3), time: '07:00-08:00' },
+      patient: { name: 'Riya Sen', age: 30, gender: 'female', phone: '9876500001' },
+      address: { line: '5 Lake Rd', city: 'Kolkata', pincode: '700029' },
+    });
+    const id = b.body.booking._id;
+    const assign = (collectorId) => api().patch(`/api/partner/bookings/${id}/assign`).set(auth(ctx.owner)).send({ collectorId });
+    await assign(ctx.collectorId);
+    await mails();
+
+    await assign(second.body.collector._id);
+    let m = await mails();
+    expectMail(m, 'bikash@test.com', /Job #.* removed/);
+    expectMail(m, 'mitu@test.com', /New job/);
+    expectMail(m, PATIENT.email, /Mitu will collect your sample/);
+
+    await assign(null);
+    m = await mails();
+    expectMail(m, 'mitu@test.com', /Job #.* removed/);
+    expectMail(m, PATIENT.email, /Collector changed/);
+  });
+
+  test('lab editing or deactivating a collector emails the collector', async () => {
+    const edit = (body) => api().patch(`/api/partner/collectors/${ctx.collectorId}`).set(auth(ctx.owner)).send(body);
+    await edit({ password: 'another123' });
+    expectMail(await mails(), 'bikash@test.com', /password was reset/);
+    await edit({ phone: '9830077779' });
+    expectMail(await mails(), 'bikash@test.com', /details were updated/);
+    await edit({ isActive: false });
+    const off = expectMail(await mails(), 'bikash@test.com', /deactivated/);
+    assert.match(off.html, /Alpha Labs/);
+    await edit({ isActive: true });
+    expectMail(await mails(), 'bikash@test.com', /active again/);
+  });
+
+  test('admin deactivating or re-activating any user emails that user', async () => {
+    const me = (await api().get('/api/auth/me').set(auth(ctx.patient))).body.user;
+    await api().patch(`/api/admin/users/${me._id}`).set(auth(ctx.admin)).send({ isActive: false });
+    const off = expectMail(await mails(), PATIENT.email, /deactivated/);
+    assert.match(off.html, /SanjiBani team/);
+    await api().patch(`/api/admin/users/${me._id}`).set(auth(ctx.admin)).send({ isActive: true });
+    expectMail(await mails(), PATIENT.email, /active again/);
+  });
 });

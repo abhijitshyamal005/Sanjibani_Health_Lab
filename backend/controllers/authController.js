@@ -67,6 +67,7 @@ export async function updateMe(req, res) {
 
   await user.save();
   if (newPassword) events.passwordChanged(user);
+  else events.profileUpdated(user);
   res.json({ user: user.toJSON() });
 }
 

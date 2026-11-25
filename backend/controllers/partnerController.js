@@ -100,6 +100,7 @@ export async function updateMyLab(req, res) {
   }
   await lab.save();
   if (resubmitted) events.labSubmitted(lab._id, { resubmitted: true });
+  else events.labProfileUpdated(lab._id);
   res.json({ lab });
 }
 
@@ -117,6 +118,7 @@ export async function listMyTests(req, res) {
 export async function createTest(req, res) {
   const lab = await myLab(req.user._id);
   const test = await LabTest.create({ ...cleanTestBody(req.body), lab: lab._id });
+  events.testCatalogChanged(lab._id, test, 'added');
   res.status(201).json({ test });
 }
 
@@ -126,6 +128,7 @@ export async function updateTest(req, res) {
   if (!test) throw new ApiError(404, 'Test not found');
   test.set(cleanTestBody(req.body));
   await test.save();
+  events.testCatalogChanged(lab._id, test, 'updated');
   res.json({ test });
 }
 
@@ -133,6 +136,7 @@ export async function deleteTest(req, res) {
   const lab = await myLab(req.user._id);
   const test = await LabTest.findOneAndDelete({ _id: req.params.id, lab: lab._id });
   if (!test) throw new ApiError(404, 'Test not found');
+  events.testCatalogChanged(lab._id, test, 'removed');
   res.json({ ok: true });
 }
 
@@ -385,7 +389,11 @@ export async function updateCollector(req, res) {
   if (phone !== undefined) collector.phone = phone;
   if (isActive !== undefined) collector.isActive = Boolean(isActive);
   if (password) collector.password = String(password);
+  const activeChanged = collector.isModified('isActive');
+  const detailsChanged = collector.isModified('name') || collector.isModified('phone');
   await collector.save();
+  if (activeChanged) events.accountStatusChanged(collector._id, { by: 'lab' });
+  if (password || detailsChanged) events.collectorUpdated(collector._id, { passwordChanged: Boolean(password) });
   res.json({ collector });
 }
 
@@ -402,6 +410,7 @@ export async function assignCollector(req, res) {
   }
 
   const { collectorId } = req.body || {};
+  const previousCollector = booking.collector ? String(booking.collector) : null;
   if (!collectorId) {
     booking.collector = undefined;
     booking.collectorAssignedAt = undefined;
@@ -422,7 +431,9 @@ export async function assignCollector(req, res) {
   }
   await booking.save();
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
-  if (booking.collector) events.collectorAssigned(booking._id);
+  const currentCollector = booking.collector ? String(booking.collector._id) : null;
+  if (previousCollector && previousCollector !== currentCollector) events.collectorUnassigned(booking._id, previousCollector);
+  if (currentCollector && currentCollector !== previousCollector) events.collectorAssigned(booking._id);
   res.json({ booking });
 }
 

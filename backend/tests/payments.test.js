@@ -16,9 +16,9 @@ const api = () => request(app);
 const auth = (t) => ({ Authorization: `Bearer ${t}` });
 const ctx = {};
 
-async function newBooking() {
+async function newBooking(time = '09:00-10:00') {
   const res = await api().post('/api/bookings').set(auth(ctx.patient)).send({
-    labId: ctx.labId, items: [ctx.testId], collectionType: 'lab_visit', slot: { date: todayIST(1), time: '09:00-10:00' },
+    labId: ctx.labId, items: [ctx.testId], collectionType: 'lab_visit', slot: { date: todayIST(1), time },
     patient: { name: 'Riya Sen', age: 30, gender: 'female', phone: '9876500001' },
   });
   assert.equal(res.status, 201, res.body.message);
@@ -97,6 +97,15 @@ describe('free UPI payments', () => {
     m = await mails();
     assert.match(m.find((x) => x.to === 'riya@test.com' && /Payment received/.test(x.subject)).html, /by UPI \(transaction ID 412356789012\)/);
     ctx.paidId = id;
+
+    // Admin rejects a platform payment → patient and lab are both told.
+    const id2 = await newBooking('10:00-11:00');
+    await api().post(`/api/payments/upi/${id2}/submit`).set(auth(ctx.patient)).send({ utr: '512356789012' });
+    await mails();
+    await api().patch(`/api/admin/bookings/${id2}/payment`).set(auth(ctx.admin)).send({ action: 'reject' });
+    m = await mails();
+    assert.ok(m.some((x) => x.to === 'riya@test.com' && /UPI payment not found/.test(x.subject)), 'patient told');
+    assert.ok(m.some((x) => x.to === 'desk@alpha.test' && /UPI payment not verified/.test(x.subject)), 'lab told');
   });
 
   test('a UTR cannot be reused, and a paid booking cannot be paid twice', async () => {
