@@ -126,13 +126,13 @@ export function TestRow({ test, lab, cartApi }) {
           {test.isPopular && <Badge tone="coral">Bestseller</Badge>}
           {test.type === 'package' && <Badge tone="violet">Package</Badge>}
         </div>
-        <h4 className="mt-1 font-bold text-ink">{test.name}</h4>
+        <h3 className="mt-1 font-bold text-ink">{test.name}</h3>
         <div className="mt-1 flex items-baseline gap-2">
           <span className="font-bold">{inr(test.price)}</span>
           {test.mrp > test.price && (
             <>
               <span className="text-sm text-ink-muted line-through">{inr(test.mrp)}</span>
-              <span className="text-sm font-semibold text-brand-600">{test.discount}% off</span>
+              <span className="text-sm font-semibold text-brand-700">{test.discount}% off</span>
             </>
           )}
         </div>
@@ -194,7 +194,7 @@ export function OfferCard({ test, cartApi }) {
           {test.mrp > test.price && (
             <p className="text-xs">
               <span className="text-ink-muted line-through">{inr(test.mrp)}</span>{' '}
-              <span className="font-semibold text-brand-600">{test.discount}% off</span>
+              <span className="font-semibold text-brand-700">{test.discount}% off</span>
             </p>
           )}
         </div>

@@ -11,7 +11,7 @@ export function Logo({ to = '/', light = false, suffix }) {
         <path d="M32 45V31m-7 7h14" stroke="#16a34a" strokeWidth="4.5" strokeLinecap="round" />
       </svg>
       <span className="text-xl font-extrabold tracking-tight">
-        <span className={light ? 'text-brand-300' : 'text-brand-500'}>Sanji</span>
+        <span className={light ? 'text-brand-300' : 'text-brand-600'}>Sanji</span>
         <span className={light ? 'text-coral-300' : 'text-coral-500'}>Bani</span>
         {suffix && <span className="ml-1.5 align-middle text-xs font-bold uppercase tracking-wider text-coral-500">{suffix}</span>}
       </span>

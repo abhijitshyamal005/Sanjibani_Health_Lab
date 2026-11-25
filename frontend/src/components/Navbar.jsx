@@ -140,7 +140,7 @@ export default function Navbar() {
             <Link to="/cart" className="relative grid h-10 w-10 place-items-center rounded-xl text-ink-soft hover:bg-slate-100" aria-label={`Cart, ${cart.count} items`} data-testid="cart-link">
               <ShoppingBag className="h-5 w-5" />
               {cart.count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-coral-500 px-1 text-[11px] font-bold text-white">{cart.count}</span>
+                <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-coral-600 px-1 text-[11px] font-bold text-white">{cart.count}</span>
               )}
             </Link>
           )}

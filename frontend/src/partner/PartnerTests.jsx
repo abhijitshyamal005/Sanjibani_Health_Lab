@@ -210,7 +210,7 @@ export default function PartnerTests() {
                     <td className="px-3 py-3 text-right text-ink-muted line-through">{inr(t.mrp)}</td>
                     <td className="px-3 py-3 text-right">
                       <span className="font-bold text-ink">{inr(t.price)}</span>
-                      {t.discount > 0 && <span className="block text-xs text-brand-600">{t.discount}% off</span>}
+                      {t.discount > 0 && <span className="block text-xs text-brand-700">{t.discount}% off</span>}
                     </td>
                     <td className="px-3 py-3">
                       <button

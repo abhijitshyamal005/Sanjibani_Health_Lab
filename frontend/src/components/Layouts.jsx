@@ -63,7 +63,7 @@ export function DashboardShell({ nav, title, badge, headerExtra, children }) {
           >
             <Icon className="h-[18px] w-[18px]" />
             <span className="flex-1">{label}</span>
-            {count > 0 && <span className="rounded-full bg-coral-500 px-2 text-xs font-bold text-white">{count}</span>}
+            {count > 0 && <span className="rounded-full bg-coral-600 px-2 text-xs font-bold text-white">{count}</span>}
           </NavLink>
         ))}
       </nav>

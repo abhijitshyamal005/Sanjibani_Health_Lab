@@ -3,7 +3,7 @@ import { LoaderCircle, Star, X } from 'lucide-react';
 import { LAB_STATUS, STATUS } from '../lib/format';
 
 const BUTTON = {
-  primary: 'bg-gradient-to-r from-brand-600 to-brand-500 text-white hover:from-brand-700 hover:to-brand-600 shadow-sm shadow-brand-700/20',
+  primary: 'bg-gradient-to-r from-brand-700 to-brand-600 text-white hover:from-brand-800 hover:to-brand-700 shadow-sm shadow-brand-700/20',
   accent: 'bg-gradient-to-r from-forest-from to-forest-to text-white hover:brightness-110 shadow-sm shadow-forest-from/30',
   outline: 'border border-slate-200 bg-white text-ink hover:border-brand-300 hover:text-brand-700',
   soft: 'bg-brand-50 text-brand-700 hover:bg-brand-100',
@@ -72,7 +72,7 @@ export function LabStatusBadge({ status }) {
 export function Rating({ value, count, className = '' }) {
   if (!count) return <span className={`text-xs font-semibold text-ink-muted ${className}`}>New</span>;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-lg bg-coral-500 px-1.5 py-0.5 text-xs font-bold text-white ${className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-lg bg-coral-600 px-1.5 py-0.5 text-xs font-bold text-white ${className}`}>
       {Number(value).toFixed(1)} <Star className="h-3 w-3 fill-current" />
       {count !== undefined && <span className="sr-only">from {count} reviews</span>}
     </span>

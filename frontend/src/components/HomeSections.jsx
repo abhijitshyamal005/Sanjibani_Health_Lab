@@ -31,7 +31,7 @@ export function OfferStrip() {
           <Ticket className="h-5 w-5" />
         </span>
         <p className="text-sm text-ink-soft sm:text-base">
-          Get <span className="font-extrabold text-brand-600">{couponLabel(c)}</span>
+          Get <span className="font-extrabold text-brand-700">{couponLabel(c)}</span>
           {c.minOrder ? <> on orders above <b>{inr(c.minOrder)}</b></> : null}
           {c.maxDiscount ? <span className="text-ink-muted"> (up to {inr(c.maxDiscount)})</span> : null}
         </p>
@@ -74,7 +74,7 @@ export function Testimonials() {
         {items.slice(0, 6).map((r) => (
           <figure key={r._id} className="card relative w-[85%] shrink-0 snap-center p-5 sm:w-auto" data-testid="testimonial">
             <Quote className="absolute right-4 top-4 h-8 w-8 text-brand-100" />
-            <div className="flex gap-0.5 text-amber-400" aria-label={`${r.rating} out of 5`}>
+            <div className="flex gap-0.5 text-amber-400" role="img" aria-label={`${r.rating} out of 5`}>
               {Array.from({ length: 5 }, (_, i) => (
                 <Star key={i} className={`h-4 w-4 ${i < r.rating ? 'fill-current' : 'text-slate-200'}`} />
               ))}

@@ -61,12 +61,14 @@ test.describe('SEO', () => {
   });
 
   test('lab page gets its own title, canonical and DiagnosticLab data', async ({ page }) => {
+    // Other specs may approve a brand-new lab with no tests yet; pick one that lists tests.
     await page.goto('/labs');
-    const card = page.getByTestId('lab-card').first();
+    const card = page.getByTestId('lab-card').filter({ hasText: 'Tests from' }).first();
     await expect(card).toBeVisible();
+    const name = (await card.getByRole('heading').first().innerText()).trim();
     await card.click();
     await expect(page).toHaveURL(/\/labs\/[a-z0-9-]+$/);
-    const name = (await page.getByRole('heading', { level: 1 }).innerText()).trim();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
     const slug = new URL(page.url()).pathname.split('/').pop();
 
     await expect.poll(async () => (await head(page)).title).toContain(name);

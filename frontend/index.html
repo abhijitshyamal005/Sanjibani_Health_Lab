@@ -6,10 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f97316" />
     <meta name="description" content="Compare lab test prices across trusted diagnostic labs near you and book home sample collection in minutes." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <!-- Font CSS loads without blocking the first paint; text shows in the system font until it arrives -->
+    <link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" /></noscript>
+    <script>
+      // Start the home page hero photo download before the app's JavaScript arrives
+      if (location.pathname === '/') {
+        var l = document.createElement('link');
+        l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
+        l.href = '/img/hero-560.webp';
+        l.setAttribute('imagesrcset', '/img/hero-560.webp 560w, /img/hero-1040.webp 1040w');
+        l.setAttribute('imagesizes', '(min-width: 768px) 520px, calc(100vw - 32px)');
+        document.head.appendChild(l);
+      }
+    </script>
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://sanjibanilabs.dpdns.org/" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

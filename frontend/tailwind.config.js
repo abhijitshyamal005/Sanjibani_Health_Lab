@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"General Sans"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['"General Sans"', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
       colors: {
         brand: {

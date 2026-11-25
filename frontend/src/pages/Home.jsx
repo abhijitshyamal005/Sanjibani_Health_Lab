@@ -15,8 +15,7 @@ import BannerCarousel from '../components/BannerCarousel';
 import { Faq, OfferStrip, Testimonials, TrustStats } from '../components/HomeSections';
 import SearchBar from '../components/SearchBar';
 import { LabCardSkeleton } from '../components/Skeletons';
-import doctorPhoto from '../assets/photos/doctor.jpg';
-import heroPhoto from '../assets/photos/hero.jpg';
+import doctorPhoto from '../assets/photos/doctor-600.webp';
 import { CategoryTile, LabCard } from '../components/Cards';
 import { CitySelect } from '../components/Navbar';
 import { SectionTitle } from '../components/ui';
@@ -88,10 +87,18 @@ export default function Home() {
             <div className="absolute -bottom-6 -left-6 h-48 w-48 rounded-full bg-coral-100 blur-2xl" aria-hidden="true" />
             <div className="relative overflow-hidden rounded-[2.5rem] rounded-tr-[6rem] shadow-lift ring-8 ring-white">
               <img
-                src={heroPhoto}
+                src="/img/hero-560.webp"
+                srcSet="/img/hero-560.webp 560w, /img/hero-1040.webp 1040w"
+                sizes="(min-width: 768px) 520px, calc(100vw - 32px)"
+                width="520"
+                height="520"
                 alt="A smiling phlebotomist holding a blood sample tube beside a patient at home"
                 className="aspect-square w-full object-cover"
                 loading="eager"
+                // React 18 passes this through only in lowercase (camelCase support arrived in React 19)
+                // eslint-disable-next-line react/no-unknown-property
+                fetchpriority="high"
+                decoding="async"
               />
             </div>
             <div className="absolute left-0 top-[10%] flex items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-lift animate-[float_5s_ease-in-out_infinite]" aria-hidden="true">
@@ -241,7 +248,7 @@ export default function Home() {
           <div className="hidden justify-center md:flex">
             <div className="relative">
               <div className="absolute inset-0 translate-x-4 translate-y-4 rounded-[2rem] bg-coral-500/80" aria-hidden="true" />
-              <img src={doctorPhoto} alt="A smiling doctor in a white coat holding a tablet" className="relative h-[380px] w-[300px] rounded-[2rem] object-cover object-top shadow-lift" loading="lazy" />
+              <img src={doctorPhoto} alt="A smiling doctor in a white coat holding a tablet" className="relative h-[380px] w-[300px] rounded-[2rem] object-cover object-top shadow-lift" width="300" height="380" loading="lazy" decoding="async" />
               <div className="absolute -left-10 bottom-10 rounded-2xl bg-white px-4 py-3 text-ink shadow-lift">
                 <p className="text-xs text-ink-muted">Listing fee</p>
                 <p className="text-xl font-extrabold text-brand-700">₹0</p>

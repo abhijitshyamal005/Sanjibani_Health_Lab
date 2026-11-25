@@ -6,10 +6,23 @@
  *   import familyPhoto from '../assets/banners/family.jpg';
  *   { ..., image: familyPhoto, imageAlt: 'Family smiling at home' }
  */
-import familyPhoto from '../assets/photos/family.jpg';
-import homeVisitPhoto from '../assets/photos/home-visit.jpg';
-import labScientistPhoto from '../assets/photos/lab-scientist.jpg';
-import seniorPhoto from '../assets/photos/senior.jpg';
+import family720 from '../assets/photos/family-720.webp';
+import family1400 from '../assets/photos/family-1400.webp';
+import homeVisit720 from '../assets/photos/home-visit-720.webp';
+import homeVisit1400 from '../assets/photos/home-visit-1400.webp';
+import labScientist720 from '../assets/photos/lab-scientist-720.webp';
+import labScientist1400 from '../assets/photos/lab-scientist-1400.webp';
+import senior720 from '../assets/photos/senior-720.webp';
+import senior1400 from '../assets/photos/senior-1400.webp';
+
+/** Responsive photo: browsers pick the smallest file that is sharp at the displayed size. */
+const photo = (small, large) => ({ src: small, srcSet: `${small} 720w, ${large} 1400w` });
+export const PHOTOS = {
+  family: photo(family720, family1400),
+  homeVisit: photo(homeVisit720, homeVisit1400),
+  labScientist: photo(labScientist720, labScientist1400),
+  senior: photo(senior720, senior1400),
+};
 
 export const BANNERS = [
   {
@@ -21,7 +34,7 @@ export const BANNERS = [
     to: '/labs?home=1',
     gradient: 'from-brand-500 via-brand-600 to-brand-800',
     scene: 'homeVisit',
-    image: homeVisitPhoto,
+    image: PHOTOS.homeVisit,
     imageAlt: 'A phlebotomist with a sample kit greeting an elderly couple at their door',
     fade: 'from-brand-700 via-brand-700/85',
   },
@@ -34,7 +47,7 @@ export const BANNERS = [
     to: '/tests?category=Full%20Body%20Checkup',
     gradient: 'from-forest-from to-forest-to',
     scene: 'family',
-    image: familyPhoto,
+    image: PHOTOS.family,
     imageAlt: 'A happy family of three laughing together on a sofa',
     fade: 'from-forest-from via-forest-from/85',
   },
@@ -47,7 +60,7 @@ export const BANNERS = [
     to: '/tests?category=Diabetes',
     gradient: 'from-violet-600 via-indigo-700 to-indigo-900',
     scene: 'senior',
-    image: seniorPhoto,
+    image: PHOTOS.senior,
     imageAlt: 'A senior man smiling at his phone while his daughter points at the screen',
     fade: 'from-indigo-800 via-indigo-800/85',
   },
@@ -60,7 +73,7 @@ export const BANNERS = [
     to: '/register?role=lab',
     gradient: 'from-sky-600 via-cyan-700 to-brand-900',
     scene: 'doctor',
-    image: labScientistPhoto,
+    image: PHOTOS.labScientist,
     imageAlt: 'A lab scientist loading sample tubes into a diagnostic analyser',
     fade: 'from-cyan-800 via-cyan-800/85',
   },

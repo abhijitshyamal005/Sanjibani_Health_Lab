@@ -100,17 +100,18 @@ export default function LabDetail() {
           <p className="mb-3 hidden text-xs font-bold uppercase tracking-wider text-ink-muted lg:block">Categories</p>
           <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0">
             <button className={`chip lg:justify-between ${!category ? 'chip-on' : 'chip-off'}`} onClick={() => setCategory('')}>
-              All tests <span className="opacity-70">{data.tests.length}</span>
+              All tests <span className="opacity-90">{data.tests.length}</span>
             </button>
             {categories.map(([c, n]) => (
               <button key={c} className={`chip lg:justify-between ${category === c ? 'chip-on' : 'chip-off'}`} onClick={() => setCategory(c)}>
-                {c} <span className="opacity-70">{n}</span>
+                {c} <span className="opacity-90">{n}</span>
               </button>
             ))}
           </div>
         </aside>
 
         <section>
+          <h2 className="sr-only">Tests available at {lab.name}</h2>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
             <input className="input pl-10" placeholder={`Search in ${lab.name}`} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search tests in this lab" />
@@ -131,7 +132,7 @@ export default function LabDetail() {
                 <div key={r._id} className="card p-4">
                   <div className="flex items-center justify-between">
                     <p className="font-bold">{r.userName}</p>
-                    <span className="flex items-center gap-0.5 text-amber-500" aria-label={`${r.rating} out of 5`}>
+                    <span className="flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${r.rating} out of 5`}>
                       {Array.from({ length: 5 }, (_, i) => (
                         <Star key={i} className={`h-4 w-4 ${i < r.rating ? 'fill-current' : 'text-slate-200'}`} />
                       ))}

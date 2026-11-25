@@ -34,7 +34,7 @@
     @apply border-slate-200 bg-white text-ink-soft hover:border-brand-300 hover:text-brand-700;
   }
   .chip-on {
-    @apply border-brand-600 bg-brand-600 text-white;
+    @apply border-brand-700 bg-brand-700 text-white;
   }
   .scrollbar-none {
     scrollbar-width: none;

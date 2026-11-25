@@ -1,22 +1,28 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import AdminApp from './admin/AdminApp';
-import CollectorApp from './collector/CollectorApp';
 import { PublicLayout, RequireAuth } from './components/Layouts';
-import PartnerApp from './partner/PartnerApp';
 import { Login, NotFound, Register } from './pages/Auth';
-import { BookingDetail, BookingList } from './pages/Bookings';
-import Cart from './pages/Cart';
 import CompareTests from './pages/CompareTests';
 import Home from './pages/Home';
 import LabDetail from './pages/LabDetail';
 import Labs from './pages/Labs';
 import Legal from './pages/Legal';
-import ForgotPassword from './pages/ForgotPassword';
-import Profile from './pages/Profile';
 import { LegalSeo, NoIndex } from './components/PageSeo';
+import { Spinner } from './components/ui';
+
+// Dashboards and account pages load on demand so first-time visitors download less JavaScript.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
+const PartnerApp = lazy(() => import('./partner/PartnerApp'));
+const CollectorApp = lazy(() => import('./collector/CollectorApp'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const BookingList = lazy(() => import('./pages/Bookings').then((m) => ({ default: m.BookingList })));
+const BookingDetail = lazy(() => import('./pages/Bookings').then((m) => ({ default: m.BookingDetail })));
 
 export default function App() {
   return (
+    <Suspense fallback={<Spinner className="min-h-[60vh] items-center" />}>
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
@@ -37,5 +43,6 @@ export default function App() {
       <Route path="admin/*" element={<><NoIndex /><RequireAuth roles={['admin']}><AdminApp /></RequireAuth></>} />
       <Route path="collector/*" element={<><NoIndex /><RequireAuth roles={['collector']}><CollectorApp /></RequireAuth></>} />
     </Routes>
+    </Suspense>
   );
 }

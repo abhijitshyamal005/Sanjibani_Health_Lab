@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Store, UserRound } from 'lucide-react';
 import { Logo } from '../components/Brand';
-import authPhoto from '../assets/photos/lab-scientist.jpg';
+import { PHOTOS } from '../lib/banners';
 import { Button, Field } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { useAuth, homeFor } from '../context/AuthContext';
@@ -16,7 +16,7 @@ export function AuthShell({ title, subtitle, children }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 p-12 text-white lg:flex lg:flex-col">
-        <img src={authPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={PHOTOS.labScientist.src} srcSet={PHOTOS.labScientist.srcSet} sizes="50vw" alt="" className="absolute inset-0 h-full w-full object-cover" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-forest-from/80 to-forest-to/30" />
         <div className="relative">
           <Logo light />
