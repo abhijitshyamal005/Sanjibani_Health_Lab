@@ -165,6 +165,13 @@ export const MAIL = {
 };
 
 /** Branded, mobile-friendly email shell used by every message (table layout for email clients). */
+/** Alt text for the header photos; it matches the words printed on each banner. */
+const BANNER_ALT = {
+  patient: 'Health checks for the whole family: trusted labs, home sample collection, reports online',
+  lab: 'Accurate tests, reports on time: bookings, collectors and reports in one place',
+  collector: 'Care that comes to your door: on time, safe and hygienic, friendly experts',
+};
+
 export function layout(title, bodyHtml, { banner } = {}) {
   const site = publicSite();
   const host = site.replace(/^https?:\/\//, '');
@@ -185,7 +192,7 @@ export function layout(title, bodyHtml, { banner } = {}) {
       </tr></table>
     </a>
   </td></tr>
-  ${banner ? `<tr><td style="padding:0 0 28px"><img src="${site}/email/${banner}.jpg" width="600" alt="" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:8px"></td></tr>` : ''}
+  ${banner ? `<tr><td style="padding:0 0 28px"><img src="${site}/email/${banner}.jpg" width="600" alt="${esc(BANNER_ALT[banner] || '')}" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:8px"></td></tr>` : ''}
   <tr><td style="padding:0">
     <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:700;color:#111827">${esc(title)}</h1>
     <div style="font-size:15px;line-height:1.6;color:#374151">${bodyHtml}</div>

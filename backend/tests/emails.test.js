@@ -33,6 +33,7 @@ function expectMail(list, to, subject) {
   assert.match(m.html, /<img src="https:\/\/[^"]+\/logo-512\.png"/, 'shows the logo from a public https URL');
   assert.doesNotMatch(m.html, /linear-gradient/, 'no gradients');
   assert.match(m.html, /\/email\/(patient|lab|collector)\.jpg"/, 'has a banner image');
+  assert.match(m.html, /\.jpg" width="600" alt="[^"]{20,}"/, 'banner alt text repeats the words on the photo');
   assert.match(m.html, /Regards,/, 'signs off');
   assert.doesNotMatch(m.subject + m.html, /[\u{1F300}-\u{1FAFF}\u2705]/u, 'no emoji');
   return m;
