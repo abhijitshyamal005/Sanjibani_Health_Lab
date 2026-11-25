@@ -13,6 +13,7 @@ import {
   updateMyLab,
   updateTest,
   uploadReport,
+  verifyUpiPayment,
   assignCollector,
   createCollector,
   listCollectors,
@@ -38,6 +39,7 @@ router.delete('/tests/:id', assertObjectId, deleteTest);
 
 router.get('/bookings', listLabBookings);
 router.patch('/bookings/:id/status', assertObjectId, updateBookingStatus);
+router.patch('/bookings/:id/payment', assertObjectId, verifyUpiPayment);
 router.post('/bookings/:id/report', assertObjectId, reportUpload, uploadReport);
 router.patch('/bookings/:id/assign', assertObjectId, assignCollector);
 

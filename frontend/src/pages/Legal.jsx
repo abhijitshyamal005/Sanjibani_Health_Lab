@@ -4,7 +4,7 @@ import { NotFound } from './Auth';
 import { SUPPORT } from '../lib/support';
 
 /*
- * Policy templates. Razorpay requires Terms, Privacy, Refund/Cancellation and Contact pages before activating
+ * Policy templates. Have the text reviewed by a lawyer before launch; business details come from src/lib/support.js.
  * live payments. Replace the details in src/lib/support.js and have the text reviewed by a lawyer before launch.
  */
 const UPDATED = '25 November 2026';
@@ -16,7 +16,7 @@ const PAGES = {
       ['About Sanjibani', `${SUPPORT.company} (“Sanjibani”, “we”) operates an online marketplace that lets patients discover independent diagnostic laboratories (“Labs”), compare test prices and book sample collection. Sanjibani is not a laboratory and does not perform tests, interpret results or give medical advice. Each Lab is solely responsible for the tests it performs, its pricing, sample collection and reports.`],
       ['Accounts', 'You must give accurate information and keep your password confidential. You are responsible for all activity on your account. You must be 18 or older, or book under the supervision of a parent or guardian.'],
       ['Bookings', 'A booking is a request to the Lab for the listed tests at the selected slot. The Lab may confirm, reschedule or cancel a booking (for example, if a slot or test becomes unavailable). Prices shown at checkout, including any home collection fee and coupon discount, are the final amount payable.'],
-      ['Payments', 'You can pay online through our payment partner Razorpay or pay the Lab at the time of collection where offered. Online payments are processed securely by Razorpay; we do not store card or UPI credentials.'],
+      ['Payments', 'You can pay by UPI (to the UPI ID shown at checkout — either the Lab’s or SanjiBani’s) and submit your UPI transaction ID, or pay at the time of collection. A UPI payment is confirmed once the receiver verifies it. We never ask for your UPI PIN, card or bank details.'],
       ['Labs on Sanjibani', 'Labs must hold valid registrations and accreditations they display, keep prices and test details accurate, follow applicable laws on sample handling and patient confidentiality, and deliver reports in the stated time.'],
       ['Medical disclaimer', 'Test results must be interpreted by a qualified doctor. Do not use Sanjibani for medical emergencies — call 112 or visit the nearest hospital.'],
       ['Liability', 'To the extent permitted by law, Sanjibani is not liable for the acts or omissions of Labs, including the quality or accuracy of tests and reports. Our total liability for any claim is limited to the amount you paid through Sanjibani for the booking in question.'],
@@ -26,7 +26,7 @@ const PAGES = {
   privacy: {
     title: 'Privacy Policy',
     body: [
-      ['What we collect', 'Account details (name, email, mobile number), patient details you enter for a booking (name, age, gender, phone), collection address, booking history, reviews, and reports uploaded by Labs. Payment details are handled by Razorpay and not stored by us.'],
+      ['What we collect', 'Account details (name, email, mobile number), patient details you enter for a booking (name, age, gender, phone), collection address, booking history, reviews, and reports uploaded by Labs. For UPI payments we store only the UPI transaction ID you submit — never your UPI PIN or bank details.'],
       ['Why we use it', 'To create and manage bookings, share the necessary details with the Lab you book, send booking and report notifications, provide support, prevent fraud and comply with law. We do not sell your personal data.'],
       ['Health data', 'Test names and reports are sensitive personal data. They are shared only with the Lab handling your booking and are accessible only to you, that Lab and authorised Sanjibani staff for support. Reports are stored encrypted at rest with our cloud provider.'],
       ['Your rights (DPDP Act, 2023)', `You can access, correct or delete your personal data, and withdraw consent, by emailing ${SUPPORT.email}. We may retain booking records where the law requires.`],
@@ -38,7 +38,7 @@ const PAGES = {
     title: 'Refund & Cancellation Policy',
     body: [
       ['Cancelling a booking', 'You can cancel a booking from “My bookings” any time before the sample is collected. After sample collection a booking cannot be cancelled.'],
-      ['Refunds for online payments', 'If you paid online and the booking is cancelled by you before sample collection, or by the Lab for any reason, the full amount is refunded to the original payment method within 5–7 working days.'],
+      ['Refunds for UPI payments', 'If you paid by UPI and the booking is cancelled by you before sample collection, or by the Lab for any reason, the full amount is refunded to the UPI account you paid from within 3 working days.'],
       ['Partial refunds', 'If a Lab is unable to perform one of the booked tests, the price of that test is refunded.'],
       ['Pay at collection', 'If you chose to pay at collection, nothing is charged until the sample is collected, so no refund is needed for cancellations.'],
       ['Report issues', `If your report is delayed beyond the stated time or you have a complaint about a Lab, contact us at ${SUPPORT.email} — we will work with the Lab to resolve it.`],

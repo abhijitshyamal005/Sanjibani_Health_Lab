@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, CreditCard, Download, FileText, House, Phone, Star } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarClock, CarFront, Route, ChevronRight, CircleCheck, ClipboardList, Download, FileText, House, Phone, Star } from 'lucide-react';
 import { LabCover } from '../components/Brand';
 import { Button, EmptyState, ErrorState, Field, Modal, PaymentBadge, Spinner, StatusBadge, Tabs } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { api, apiDownload } from '../lib/api';
-import { payForBooking } from '../lib/payments';
+import UpiPay from '../components/UpiPay';
 import { COLLECTION_TYPES, FIELD_FLOW, FIELD_STATUS, FLOW, STATUS, dateTime, inr, slotDate, slotTime } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
 
@@ -168,7 +168,6 @@ export function BookingDetail() {
   const { toast, meta } = useApp();
   const location = useLocation();
   const { data, loading, error, reload, setData } = useAsync(() => api(`/bookings/${id}`), [id]);
-  const [paying, setPaying] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -178,22 +177,10 @@ export function BookingDetail() {
   if (loading && !data) return <Spinner className="min-h-[50vh]" />;
   const b = data.booking;
   const canCancel = ['pending', 'confirmed'].includes(b.status);
-  const canPay = meta?.paymentsEnabled && b.paymentStatus !== 'paid' && b.status !== 'cancelled';
-
-  const payNow = async () => {
-    setPaying(true);
-    try {
-      const paid = await payForBooking(b._id);
-      if (paid) {
-        setData((d) => ({ ...d, booking: { ...d.booking, ...paid, lab: d.booking.lab, user: d.booking.user } }));
-        toast('Payment successful');
-      }
-    } catch (e) {
-      toast(e.message, 'error');
-    } finally {
-      setPaying(false);
-    }
-  };
+  const canPayUpi = Boolean(b.lab?.upiId || meta?.upiAvailable) && b.paymentStatus === 'unpaid' && b.status !== 'cancelled';
+  if (location.state?.payUpi && canPayUpi && typeof window !== 'undefined') {
+    setTimeout(() => document.getElementById('upi-pay')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  }
 
   const downloadReport = async () => {
     setDownloading(true);
@@ -312,7 +299,7 @@ export function BookingDetail() {
               <div className="flex justify-between text-base font-extrabold"><dt>Total</dt><dd>{inr(b.total)}</dd></div>
               <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
                 <PaymentBadge booking={b} />
-                {b.paymentId && <span className="text-ink-muted">Payment ID {b.paymentId}</span>}
+                {b.upiRef && <span className="text-ink-muted">UPI transaction ID {b.upiRef}</span>}
               </div>
               {b.refund?.status === 'pending' && <p className="text-xs text-ink-muted">Refunds usually reach your account in 5–7 working days.</p>}
               {b.refund?.status === 'failed' && <p className="text-xs text-red-600">We couldn’t refund automatically — our team will process it manually within 2 working days.</p>}
@@ -328,10 +315,17 @@ export function BookingDetail() {
             <h2 className="mb-4 font-bold">Status</h2>
             <StatusTimeline booking={b} />
           </div>
-          {canPay && (
-            <Button className="w-full" onClick={payNow} loading={paying}>
-              <CreditCard className="h-4 w-4" /> Pay {inr(b.total)} online
-            </Button>
+          {canPayUpi && (
+            <div className="card p-5" id="upi-pay">
+              <h2 className="mb-3 font-bold">Pay via UPI <span className="text-xs font-semibold text-coral-600">· no extra charges</span></h2>
+              <UpiPay booking={b} onSubmitted={(nb) => setData((d) => ({ ...d, booking: { ...d.booking, ...nb, lab: d.booking.lab, user: d.booking.user, collector: d.booking.collector } }))} />
+            </div>
+          )}
+          {b.paymentStatus === 'verifying' && (
+            <div className="rounded-2xl bg-violet-50 p-4 text-sm text-violet-800 ring-1 ring-violet-200">
+              <p className="font-bold">UPI payment submitted</p>
+              <p className="mt-1">Transaction ID {b.upiRef}. {b.lab.name} will confirm it shortly — you’ll get a receipt by email.</p>
+            </div>
           )}
           {canCancel && (
             <Button variant="danger" className="w-full" onClick={() => setCancelOpen(true)} data-testid="cancel-booking">

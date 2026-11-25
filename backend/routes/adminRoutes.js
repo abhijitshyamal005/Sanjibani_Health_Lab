@@ -3,6 +3,7 @@ import {
   createCoupon,
   deleteCoupon,
   listBookings,
+  verifyBookingPayment,
   listCoupons,
   updateCoupon,
   listLabs,
@@ -23,6 +24,7 @@ router.patch('/labs/:id/status', assertObjectId, setLabStatus);
 router.get('/users', listUsers);
 router.patch('/users/:id', assertObjectId, setUserActive);
 router.get('/bookings', listBookings);
+router.patch('/bookings/:id/payment', assertObjectId, verifyBookingPayment);
 router.get('/coupons', listCoupons);
 router.post('/coupons', createCoupon);
 router.put('/coupons/:id', assertObjectId, updateCoupon);

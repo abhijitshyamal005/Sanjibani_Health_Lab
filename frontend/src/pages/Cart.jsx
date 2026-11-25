@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, CarFront, CreditCard, House, Info, ShoppingBag, Ticket, Trash2, Wallet, X } from 'lucide-react';
+import { Building2, CarFront, Smartphone, House, Info, ShoppingBag, Ticket, Trash2, Wallet, X } from 'lucide-react';
 import { LabCover } from '../components/Brand';
 import { Button, EmptyState, Field } from '../components/ui';
 import { useApp } from '../context/AppContext';
@@ -8,7 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { api } from '../lib/api';
 import { inr, slotDate, slotTime, ymd } from '../lib/format';
-import { payForBooking } from '../lib/payments';
 import { useAsync } from '../lib/useAsync';
 
 const FALLBACK_SLOTS = ['07:00-08:00', '08:00-09:00', '09:00-10:00', '10:00-11:00', '17:00-18:00'];
@@ -93,7 +92,8 @@ export default function Cart() {
     collectionType === 'home' ? cart.lab?.homeCollectionFee || 0 : collectionType === 'assisted_visit' ? cart.lab?.assistedVisitFee || 0 : 0;
   const discount = coupon?.discount || 0;
   const payable = Math.max(0, cart.subtotal + fee - discount);
-  const onlineEnabled = Boolean(meta?.paymentsEnabled);
+  // Free UPI: the lab's own UPI ID, or the platform UPI ID as a fallback.
+  const upiEnabled = Boolean(cart.lab?.upiEnabled || meta?.upiAvailable);
   const dates = useMemo(() => Array.from({ length: 7 }, (_, i) => ymd(i)), []);
   // Live slot availability for the chosen lab, date and visit type.
   const availability = useAsync(
@@ -168,17 +168,8 @@ export default function Cart() {
         },
       });
       cart.clear();
-      if (onlineEnabled && payMethod === 'online') {
-        try {
-          const paid = await payForBooking(booking._id);
-          toast(paid ? 'Payment successful! Booking confirmed.' : 'Booking placed. You can pay online later from the booking page.');
-        } catch (e) {
-          toast(`${e.message} Your booking is saved — you can pay later.`, 'error');
-        }
-      } else {
-        toast('Booking placed! The lab will confirm shortly.');
-      }
-      navigate(`/bookings/${booking._id}`, { replace: true, state: { justBooked: true } });
+      toast(upiEnabled && payMethod === 'upi_direct' ? 'Booking placed! Scan the QR to pay by UPI.' : 'Booking placed! The lab will confirm shortly.');
+      navigate(`/bookings/${booking._id}`, { replace: true, state: { justBooked: true, payUpi: upiEnabled && payMethod === 'upi_direct' } });
     } catch (err) {
       toast(err.message, 'error');
       if (err.status === 409) {
@@ -331,18 +322,19 @@ export default function Cart() {
               </div>
             </section>
           )}
-          {onlineEnabled && (
+          {upiEnabled && (
             <section className="card p-5">
               <h2 className="font-bold">Payment</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {[
-                  { value: 'online', icon: CreditCard, title: 'Pay online now', text: 'UPI, cards, net banking, wallets' },
-                  { value: 'pay_at_collection', icon: Wallet, title: 'Pay at collection', text: 'Cash or UPI to the lab' },
+                  { value: 'upi_direct', icon: Smartphone, title: 'Pay now via UPI', text: 'Google Pay, PhonePe, Paytm · no extra charges' },
+                  { value: 'pay_at_collection', icon: Wallet, title: 'Pay at collection', text: 'Cash or UPI at the visit' },
                 ].map((o) => (
                   <button
                     key={o.value}
                     onClick={() => setPayMethod(o.value)}
                     className={`flex items-start gap-3 rounded-2xl border-2 p-4 text-left transition ${payMethod === o.value ? 'border-brand-500 bg-brand-50/60' : 'border-slate-200 hover:border-brand-300'}`}
+                    data-testid={`pay-${o.value}`}
                   >
                     <o.icon className="mt-0.5 h-5 w-5 text-brand-600" />
                     <span>
@@ -429,9 +421,9 @@ export default function Cart() {
             <div className="p-4 pt-0">
               {time && <p className="mb-3 text-center text-xs text-ink-muted">{slotDate(date)} · {slotTime(time)}</p>}
               <Button variant="accent" size="lg" className="w-full" onClick={placeBooking} loading={submitting} data-testid="place-booking">
-                {!user ? 'Log in to book' : onlineEnabled && payMethod === 'online' ? `Pay ${inr(payable)} & book` : 'Place booking'}
+                {!user ? 'Log in to book' : upiEnabled && payMethod === 'upi_direct' ? `Book & pay ${inr(payable)} via UPI` : 'Place booking'}
               </Button>
-              <p className="mt-2 text-center text-xs text-ink-muted">{onlineEnabled && payMethod === 'online' ? 'Secure payment by Razorpay' : 'Pay at the time of sample collection'}</p>
+              <p className="mt-2 text-center text-xs text-ink-muted">{upiEnabled && payMethod === 'upi_direct' ? 'You’ll see the UPI QR on the next screen' : 'Pay at the time of sample collection'}</p>
             </div>
           </div>
         </aside>

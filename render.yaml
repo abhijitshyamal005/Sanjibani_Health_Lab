@@ -32,12 +32,10 @@ services:
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
-      - key: RAZORPAY_KEY_ID
+      - key: UPI_ID
         sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
-      - key: RAZORPAY_WEBHOOK_SECRET
-        sync: false
+      - key: UPI_NAME
+        value: SanjiBani Health
       - key: STORAGE_DRIVER
         value: local
       - key: S3_BUCKET

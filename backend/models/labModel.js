@@ -46,6 +46,9 @@ const labSchema = new mongoose.Schema(
     // What the lab pays its field staff per job (private to the lab).
     collectorPayoutHome: { type: Number, default: 60, min: 0, max: 2000 },
     collectorPayoutAssisted: { type: Number, default: 120, min: 0, max: 5000 },
+    // Direct UPI (free): patients pay the lab's own UPI ID; the lab confirms receipt.
+    upiId: { type: String, trim: true, lowercase: true, match: [/^([\w.\-]{2,256}@[a-z]{2,64})?$/, 'Enter a valid UPI ID, e.g. yourlab@okhdfcbank'] },
+    upiName: { type: String, trim: true, maxlength: 80 },
     slotCapacity: { type: Number, default: 4, min: [1, 'Slot capacity must be at least 1'], max: 50 },
     establishedYear: { type: Number, min: 1900, max: 2100 },
     coverTheme: { type: Number, default: () => crypto.randomInt(0, 6), min: 0, max: 5 },

@@ -5,13 +5,12 @@ import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import * as events from '../services/events.js';
-import { refundIfPaidOnline } from './paymentController.js';
 import { storage } from '../services/storage.js';
 import { CANCELLABLE_BY_PATIENT, COLLECTION_TYPES, MAX_BOOKING_DAYS_AHEAD, TIME_SLOTS } from '../utils/constants.js';
 import { resolveCoupon } from '../utils/coupons.js';
 import { ApiError, pick, slotPassed, todayIST } from '../utils/helpers.js';
 
-const LAB_SUMMARY = 'name slug address phone coverTheme reportTime';
+const LAB_SUMMARY = 'name slug address phone coverTheme reportTime upiId';
 const COLLECTOR_SUMMARY = 'name phone';
 
 const hasFullAddress = (a = {}) => Boolean(a.line && a.city && /^\d{6}$/.test(String(a.pincode || '')));
@@ -214,7 +213,6 @@ export async function cancelBooking(req, res) {
   booking.setStatus('cancelled', reason);
   await booking.save();
   await releaseCoupon(booking);
-  await refundIfPaidOnline(booking);
   events.bookingStatusChanged(booking._id, { by: 'patient' });
   res.json({ booking: await booking.populate('lab', LAB_SUMMARY) });
 }

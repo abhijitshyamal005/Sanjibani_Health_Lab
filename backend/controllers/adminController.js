@@ -1,6 +1,7 @@
 import Booking from '../models/bookingModel.js';
 import Coupon from '../models/couponModel.js';
 import * as events from '../services/events.js';
+import { applyUpiDecision } from './partnerController.js';
 import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import User from '../models/userModel.js';
@@ -187,4 +188,13 @@ export async function deleteCoupon(req, res) {
   const coupon = await Coupon.findByIdAndDelete(req.params.id);
   if (!coupon) throw new ApiError(404, 'Coupon not found');
   res.json({ ok: true });
+}
+
+/** PATCH /api/admin/bookings/:id/payment { action } — admin verifies UPI payments (e.g. to the platform UPI ID). */
+export async function verifyBookingPayment(req, res) {
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) throw new ApiError(404, 'Booking not found');
+  await applyUpiDecision(booking, req.body?.action);
+  await booking.populate([{ path: 'lab', select: 'name address.city' }, { path: 'user', select: 'name email' }]);
+  res.json({ booking });
 }

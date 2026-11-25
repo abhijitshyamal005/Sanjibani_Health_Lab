@@ -9,7 +9,6 @@ import * as events from '../services/events.js';
 import { storage } from '../services/storage.js';
 import { BOOKING_STATUSES, BOOKING_TRANSITIONS } from '../utils/constants.js';
 import { releaseCoupon } from './bookingController.js';
-import { refundIfPaidOnline } from './paymentController.js';
 import { ApiError, escapeRegex, pick, todayIST } from '../utils/helpers.js';
 
 const LAB_FIELDS = [
@@ -31,6 +30,8 @@ const LAB_FIELDS = [
   'assistedVisitFee',
   'collectorPayoutHome',
   'collectorPayoutAssisted',
+  'upiId',
+  'upiName',
 ];
 const TEST_FIELDS = [
   'name',
@@ -175,10 +176,7 @@ export async function updateBookingStatus(req, res) {
   }
   booking.setStatus(status, cleanNote);
   await booking.save();
-  if (status === 'cancelled') {
-    await releaseCoupon(booking);
-    await refundIfPaidOnline(booking);
-  }
+  if (status === 'cancelled') await releaseCoupon(booking);
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
   events.bookingStatusChanged(booking._id, { by: 'lab' });
   if (status === 'completed' && wasUnpaid) events.paymentReceived(booking._id);
@@ -425,5 +423,40 @@ export async function assignCollector(req, res) {
   await booking.save();
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
   if (booking.collector) events.collectorAssigned(booking._id);
+  res.json({ booking });
+}
+
+/** Confirm or reject a direct UPI payment (shared by lab and admin). */
+export async function applyUpiDecision(booking, action) {
+  if (booking.paymentStatus !== 'verifying') throw new ApiError(400, 'There is no UPI payment waiting for verification');
+  if (action === 'confirm') {
+    booking.paymentStatus = 'paid';
+    booking.paidAt = new Date();
+    await booking.save();
+    events.paymentReceived(booking._id);
+  } else if (action === 'reject') {
+    const ref = booking.upiRef;
+    booking.paymentStatus = 'unpaid';
+    booking.paymentMethod = 'pay_at_collection';
+    booking.upiRef = undefined;
+    booking.upiPayee = undefined;
+    booking.upiSubmittedAt = undefined;
+    await booking.save();
+    events.upiRejected(booking._id, ref);
+  } else {
+    throw new ApiError(400, "Choose 'confirm' or 'reject'");
+  }
+}
+
+/** PATCH /api/partner/bookings/:id/payment { action } — the lab verifies UPI payments made to its own UPI ID. */
+export async function verifyUpiPayment(req, res) {
+  const lab = await myLab(req.user._id);
+  const booking = await Booking.findOne({ _id: req.params.id, lab: lab._id });
+  if (!booking) throw new ApiError(404, 'Booking not found');
+  if (booking.paymentStatus === 'verifying' && booking.upiPayee === 'platform') {
+    throw new ApiError(400, 'This payment went to SanjiBani — the SanjiBani team will verify it');
+  }
+  await applyUpiDecision(booking, req.body?.action);
+  await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
   res.json({ booking });
 }

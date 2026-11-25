@@ -138,6 +138,8 @@ function JobCard({ job, onUpdate }) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           {job.amountToCollect > 0 ? (
             <span className="rounded-lg bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">Collect {inr(job.amountToCollect)} (cash/UPI)</span>
+          ) : job.paymentStatus === 'verifying' ? (
+            <span className="rounded-lg bg-violet-50 px-2.5 py-1 font-semibold text-violet-700">Paid by UPI (lab verifying) — don’t collect cash</span>
           ) : (
             <span className="rounded-lg bg-coral-50 px-2.5 py-1 font-semibold text-coral-700">Prepaid — nothing to collect</span>
           )}

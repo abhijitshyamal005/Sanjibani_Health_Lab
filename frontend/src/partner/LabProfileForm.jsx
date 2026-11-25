@@ -21,6 +21,8 @@ const empty = {
   reportTime: '24 hours',
   assistedVisit: false,
   assistedVisitFee: 149,
+  upiId: '',
+  upiName: '',
   slotCapacity: 4,
   collectorPayoutHome: 60,
   collectorPayoutAssisted: 120,
@@ -158,6 +160,12 @@ export default function LabProfileForm({ lab, onSaved }) {
               <input className="input" type="number" min={0} max={5000} value={form.assistedVisitFee} onChange={set('assistedVisitFee')} name="assistedVisitFee" />
             </Field>
           )}
+          <Field label="UPI ID for payments (free)" hint="Patients pay you directly by UPI — e.g. yourlab@okhdfcbank. Leave empty to turn off.">
+            <input className="input font-mono" value={form.upiId || ''} onChange={set('upiId')} placeholder="yourlab@okhdfcbank" name="upiId" />
+          </Field>
+          <Field label="Name shown in UPI apps" hint="Usually your bank account name">
+            <input className="input" value={form.upiName || ''} onChange={set('upiName')} placeholder={form.name} name="upiName" />
+          </Field>
           <Field label="Bookings per time slot" hint="Max patients per 1-hour slot — separately for home collections and lab visits">
             <input className="input" type="number" min={1} max={50} value={form.slotCapacity} onChange={set('slotCapacity')} name="slotCapacity" />
           </Field>

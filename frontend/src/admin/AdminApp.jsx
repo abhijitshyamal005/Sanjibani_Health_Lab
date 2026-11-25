@@ -326,11 +326,40 @@ function AdminUsers() {
 }
 
 function AdminBookings() {
+  const { toast } = useApp();
   const [status, setStatus] = useState('');
-  const { data, loading, error, reload } = useAsync(() => api('/admin/bookings', { params: { status } }), [status]);
+  const [busy, setBusy] = useState(null);
+  const { data, loading, error, reload, setData } = useAsync(() => api('/admin/bookings', { params: { status } }), [status]);
+  const verify = async (b, action) => {
+    setBusy(b._id);
+    try {
+      const res = await api(`/admin/bookings/${b._id}/payment`, { method: 'PATCH', body: { action } });
+      setData((d) => ({ ...d, items: d.items.map((x) => (x._id === b._id ? { ...x, ...res.booking } : x)) }));
+      toast(action === 'confirm' ? `Payment confirmed for #${b.code}` : `Patient asked to pay again for #${b.code}`);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
+  const waiting = (data?.items || []).filter((b) => b.paymentStatus === 'verifying' && b.upiPayee === 'platform');
   return (
     <>
       <PageHeader title="All bookings" subtitle="Every booking across every lab" />
+      {waiting.length > 0 && (
+        <div className="mb-5 space-y-2" data-testid="admin-upi-queue">
+          <p className="text-sm font-bold text-violet-800">UPI payments to your account waiting for confirmation</p>
+          {waiting.map((b) => (
+            <div key={b._id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200">
+              <span className="flex-1">
+                <b>{inr(b.total)}</b> from {b.patient.name} · #{b.code} · {b.lab?.name} · UTR <b className="font-mono">{b.upiRef}</b>
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => verify(b, 'reject')} disabled={busy === b._id}>Not received</Button>
+              <Button size="sm" onClick={() => verify(b, 'confirm')} loading={busy === b._id} data-testid="admin-confirm-upi">Payment received</Button>
+            </div>
+          ))}
+        </div>
+      )}
       <Tabs value={status} onChange={setStatus} tabs={[{ value: '', label: 'All' }, ...Object.entries(STATUS).map(([v, s]) => ({ value: v, label: s.label }))]} />
       <div className="mt-5">
         {error ? (

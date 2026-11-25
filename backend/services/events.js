@@ -70,7 +70,12 @@ ${b.discount ? `<tr><td style="padding:2px 14px">Coupon ${esc(b.couponCode)} —
 /** Job details without any prices — for the sample collector. */
 function jobBlock(b) {
   const tests = b.items.map((i) => `<li>${esc(i.name)}${i.sampleType && i.sampleType !== 'None' ? ` — ${esc(i.sampleType)}` : ''}</li>`).join('');
-  const toCollect = b.paymentStatus === 'paid' ? 'Prepaid — nothing to collect' : `Collect ₹${b.total} from the patient`;
+  const toCollect =
+    b.paymentStatus === 'paid'
+      ? 'Prepaid — nothing to collect'
+      : b.paymentStatus === 'verifying'
+        ? 'Paid by UPI (lab is verifying) — do not collect cash'
+        : `Collect ₹${b.total} from the patient`;
   return `<table cellpadding="0" cellspacing="0" style="width:100%;background:#f0fdf4;border-radius:12px;padding:14px;margin:10px 0">
 <tr><td style="padding:2px 14px"><b>Job #${esc(b.code)}</b> · ${TYPE[b.collectionType] || ''}</td></tr>
 <tr><td style="padding:2px 14px">${esc(b.slot.date)} · ${esc(b.slot.time)}</td></tr>
@@ -243,11 +248,9 @@ const PATIENT_STATUS = {
     body:
       p(by === 'patient' ? 'Your booking has been cancelled as requested.' : `${esc(b.lab.name)} had to cancel your booking.`) +
       (b.cancelReason ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') +
-      (b.refund?.status === 'failed'
-        ? p('We could not start the refund of your online payment automatically. Our team will process it manually within 2 working days.')
-        : b.paymentMethod === 'online' && b.paymentStatus === 'paid'
-          ? p(`A full refund of <b>₹${b.refund?.amount ?? b.total}</b> has been started to your original payment method. It usually reaches you in 5–7 working days.`)
-          : ''),
+      (b.paymentMethod === 'upi_direct' && b.paymentStatus === 'paid'
+        ? p(`Your UPI payment of <b>₹${b.total}</b> will be refunded to your UPI account within 3 working days. Contact ${b.upiPayee === 'lab' ? `${esc(b.lab.name)} at ${esc(b.lab.phone)}` : 'SanjiBani support'} if you don't receive it.`)
+        : ''),
     cta: 'Book again',
     href: appUrl('/tests'),
   }),
@@ -332,12 +335,13 @@ export function reportUploaded(bookingId) {
   });
 }
 
-/** Payment recorded — online (Razorpay) or cash/UPI collected by the collector. */
+/** Payment recorded — UPI confirmed by the receiver, or cash/UPI collected at the visit. */
 export function paymentReceived(bookingId) {
   fire(async () => {
     const b = await loadBooking(bookingId);
     if (!b) return;
-    const how = b.paymentMethod === 'online' ? `online${b.paymentId ? ` (payment ID ${esc(b.paymentId)})` : ''}` : 'at collection';
+    const how =
+      b.paymentMethod === 'upi_direct' ? `by UPI (transaction ID ${esc(b.upiRef)})` : 'at collection';
     await send(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received ✅', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
     await send(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} received ${how} from ${esc(b.patient.name)}.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
   });
@@ -352,6 +356,47 @@ export function reviewPosted(reviewId) {
       `New ${r.rating}★ review for ${r.lab.name}`,
       'You received a new review',
       p(`<b>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</b> from ${esc(r.user?.name?.split(' ')[0] || 'a patient')}`) + (r.comment ? p(`“${esc(r.comment)}”`) : '') + button(appUrl('/partner'), 'Open dashboard')
+    );
+  });
+}
+
+/** Patient paid the lab's UPI ID directly — ask the lab to confirm. */
+export function upiSubmitted(bookingId) {
+  fire(async () => {
+    const b = await loadBooking(bookingId);
+    if (!b) return;
+    const verifiers = b.upiPayee === 'platform' ? await adminEmails() : [await labEmail(b.lab)];
+    for (const to of verifiers) await send(
+      to,
+      `Confirm UPI payment ₹${b.total} — booking #${b.code}`,
+      'Please confirm a UPI payment',
+      p(`${esc(b.patient.name)} says they paid <b>₹${b.total}</b> to ${b.upiPayee === 'platform' ? 'the SanjiBani UPI ID' : 'your UPI ID'} for ${esc(b.lab.name)}.`) +
+        p(`UPI transaction ID (UTR): <b style="font-size:17px;letter-spacing:1px">${esc(b.upiRef)}</b>`) +
+        p('Check your bank or UPI app for this transaction, then mark it as received (or not received) on the booking.') +
+        button(appUrl(b.upiPayee === 'platform' ? '/admin/bookings' : '/partner/bookings'), 'Verify payment')
+    );
+    await send(
+      b.user?.email,
+      `UPI payment submitted — booking #${b.code}`,
+      'We are verifying your payment',
+      p(`Thanks! ${esc(b.lab.name)} will confirm your UPI payment of <b>₹${b.total}</b> (transaction ID ${esc(b.upiRef)}) shortly. You'll get a receipt by email.`) +
+        button(bookingLink(b), 'View booking')
+    );
+  });
+}
+
+/** Lab could not find the UPI payment. */
+export function upiRejected(bookingId, utr) {
+  fire(async () => {
+    const b = await loadBooking(bookingId);
+    if (!b) return;
+    await send(
+      b.user?.email,
+      `UPI payment not found — booking #${b.code}`,
+      'We could not verify your UPI payment',
+      p(`${esc(b.lab.name)} could not find a payment with transaction ID <b>${esc(utr)}</b>.`) +
+        p(`Please check the transaction ID in your UPI app and submit it again, pay at collection, or call the lab at ${esc(b.lab.phone)}.`) +
+        button(bookingLink(b), 'Pay again')
     );
   });
 }

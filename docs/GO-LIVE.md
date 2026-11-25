@@ -1,6 +1,6 @@
 # Go-live guide
 
-The whole stack below runs on free plans. Expect about one to two hours of setup. Razorpay KYC can take a few days.
+The whole stack below runs on free plans. Expect about one to two hours of setup.
 
 | Piece | Service | Free tier | Notes |
 |---|---|---|---|
@@ -9,7 +9,7 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
 | Website | **Vercel** | Hobby plan | Global CDN and HTTPS, deploys on every git push |
 | Report PDFs | **Cloudflare R2** | 10 GB storage, no egress fees | Render's disk is wiped on every deploy, so reports **must** go to R2 in production |
 | Email | **Gmail SMTP** with an app password | ~500 emails/day | Move to Brevo (300/day free) or Amazon SES once you outgrow it |
-| Payments | **Razorpay** | No monthly fee, ~2% per transaction | Optional. Pay-at-collection works without it |
+| Payments | **Direct UPI** (no gateway) | Free — no fees | Patients scan a QR and enter the UPI transaction ID; the receiver (you or the lab) confirms. Pay at collection also works |
 | Domain | Any registrar | about ₹800/year for `.in` | The only paid item. Vercel and Render give free subdomains until then |
 
 **AWS or MongoDB?** They are not alternatives. MongoDB Atlas is the database this app is built on, and it can itself run on AWS. Plain AWS (EC2, RDS, S3) is powerful, but its free tier only lasts 12 months and it takes far more setup and maintenance. Atlas, Render, Vercel and R2 cover the same needs for ₹0 to start.
@@ -49,7 +49,7 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
 | `S3_BUCKET` | `sanjibani-reports` |
 | `S3_REGION` | `auto` |
 | `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | from step 2 |
-| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | from step 6. Leave these empty until then |
+| `UPI_ID`, `UPI_NAME` | your UPI ID and name — used for labs that have not added their own UPI ID |
 
 4. After the first deploy, open `https://<service>.onrender.com/api/health`. It should return `{"status":"ok"}`.
 5. Create your admin account. Do **not** run the demo seed in production. In the Render **Shell**, run:
@@ -65,11 +65,11 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
 3. Deploy. Then add the Vercel URL to `CLIENT_ORIGINS` on Render and redeploy the API.
 4. Optional: add your domain in Vercel under **Settings → Domains**.
 
-## 6. Online payments: Razorpay (optional)
-1. Sign up at https://dashboard.razorpay.com and complete KYC. Razorpay needs:
-   - PAN, a bank account, and business details;
-   - the website live with the **Terms, Privacy, Refunds and Contact** pages. These already exist at `/legal/*`; fill in your details via the `VITE_*` variables.
-2. Test first with test-mode keys (`rzp_test_…`). Then switch to live keys on Render. "Pay online" appears automatically.
+## 6. Payments: free UPI
+1. Set `UPI_ID` / `UPI_NAME` on Render (your UPI ID). Labs can add their own UPI ID in **Lab profile**; then patients pay the lab directly.
+2. Patients scan the QR (amount and booking code pre-filled) and submit the 12-digit UTR.
+3. Payments to your UPI ID are confirmed in **Admin → Bookings**; payments to a lab's UPI ID are confirmed by that lab in **Bookings**.
+4. If you later want automatic confirmation for cards/net banking, a gateway such as Razorpay (~2% per payment) can be added back.
 
 ## 7. Before announcing
 - [ ] Have a lawyer review `/legal/terms`, `/legal/privacy` and `/legal/refunds`. Health data falls under the DPDP Act, 2023.

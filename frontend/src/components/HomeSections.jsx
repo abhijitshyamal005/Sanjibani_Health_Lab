@@ -101,7 +101,7 @@ export function Testimonials() {
 const FAQS = [
   ['How does home sample collection work?', 'Pick a lab, add tests and choose “Home collection” with a time slot. A trained phlebotomist from the lab visits your address with a sealed kit, collects the sample and takes it to the lab.'],
   ['Are the labs on Sanjibani verified?', 'Yes. Every lab is reviewed by our team before it goes live, and accreditations such as NABL, CAP or ISO 15189 are shown on each lab’s page.'],
-  ['When and how do I pay?', 'You can pay online at checkout where available, or pay the lab at the time of sample collection or lab visit. Prices shown are final — there are no hidden charges beyond the home collection fee shown in your cart.'],
+  ['When and how do I pay?', 'Pay by UPI at checkout (scan the QR with Google Pay, PhonePe or Paytm — no extra charges), or pay at the time of sample collection or lab visit. Prices shown are final — there are no hidden charges beyond the home collection fee shown in your cart.'],
   ['How will I get my report?', 'The lab uploads your report when it is ready. You can download it from “My bookings” and you also get an email when it is ready.'],
   ['Can I cancel or reschedule?', 'You can cancel any booking before the sample is collected from the booking page. To reschedule, cancel and book a new slot, or call the lab directly.'],
   ['Do I need to fast before my test?', 'Some tests need 10–12 hours of fasting. Each test shows its preparation instructions — check them before your slot.'],

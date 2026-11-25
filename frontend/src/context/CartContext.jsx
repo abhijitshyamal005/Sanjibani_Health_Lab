@@ -23,6 +23,7 @@ const labSummary = (lab) => ({
   homeCollectionFee: lab.homeCollectionFee,
   assistedVisit: Boolean(lab.assistedVisit),
   assistedVisitFee: lab.assistedVisitFee || 0,
+  upiEnabled: Boolean(lab.upiId),
   coverTheme: lab.coverTheme,
 });
 

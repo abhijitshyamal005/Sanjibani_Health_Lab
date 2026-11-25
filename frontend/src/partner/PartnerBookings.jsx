@@ -62,6 +62,19 @@ export default function PartnerBookings() {
     }
   };
 
+  const verifyUpi = async (booking, action) => {
+    setBusyId(booking._id);
+    try {
+      const res = await api(`/partner/bookings/${booking._id}/payment`, { method: 'PATCH', body: { action } });
+      setData((d) => ({ ...d, items: d.items.map((x) => (x._id === booking._id ? res.booking : x)) }));
+      toast(action === 'confirm' ? `Payment confirmed for #${booking.code}` : `Patient asked to pay again for #${booking.code}`);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const uploadReport = async (booking, file) => {
     if (!file) return;
     if (file.type !== 'application/pdf') return toast('Please choose a PDF file', 'error');
@@ -173,6 +186,18 @@ export default function PartnerBookings() {
                         ))}
                       </select>
                     )}
+                  </div>
+                )}
+                {b.paymentStatus === 'verifying' && b.upiPayee === 'platform' && (
+                  <p className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">Paid by UPI to SanjiBani (UTR {b.upiRef}) — SanjiBani will confirm it.</p>
+                )}
+                {b.paymentStatus === 'verifying' && b.upiPayee !== 'platform' && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-violet-50 px-3 py-2.5 text-sm text-violet-900 ring-1 ring-violet-200" data-testid="upi-verify">
+                    <span className="flex-1">
+                      Patient paid <b>{inr(b.total)}</b> by UPI · transaction ID <b className="font-mono">{b.upiRef}</b>. Check your bank/UPI app.
+                    </span>
+                    <Button size="sm" variant="ghost" onClick={() => verifyUpi(b, 'reject')} disabled={busyId === b._id}>Not received</Button>
+                    <Button size="sm" onClick={() => verifyUpi(b, 'confirm')} loading={busyId === b._id} data-testid="confirm-upi">Payment received</Button>
                   </div>
                 )}
                 {b.notes && <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">Note: {b.notes}</p>}

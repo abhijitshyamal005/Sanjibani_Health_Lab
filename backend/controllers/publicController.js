@@ -3,12 +3,12 @@ import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import { ACCREDITATIONS, CATEGORIES, COLLECTION_TYPES, SAMPLE_TYPES, TIME_SLOTS } from '../utils/constants.js';
-import { paymentsEnabled, razorpayKeyId } from '../services/payments.js';
+import { platformUpi } from '../services/payments.js';
 import { featuredCoupon } from '../utils/coupons.js';
 import { ApiError, escapeRegex, paginate, slotPassed, toPositiveInt } from '../utils/helpers.js';
 
 const LAB_CARD_FIELDS =
-  'name slug tagline address rating ratingCount accreditations homeCollection homeCollectionFee assistedVisit assistedVisitFee reportTime coverTheme opensAt closesAt';
+  'name slug tagline address rating ratingCount accreditations homeCollection homeCollectionFee assistedVisit assistedVisitFee reportTime coverTheme opensAt closesAt upiId';
 
 function cityFilter(city) {
   return city ? { 'address.city': new RegExp(`^${escapeRegex(city.trim())}$`, 'i') } : {};
@@ -75,8 +75,7 @@ export async function meta(_req, res) {
     timeSlots: TIME_SLOTS,
     popularTests,
     stats: { labs: labIds.length, tests: testCount, cities: cities.length },
-    paymentsEnabled: paymentsEnabled(),
-    razorpayKeyId: razorpayKeyId(),
+    upiAvailable: Boolean(platformUpi()),
     featuredCoupon: coupon,
   });
 }

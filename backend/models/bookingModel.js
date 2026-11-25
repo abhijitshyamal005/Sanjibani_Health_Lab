@@ -79,10 +79,12 @@ const bookingSchema = new mongoose.Schema(
     fieldHistory: [{ _id: false, status: { type: String }, at: { type: Date, default: Date.now } }],
     couponCode: { type: String, trim: true, uppercase: true },
     discount: { type: Number, default: 0, min: 0 },
-    paymentMethod: { type: String, enum: ['pay_at_collection', 'online'], default: 'pay_at_collection' },
-    paymentStatus: { type: String, enum: ['unpaid', 'paid'], default: 'unpaid' },
-    paymentId: { type: String },
-    paymentOrderId: { type: String },
+    paymentMethod: { type: String, enum: ['pay_at_collection', 'upi_direct'], default: 'pay_at_collection' },
+    // 'verifying' = patient paid the lab's UPI ID directly and submitted the UTR; the lab must confirm.
+    paymentStatus: { type: String, enum: ['unpaid', 'verifying', 'paid'], default: 'unpaid' },
+    upiRef: { type: String, trim: true },
+    upiPayee: { type: String, enum: ['lab', 'platform'] }, // whose UPI ID received the money (decides who verifies)
+    upiSubmittedAt: { type: Date },
     paidAt: { type: Date },
     refund: {
       type: new mongoose.Schema(

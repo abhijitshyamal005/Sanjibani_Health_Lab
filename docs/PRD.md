@@ -65,7 +65,7 @@ Sanjibani is a marketplace for diagnostic laboratories, in the way Swiggy and Zo
 3. View users and all bookings.
 
 ### 5.4 Out of scope for the MVP (next phases)
-Online payments (Razorpay), OTP/SMS login, PDF report upload and download, geolocation and "near me" distance sort, coupons, phlebotomist assignment, notifications (email, SMS, WhatsApp), multiple branches per lab, prescription upload.
+Payment-gateway checkout (cards/net banking with automatic confirmation), OTP/SMS login, geolocation and "near me" distance sort, SMS/WhatsApp notifications, multiple branches per lab, prescription upload. (Free UPI payments — QR + transaction ID confirmed by the receiver — are already in.)
 
 ## 6. Business rules
 - Prices are always recomputed on the server. Client-sent prices are ignored.

@@ -362,13 +362,14 @@ export async function seedDatabase({ reset = false, append = false, includeAdmin
         paymentStatus: status === 'completed' ? 'paid' : 'unpaid',
       });
       const created = new Date(Date.now() - daysAgo * 86400000 - 3600000);
-      // Demo payments: half the completed bookings were paid online; one cancellation was a refunded online payment.
-      const paidOnline = (status === 'completed' && i % 2 === 0) || (status === 'cancelled' && i % 2 === 1);
-      if (paidOnline) {
-        booking.paymentMethod = 'online';
+      // Demo payments: half the completed bookings were paid by UPI; one cancellation was a refunded UPI payment.
+      const paidByUpi = (status === 'completed' && i % 2 === 0) || (status === 'cancelled' && i % 2 === 1);
+      if (paidByUpi) {
+        booking.paymentMethod = 'upi_direct';
         booking.paymentStatus = 'paid';
-        booking.paymentId = `pay_demo${String(booking._id).slice(-10)}`;
-        booking.paymentOrderId = `order_demo${String(booking._id).slice(-10)}`;
+        booking.upiRef = String(400000000000 + Math.floor(rand() * 99999999999));
+        booking.upiPayee = 'platform';
+        booking.upiSubmittedAt = created;
         booking.paidAt = created;
       }
       if (status === 'cancelled') {
@@ -377,7 +378,7 @@ export async function seedDatabase({ reset = false, append = false, includeAdmin
         booking.status = 'cancelled';
         booking.cancelledBy = 'patient';
         booking.cancelReason = 'Plans changed';
-        if (paidOnline) booking.refund = { id: `rfnd_demo${String(booking._id).slice(-10)}`, amount: booking.total, status: 'processed', createdAt: created, processedAt: created };
+        if (paidByUpi) booking.refund = { amount: booking.total, status: 'processed', createdAt: created, processedAt: created };
       } else {
         flow.slice(0, flow.indexOf(status) + 1).forEach((s, k) =>
           booking.statusHistory.push({ status: s, at: new Date(created.getTime() + k * 3 * 3600000), note: s === 'pending' ? 'Booking placed' : undefined })

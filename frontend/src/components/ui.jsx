@@ -245,9 +245,9 @@ export function Tabs({ tabs, value, onChange }) {
 /** Payment / refund state of a booking, for patient, lab and admin views. */
 export function PaymentBadge({ booking: b }) {
   if (b.refund?.status === 'processed') return <Badge tone="slate">Refunded ₹{b.refund.amount}</Badge>;
-  if (b.refund?.status === 'pending') return <Badge tone="amber">Refund ₹{b.refund.amount} in progress</Badge>;
-  if (b.refund?.status === 'failed') return <Badge tone="red">Refund failed — manual</Badge>;
-  if (b.paymentStatus === 'paid') return <Badge tone="green">{b.paymentMethod === 'online' ? 'Paid online' : 'Paid'}</Badge>;
+  if (b.refund?.status === 'pending') return <Badge tone="amber">Refund ₹{b.refund.amount} pending</Badge>;
+  if (b.paymentStatus === 'verifying') return <Badge tone="violet">UPI paid · verifying</Badge>;
+  if (b.paymentStatus === 'paid') return <Badge tone="green">{b.paymentMethod === 'upi_direct' ? 'Paid by UPI' : 'Paid'}</Badge>;
   if (b.status === 'cancelled') return null;
   return <Badge tone="amber">Unpaid · pay at collection</Badge>;
 }

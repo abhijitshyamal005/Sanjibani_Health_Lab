@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,7 +9,6 @@ import request from 'supertest';
 import { createApp } from '../app.js';
 import Coupon from '../models/couponModel.js';
 import { seedDatabase } from '../scripts/seedData.js';
-import { setRazorpayClient } from '../services/payments.js';
 import { computeDiscount } from '../utils/coupons.js';
 import { todayIST } from '../utils/helpers.js';
 
@@ -50,7 +48,6 @@ before(async () => {
 });
 
 after(async () => {
-  setRazorpayClient(null);
   await mongoose.disconnect();
   await mongod.stop();
   fs.rmSync(uploadDir, { recursive: true, force: true });
@@ -99,10 +96,8 @@ describe('discovery', () => {
     }
   });
 
-  test('meta exposes payments flag and featured coupon', async () => {
+  test('meta exposes UPI flag and featured coupon', async () => {
     const res = await api().get('/api/meta');
-    assert.equal(res.body.paymentsEnabled, false);
-    assert.equal(res.body.razorpayKeyId, null);
     assert.equal(res.body.featuredCoupon.code, 'SANJI15');
     assert.equal(res.body.featuredCoupon.type, 'percent');
   });
@@ -274,64 +269,5 @@ describe('forgot password', () => {
 
     const reuse = await api().post('/api/auth/reset-password').send({ email: 'sneha@example.com', code: res.body.devCode, newPassword: 'Another1' });
     assert.equal(reuse.status, 400, 'code is single-use');
-  });
-});
-
-describe('payments', () => {
-  test('503 when Razorpay is not configured', async () => {
-    const res = await api().post('/api/payments/order').set(auth(ctx.patient)).send({ bookingId: ctx.reportBooking });
-    assert.equal(res.status, 503);
-    assert.equal(res.body.message, 'Online payments are not configured yet');
-  });
-
-  test('order + signature verification marks booking paid', async () => {
-    process.env.RAZORPAY_KEY_ID = 'rzp_test_key';
-    process.env.RAZORPAY_KEY_SECRET = 'test_secret_123';
-    setRazorpayClient({ orders: { create: async (o) => ({ id: 'order_TEST123', amount: o.amount, currency: o.currency }) } });
-    try {
-      const booked = await api().post('/api/bookings').set(auth(ctx.patient)).send(bookingBody([ctx.tests[2]._id]));
-      const id = booked.body.booking._id;
-
-      const meta = await api().get('/api/meta');
-      assert.equal(meta.body.paymentsEnabled, true);
-      assert.equal(meta.body.razorpayKeyId, 'rzp_test_key');
-
-      const order = await api().post('/api/payments/order').set(auth(ctx.patient)).send({ bookingId: id });
-      assert.equal(order.status, 200, order.body.message);
-      assert.equal(order.body.orderId, 'order_TEST123');
-      assert.equal(order.body.amount, booked.body.booking.total * 100);
-      assert.equal(order.body.currency, 'INR');
-      assert.equal(order.body.keyId, 'rzp_test_key');
-      assert.equal(order.body.prefill.email, 'patient@sanjibani.in');
-
-      const other = await api().post('/api/payments/order').set(auth(await loginAs('amit@example.com', 'Patient@123'))).send({ bookingId: id });
-      assert.equal(other.status, 404);
-
-      const badSig = await api().post('/api/payments/verify').set(auth(ctx.patient)).send({
-        bookingId: id, razorpay_order_id: 'order_TEST123', razorpay_payment_id: 'pay_1', razorpay_signature: 'deadbeef',
-      });
-      assert.equal(badSig.status, 400);
-
-      const signature = crypto.createHmac('sha256', 'test_secret_123').update('order_TEST123|pay_1').digest('hex');
-      const wrongOrder = await api().post('/api/payments/verify').set(auth(ctx.patient)).send({
-        bookingId: id, razorpay_order_id: 'order_OTHER', razorpay_payment_id: 'pay_1', razorpay_signature: signature,
-      });
-      assert.equal(wrongOrder.status, 400);
-
-      const ok = await api().post('/api/payments/verify').set(auth(ctx.patient)).send({
-        bookingId: id, razorpay_order_id: 'order_TEST123', razorpay_payment_id: 'pay_1', razorpay_signature: signature,
-      });
-      assert.equal(ok.status, 200, ok.body.message);
-      assert.equal(ok.body.booking.paymentStatus, 'paid');
-      assert.equal(ok.body.booking.paymentMethod, 'online');
-      assert.equal(ok.body.booking.paymentId, 'pay_1');
-
-      const twice = await api().post('/api/payments/order').set(auth(ctx.patient)).send({ bookingId: id });
-      assert.equal(twice.status, 400);
-    } finally {
-      delete process.env.RAZORPAY_KEY_ID;
-      delete process.env.RAZORPAY_KEY_SECRET;
-      setRazorpayClient(null);
-    }
   });
 });
