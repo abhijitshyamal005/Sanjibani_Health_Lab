@@ -123,7 +123,7 @@ export const MAIL = {
 };
 
 /** Branded, mobile-friendly email shell used by every message (table layout for email clients). */
-export function layout(title, bodyHtml) {
+export function layout(title, bodyHtml, { banner } = {}) {
   const site = publicSite();
   const host = site.replace(/^https?:\/\//, '');
   const contact = [BRAND.supportPhone && esc(BRAND.supportPhone), BRAND.supportEmail && `<a href="mailto:${esc(BRAND.supportEmail)}" style="color:${MAIL.muted}">${esc(BRAND.supportEmail)}</a>`]
@@ -143,9 +143,11 @@ export function layout(title, bodyHtml) {
       </tr></table>
     </a>
   </td></tr>
+  ${banner ? `<tr><td style="padding:0 0 28px"><img src="${site}/email/${banner}.jpg" width="600" alt="" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:8px"></td></tr>` : ''}
   <tr><td style="padding:0">
     <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:700;color:#111827">${esc(title)}</h1>
     <div style="font-size:15px;line-height:1.6;color:#374151">${bodyHtml}</div>
+    <p style="margin:28px 0 0;font-size:15px;line-height:1.6;color:#374151">Regards,<br><b style="color:#111827">Team ${esc(BRAND.name)}</b></p>
   </td></tr>
   <tr><td style="padding:32px 0 0"><hr style="border:none;border-top:1px solid ${MAIL.border};margin:0 0 16px"></td></tr>
   <tr><td style="padding:0;font-size:12px;line-height:1.7;color:${MAIL.muted}">

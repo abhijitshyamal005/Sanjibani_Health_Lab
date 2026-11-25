@@ -30,10 +30,19 @@ function appUrl(path = '') {
 const button = (href, label) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="background:${MAIL.accent};border-radius:6px"><a href="${href}" style="display:inline-block;padding:11px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600">${esc(label)}</a></td></tr></table>`;
 const p = (html) => `<p style="margin:0 0 12px;line-height:1.6">${html}</p>`;
-const send = (to, subject, title, body, replyTo) => to && sendEmail({ to, subject, html: layout(title, body), replyTo });
-// Replies go to the right team: lab partners → labs@, payments → payments@, everyone else → care@ (default).
-const toLabs = (to, subject, title, body) => send(to, subject, title, body, BRAND.labsEmail || undefined);
-const toPayments = (to, subject, title, body) => send(to, subject, title, body, BRAND.paymentsEmail || undefined);
+/** Send one email. `banner` picks the header photo for the audience: patient | lab | collector. */
+const send = (to, subject, title, body, { replyTo, banner = 'patient' } = {}) =>
+  to && sendEmail({ to, subject, html: layout(title, body, { banner }), replyTo });
+// Replies go to the right team: lab partners and collectors → labs@, payments → payments@, everyone else → care@ (default).
+const toLabs = (to, subject, title, body) => send(to, subject, title, body, { replyTo: BRAND.labsEmail || undefined, banner: 'lab' });
+const toCollector = (to, subject, title, body) => send(to, subject, title, body, { replyTo: BRAND.labsEmail || undefined, banner: 'collector' });
+const toAdmin = (to, subject, title, body) => send(to, subject, title, body, { banner: 'lab' });
+const toPayments = (to, subject, title, body) => send(to, subject, title, body, { replyTo: BRAND.paymentsEmail || undefined });
+const labHi = (lab) => p(`Hello ${esc(lab?.name || '')} team,`);
+const hi = (name) => p(`Hi ${esc(String(name || 'there').split(' ')[0])},`);
+/** A short numbered "What happens next" list. */
+const next = (steps, heading = 'What happens next') =>
+  `<p style="margin:20px 0 6px;font-weight:600;color:#111827">${heading}</p><ol style="margin:0 0 12px;padding-left:20px;line-height:1.7">${steps.filter(Boolean).map((x) => `<li>${x}</li>`).join('')}</ol>`;
 
 const TYPE = { home: 'Home collection', lab_visit: 'Lab visit', assisted_visit: 'Assisted visit (pickup, lab visit & drop)' };
 const addr = (a) => [a?.line, a?.area, a?.city, a?.pincode].filter(Boolean).join(', ');
@@ -109,18 +118,21 @@ export function userRegistered(user) {
       await toLabs(
         user.email,
         'Welcome to SanjiBani for labs',
-        `Welcome, ${user.name}!`,
-        p('Thanks for registering your lab with SanjiBani.') +
-          p('<b>Next steps:</b> 1) add your lab details, 2) add your tests and prices, 3) our team verifies your lab and it goes live for patients.') +
+        'Welcome to SanjiBani',
+        hi(user.name) +
+          p('Thank you for registering your lab with SanjiBani. Your partner account is ready.') +
+          next(['Add your lab details: address, timings and accreditations.', 'Add your tests and prices.', 'Our team verifies your lab, usually within 24 hours, and it goes live for patients.'], 'Your next steps') +
           button(appUrl('/partner'), 'Complete your lab profile')
       );
     } else {
       await send(
         user.email,
         'Welcome to SanjiBani',
-        `Welcome, ${user.name}!`,
-        p('Compare lab test prices across verified labs, book home sample collection or a lab visit, and get your reports online.') +
-          button(appUrl('/tests'), 'Find a test')
+        'Welcome to SanjiBani',
+        hi(user.name) +
+          p('Thank you for signing up. Your SanjiBani account is ready to use.') +
+          next(['Compare the price of any test across verified labs near you.', 'Book a home sample collection or a lab visit at a time that suits you.', 'Get your reports online, right in your account.'], 'With SanjiBani you can') +
+          button(appUrl('/tests'), 'Book a test')
       );
     }
   });
@@ -132,8 +144,9 @@ export function passwordChanged(user) {
       user.email,
       'Your SanjiBani password was changed',
       'Password changed',
-      p(`Hi ${esc(user.name)}, the password for your SanjiBani account was just changed.`) +
-        p("If this wasn't you, reset your password immediately and contact support.") +
+      hi(user.name) +
+        p('The password for your SanjiBani account was changed just now.') +
+        p("If you made this change, no action is needed. If you didn't, reset your password right away and reply to this email so we can secure your account.") +
         button(appUrl('/forgot-password'), 'Reset password')
     )
   );
@@ -143,12 +156,13 @@ export function collectorAccountCreated(collectorId) {
   fire(async () => {
     const c = await User.findById(collectorId).populate('lab', 'name phone');
     if (!c) return;
-    await toLabs(
+    await toCollector(
       c.email,
       `You're now a sample collector for ${c.lab?.name}`,
-      `Welcome, ${c.name}!`,
-      p(`<b>${esc(c.lab?.name)}</b> has added you as a sample collector on SanjiBani.`) +
-        p(`Log in with <b>${esc(c.email)}</b> and the password your lab gave you (or use "Forgot password"). You'll see the jobs assigned to you, directions and your earnings.`) +
+      'Welcome to the team',
+      hi(c.name) +
+        p(`<b>${esc(c.lab?.name)}</b> has added you as a sample collector on SanjiBani.`) +
+        next([`Log in with <b>${esc(c.email)}</b> and the password your lab gave you (or use "Forgot password").`, 'See the jobs assigned to you, with the patient address and directions.', 'Update each step as you go, and track your earnings.'], 'Getting started') +
         button(appUrl('/login'), 'Open the collector app')
     );
   });
@@ -164,14 +178,15 @@ export function labSubmitted(labId, { resubmitted = false } = {}) {
       await labEmail(lab),
       `${lab.name} ${resubmitted ? 're-submitted' : 'submitted'} for verification`,
       'Your lab is under review',
-      p(`Thanks! <b>${esc(lab.name)}</b> is now being verified by the SanjiBani team. This usually takes up to 24 hours.`) +
-        p('Meanwhile, add your tests and prices so you are ready to go live.') +
+      labHi(lab) +
+        p(`Thank you. We have received the details of <b>${esc(lab.name)}</b> and our team is now verifying them. This usually takes up to 24 hours.`) +
+        p("We will email you as soon as your lab is approved. Meanwhile, add your tests and prices so you're ready to go live.") +
         button(appUrl('/partner/tests'), 'Add tests & prices')
     );
     const admins = await adminEmails();
     await Promise.all(
       admins.map((to) =>
-        send(
+        toAdmin(
           to,
           `New lab to review: ${lab.name}${resubmitted ? ' (re-submitted)' : ''}`,
           'A lab is waiting for approval',
@@ -189,15 +204,15 @@ export function labStatusChanged(labId) {
     const lab = await Lab.findById(labId);
     if (!lab) return;
     const to = await labEmail(lab);
-    const note = lab.statusNote ? p(`<b>Note from SanjiBani:</b> ${esc(lab.statusNote)}`) : '';
+    const note = lab.statusNote ? p(`<b>Note from our team:</b> ${esc(lab.statusNote)}`) : '';
     if (lab.status === 'approved') {
-      await send(to, `${lab.name} is now live on SanjiBani`, 'Your lab is live!', p('Patients can now find your lab, compare your prices and book tests.') + note + button(appUrl('/partner'), 'Open your dashboard'));
+      await toLabs(to, `${lab.name} is now live on SanjiBani`, 'Your lab is now live', labHi(lab) + p(`Congratulations! <b>${esc(lab.name)}</b> has been approved and is now visible to patients on SanjiBani. They can find your lab, compare your prices and book tests.`) + note + button(appUrl('/partner'), 'Open your dashboard'));
     } else if (lab.status === 'rejected') {
-      await send(to, `${lab.name} was not approved`, 'Your lab needs changes', p('Please update your lab profile based on the note below and save it — it will be re-submitted automatically.') + note + button(appUrl('/partner/profile'), 'Update lab profile'));
+      await toLabs(to, `${lab.name} was not approved`, 'Your lab needs changes', labHi(lab) + p(`We could not approve <b>${esc(lab.name)}</b> yet. Please update your lab profile based on the note below and save it. It will be sent for review again automatically.`) + note + button(appUrl('/partner/profile'), 'Update lab profile'));
     } else if (lab.status === 'suspended') {
-      await send(to, `${lab.name} has been suspended`, 'Your lab is suspended', p('Your lab is temporarily hidden from patients.') + note + p('Reply to this email or contact SanjiBani support to resolve it.'));
+      await toLabs(to, `${lab.name} has been suspended`, 'Your lab is suspended', labHi(lab) + p(`<b>${esc(lab.name)}</b> is temporarily hidden from patients, and new bookings are paused.`) + note + p('Please reply to this email so we can help you resolve it.'));
     } else {
-      await send(to, `${lab.name} is under review`, 'Your lab is under review', p('Your lab is waiting for verification.') + note);
+      await toLabs(to, `${lab.name} is under review`, 'Your lab is under review', labHi(lab) + p(`<b>${esc(lab.name)}</b> is waiting for verification. We will email you once it is reviewed.`) + note);
     }
   });
 }
@@ -212,13 +227,23 @@ export function bookingPlaced(bookingId) {
       b.user?.email,
       `Booking #${b.code} placed with ${b.lab.name}`,
       'Your booking is placed',
-      p(`Hi ${esc(b.patient.name)}, ${esc(b.lab.name)} will confirm your booking shortly.`) + bookingBlock(b) + button(bookingLink(b), 'Track your booking')
+      hi(b.patient.name) +
+        p(`Thank you for booking with SanjiBani. Your booking <b>#${esc(b.code)}</b> has been sent to <b>${esc(b.lab.name)}</b>.`) +
+        bookingBlock(b) +
+        next([
+          `${esc(b.lab.name)} confirms your booking. We'll email you when it does.`,
+          b.collectionType === 'lab_visit' ? `Visit the lab at your slot time: ${esc(b.slot.date)}, ${esc(b.slot.time)}.` : "A sample collector is assigned, and we'll send you their name and phone number.",
+          "Your report is shared online. We'll email you as soon as it is ready.",
+        ]) +
+        button(bookingLink(b), 'Track your booking')
     );
     await toLabs(
       await labEmail(b.lab),
       `New booking #${b.code} — ${b.patient.name}`,
       'You have a new booking',
-      p(b.collectionType === 'lab_visit' ? 'Please confirm it.' : 'Please confirm it and assign a sample collector.') +
+      labHi(b.lab) +
+      p(`<b>${esc(b.patient.name)}</b> has booked ${b.items.length === 1 ? 'a test' : `${b.items.length} tests`} for ${esc(b.slot.date)}, ${esc(b.slot.time)}.`) +
+      p(b.collectionType === 'lab_visit' ? '<b>Action needed:</b> please confirm the booking.' : '<b>Action needed:</b> please confirm the booking and assign a sample collector.') +
         bookingBlock(b, { forLab: true }) +
         (b.notes ? p(`<b>Patient note:</b> ${esc(b.notes)}`) : '') +
         button(appUrl('/partner/bookings'), 'Open bookings')
@@ -232,34 +257,34 @@ const PATIENT_STATUS = {
     title: 'Your booking is confirmed',
     body:
       b.collectionType === 'lab_visit'
-        ? p(`Please reach ${esc(b.lab.name)} at your slot time. Address: ${esc(addr(b.lab.address))}. Phone: ${esc(b.lab.phone)}.`)
-        : p('A sample collector will be assigned and you will get their name and phone number by email.'),
+        ? p(`${esc(b.lab.name)} has confirmed your booking. Please reach the lab at your slot time. Address: ${esc(addr(b.lab.address))}. Phone: ${esc(b.lab.phone)}.`)
+        : p(`${esc(b.lab.name)} has confirmed your booking. A sample collector will be assigned shortly, and we'll email you their name and phone number.`),
   }),
   sample_collected: (b) => ({
     subject: `Sample collected — booking #${b.code}`,
     title: 'Your sample has been collected',
-    body: p(`Your sample is on its way to ${esc(b.lab.name)}. Reports are usually ready in <b>${esc(b.lab.reportTime || '24 hours')}</b>.`),
+    body: p(`Your sample has been collected and is on its way to ${esc(b.lab.name)}. Reports are usually ready within <b>${esc(b.lab.reportTime || '24 hours')}</b>, and we'll email you as soon as yours is.`),
   }),
   report_ready: (b) => ({
     subject: `Your report is ready — booking #${b.code}`,
     title: 'Your report is ready',
     body:
       (b.reportNote ? p(esc(b.reportNote)) : '') +
-      p(b.report ? 'You can download your report PDF from your booking page.' : 'The lab has shared your report. Open your booking for details.') +
-      p('Please discuss your results with a doctor.'),
+      p(b.report ? `${esc(b.lab.name)} has shared your report. You can view and download the PDF from your booking page.` : `${esc(b.lab.name)} has shared your report. Open your booking to see the details.`) +
+      p('Please discuss your results with your doctor.'),
     cta: 'View & download report',
   }),
   completed: (b) => ({
     subject: `Thank you — booking #${b.code} completed`,
     title: 'Thank you for choosing SanjiBani',
-    body: p(`Your booking with ${esc(b.lab.name)} is complete.`) + p('How was your experience? Your rating helps other patients choose the right lab.'),
+    body: p(`Your booking with ${esc(b.lab.name)} is now complete. Thank you for trusting us with your care.`) + p('How was your experience? A quick rating helps other patients choose the right lab.'),
     cta: 'Rate your experience',
   }),
   cancelled: (b, by) => ({
     subject: `Booking #${b.code} cancelled`,
     title: 'Your booking was cancelled',
     body:
-      p(by === 'patient' ? 'Your booking has been cancelled as requested.' : `${esc(b.lab.name)} had to cancel your booking.`) +
+      p(by === 'patient' ? `Your booking <b>#${esc(b.code)}</b> with ${esc(b.lab.name)} has been cancelled, as you requested.` : `We're sorry: ${esc(b.lab.name)} had to cancel your booking <b>#${esc(b.code)}</b>.`) +
       (b.cancelReason ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') +
       (b.paymentMethod === 'upi_direct' && b.paymentStatus === 'paid'
         ? p(`Your UPI payment of <b>₹${b.total}</b> will be refunded to your UPI account within 3 working days. Contact ${b.upiPayee === 'lab' ? `${esc(b.lab.name)} at ${esc(b.lab.phone)}` : 'SanjiBani support'} if you don't receive it.`)
@@ -276,7 +301,7 @@ export function bookingStatusChanged(bookingId, { by = 'lab' } = {}) {
     if (!b) return;
     const tpl = PATIENT_STATUS[b.status]?.(b, by);
     if (tpl) {
-      await send(b.user?.email, tpl.subject, tpl.title, tpl.body + bookingBlock(b) + button(tpl.href || bookingLink(b), tpl.cta || 'View booking'));
+      await send(b.user?.email, tpl.subject, tpl.title, hi(b.patient.name) + tpl.body + bookingBlock(b) + button(tpl.href || bookingLink(b), tpl.cta || 'View booking'));
     }
     // Keep the lab informed of changes it didn't make itself.
     if (by !== 'lab' && ['cancelled', 'sample_collected'].includes(b.status)) {
@@ -284,12 +309,12 @@ export function bookingStatusChanged(bookingId, { by = 'lab' } = {}) {
         await labEmail(b.lab),
         b.status === 'cancelled' ? `Booking #${b.code} cancelled by patient` : `Sample collected — booking #${b.code}`,
         b.status === 'cancelled' ? 'A patient cancelled a booking' : `${b.collector?.name || 'Your collector'} collected the sample`,
-        (b.cancelReason && b.status === 'cancelled' ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') + bookingBlock(b, { forLab: true }) + button(appUrl('/partner/bookings'), 'Open bookings')
+        (b.status === 'cancelled' ? p(`${esc(b.patient.name)} has cancelled booking <b>#${esc(b.code)}</b>. No action is needed.`) + (b.cancelReason ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') : p(`${esc(b.collector?.name || 'Your collector')} has collected the sample for booking <b>#${esc(b.code)}</b>. It is on its way to your lab.`)) + bookingBlock(b, { forLab: true }) + button(appUrl('/partner/bookings'), 'Open bookings')
       );
     }
     // Tell the assigned collector their job was cancelled.
     if (b.status === 'cancelled' && b.collector?.email) {
-      await send(b.collector.email, `Job #${b.code} cancelled`, 'This job was cancelled', p('You no longer need to visit this patient.') + jobBlock(b));
+      await toCollector(b.collector.email, `Job #${b.code} cancelled`, 'This job was cancelled', hi(b.collector.name) + p(`Job <b>#${esc(b.code)}</b> has been cancelled. You no longer need to visit this patient.`) + jobBlock(b));
     }
   });
 }
@@ -303,15 +328,16 @@ export function collectorAssigned(bookingId) {
       b.user?.email,
       `${b.collector.name} will ${assisted ? 'take you to the lab' : 'collect your sample'} — #${b.code}`,
       assisted ? 'Your assistant is assigned' : 'Your sample collector is assigned',
-      p(`<b>${esc(b.collector.name)}</b> (${esc(b.collector.phone)}) from ${esc(b.lab.name)} will ${assisted ? 'pick you up, stay with you at the lab and drop you back home' : 'visit you to collect your sample'}.`) +
+      hi(b.patient.name) +
+        p(`<b>${esc(b.collector.name)}</b> (${esc(b.collector.phone)}) from ${esc(b.lab.name)} will ${assisted ? 'pick you up, stay with you at the lab and drop you back home' : 'visit you to collect your sample'}.`) +
         bookingBlock(b) +
         button(bookingLink(b), 'Track live')
     );
-    await send(
+    await toCollector(
       b.collector.email,
       `New job #${b.code} — ${b.slot.date} ${b.slot.time}`,
       'You have a new job',
-      p(`${esc(b.lab.name)} assigned you a ${assisted ? 'patient pickup (assisted visit)' : 'home sample collection'}.`) + jobBlock(b) + button(appUrl('/collector'), 'Open your jobs')
+      hi(b.collector.name) + p(`${esc(b.lab.name)} has assigned you a ${assisted ? 'patient pickup (assisted visit)' : 'home sample collection'}. Please reach the patient on time.`) + jobBlock(b) + button(appUrl('/collector'), 'Open your jobs')
     );
   });
 }
@@ -330,7 +356,7 @@ export function fieldProgress(bookingId, step) {
     const b = await loadBooking(bookingId);
     if (!b?.collector || !FIELD_MSG[step]) return;
     const [title, text] = FIELD_MSG[step](b);
-    await send(b.user?.email, `${title} — booking #${b.code}`, title, p(text) + button(bookingLink(b), 'Track live'));
+    await send(b.user?.email, `${title} — booking #${b.code}`, title, hi(b.patient.name) + p(text) + button(bookingLink(b), 'Track live'));
     // The lab follows every step its collector takes.
     const STEP = { on_the_way: 'is on the way to', arrived: 'has reached', picked_up: 'has picked up', reached_lab: 'has reached the lab with', dropped_home: 'has dropped home' };
     await toLabs(
@@ -351,7 +377,7 @@ export function reportUploaded(bookingId) {
       b.user?.email,
       `Your report PDF is available — booking #${b.code}`,
       'Your report is ready to download',
-      p(`${esc(b.lab.name)} has uploaded your report.`) + button(bookingLink(b), 'Download report')
+      hi(b.patient.name) + p(`${esc(b.lab.name)} has uploaded your report PDF. You can view and download it from your booking page.`) + button(bookingLink(b), 'Download report')
     );
   });
 }
@@ -363,8 +389,8 @@ export function paymentReceived(bookingId) {
     if (!b) return;
     const how =
       b.paymentMethod === 'upi_direct' ? `by UPI (transaction ID ${esc(b.upiRef)})` : 'at collection';
-    await toPayments(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
-    await toLabs(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} received ${how} from ${esc(b.patient.name)}.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
+    await toPayments(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received', hi(b.patient.name) + p(`Thank you. We have received your payment of <b>₹${b.total}</b> ${how} for booking <b>#${esc(b.code)}</b>. Please keep this email as your receipt.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
+    await toLabs(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} has been received ${how} from ${esc(b.patient.name)} for booking <b>#${esc(b.code)}</b>.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
   });
 }
 
@@ -387,20 +413,21 @@ export function upiSubmitted(bookingId) {
     const b = await loadBooking(bookingId);
     if (!b) return;
     const verifiers = b.upiPayee === 'platform' ? await adminEmails() : [await labEmail(b.lab)];
-    for (const to of verifiers) await send(
+    const verify = b.upiPayee === 'platform' ? toAdmin : toLabs;
+    for (const to of verifiers) await verify(
       to,
       `Confirm UPI payment ₹${b.total} — booking #${b.code}`,
       'Please confirm a UPI payment',
       p(`${esc(b.patient.name)} says they paid <b>₹${b.total}</b> to ${b.upiPayee === 'platform' ? 'the SanjiBani UPI ID' : 'your UPI ID'} for ${esc(b.lab.name)}.`) +
         p(`UPI transaction ID (UTR): <b style="font-size:17px;letter-spacing:1px">${esc(b.upiRef)}</b>`) +
-        p('Check your bank or UPI app for this transaction, then mark it as received (or not received) on the booking.') +
+        p('<b>Action needed:</b> check your bank or UPI app for this transaction, then mark it as received or not received on the booking.') +
         button(appUrl(b.upiPayee === 'platform' ? '/admin/bookings' : '/partner/bookings'), 'Verify payment')
     );
     await toPayments(
       b.user?.email,
       `UPI payment submitted — booking #${b.code}`,
       'We are verifying your payment',
-      p(`Thanks! ${esc(b.lab.name)} will confirm your UPI payment of <b>₹${b.total}</b> (transaction ID ${esc(b.upiRef)}) shortly. You'll get a receipt by email.`) +
+      hi(b.patient.name) + p(`Thank you. We have received your UPI transaction ID <b>${esc(b.upiRef)}</b> for <b>₹${b.total}</b>. The payment is being verified, and we'll email your receipt as soon as it is confirmed.`) +
         button(bookingLink(b), 'View booking')
     );
   });
@@ -415,8 +442,8 @@ export function upiRejected(bookingId, utr) {
       b.user?.email,
       `UPI payment not found — booking #${b.code}`,
       'We could not verify your UPI payment',
-      p(`${esc(b.lab.name)} could not find a payment with transaction ID <b>${esc(utr)}</b>.`) +
-        p(`Please check the transaction ID in your UPI app and submit it again, pay at collection, or call the lab at ${esc(b.lab.phone)}.`) +
+      hi(b.patient.name) + p(`We could not find a payment with transaction ID <b>${esc(utr)}</b> for booking <b>#${esc(b.code)}</b>.`) +
+        p(`Please check the transaction ID in your UPI app and submit it again. You can also pay at collection, or call the lab at ${esc(b.lab.phone)}.`) +
         button(bookingLink(b), 'Pay again')
     );
   });
@@ -435,21 +462,21 @@ export function accountStatusChanged(userId, { by = 'admin' } = {}) {
     const u = await User.findById(userId).populate('lab', 'name');
     if (!u) return;
     const who = by === 'lab' ? esc(u.lab?.name || 'Your lab') : 'The SanjiBani team';
-    const mail = ['lab', 'collector'].includes(u.role) ? toLabs : send;
+    const mail = u.role === 'collector' ? toCollector : u.role === 'lab' ? toLabs : send;
     if (u.isActive) {
       await mail(
         u.email,
         'Your SanjiBani account is active again',
         'Your account is active again',
-        p(`Hi ${esc(u.name)}, ${who} has re-activated your SanjiBani account. You can log in again.`) + button(appUrl('/login'), 'Log in')
+        hi(u.name) + p(`${who} has re-activated your SanjiBani account. You can log in and use it again as before.`) + button(appUrl('/login'), 'Log in')
       );
     } else {
       await mail(
         u.email,
         'Your SanjiBani account has been deactivated',
         'Your account has been deactivated',
-        p(`Hi ${esc(u.name)}, ${who} has deactivated your SanjiBani account, so you can no longer log in.`) +
-          p(by === 'lab' ? 'Please contact your lab if you think this is a mistake.' : 'Reply to this email if you think this is a mistake.')
+        hi(u.name) + p(`${who} has deactivated your SanjiBani account. You will not be able to log in until it is re-activated.`) +
+          p(by === 'lab' ? 'If you think this is a mistake, please contact your lab.' : 'If you think this is a mistake, simply reply to this email and our team will look into it.')
       );
     }
   });
@@ -462,8 +489,9 @@ export function profileUpdated(user) {
       user.email,
       'Your SanjiBani profile was updated',
       'Profile updated',
-      p(`Hi ${esc(user.name)}, the details on your SanjiBani account were just updated.`) +
-        p("If this wasn't you, change your password and contact support.") +
+      hi(user.name) +
+        p('The details on your SanjiBani account were updated just now.') +
+        p("If you made this change, no action is needed. If you didn't, please change your password and reply to this email.") +
         button(appUrl(ROLE_HOME[user.role] || '/'), 'Review your account')
     )
   );
@@ -474,11 +502,11 @@ export function collectorUpdated(collectorId, { passwordChanged: pw = false } = 
   fire(async () => {
     const c = await User.findById(collectorId).populate('lab', 'name');
     if (!c) return;
-    await toLabs(
+    await toCollector(
       c.email,
       pw ? 'Your collector password was reset' : 'Your collector details were updated',
       pw ? 'Password reset by your lab' : 'Details updated',
-      p(`Hi ${esc(c.name)}, <b>${esc(c.lab?.name || 'your lab')}</b> ${pw ? 'has set a new password for your account. Ask your lab for it, or use "Forgot password".' : `updated your details: ${esc(c.name)} · ${esc(c.phone)}.`}`) +
+      hi(c.name) + p(`<b>${esc(c.lab?.name || 'Your lab')}</b> ${pw ? 'has set a new password for your account. Ask your lab for it, or use "Forgot password".' : `updated your details: ${esc(c.name)} · ${esc(c.phone)}.`}`) +
         button(appUrl('/login'), 'Open the collector app')
     );
   });
@@ -489,13 +517,13 @@ export function collectorUnassigned(bookingId, previousCollectorId) {
   fire(async () => {
     const [b, prev] = await Promise.all([loadBooking(bookingId), User.findById(previousCollectorId).select('name email')]);
     if (!b || !prev) return;
-    await send(prev.email, `Job #${b.code} removed`, 'This job was taken off your list', p(`${esc(b.lab.name)} has removed you from this job. You no longer need to visit this patient.`) + jobBlock(b) + button(appUrl('/collector'), 'Open your jobs'));
+    await toCollector(prev.email, `Job #${b.code} removed`, 'This job was taken off your list', hi(prev.name) + p(`${esc(b.lab.name)} has removed you from job <b>#${esc(b.code)}</b>. You no longer need to visit this patient.`) + jobBlock(b) + button(appUrl('/collector'), 'Open your jobs'));
     if (!b.collector) {
       await send(
         b.user?.email,
         `Collector changed — booking #${b.code}`,
         'Your collector has changed',
-        p(`${esc(b.lab.name)} will assign a new ${b.collectionType === 'assisted_visit' ? 'assistant' : 'sample collector'} for your booking. You'll get their name and phone number by email.`) +
+        hi(b.patient.name) + p(`${esc(b.lab.name)} will assign a new ${b.collectionType === 'assisted_visit' ? 'assistant' : 'sample collector'} for your booking. You'll get their name and phone number by email.`) +
           bookingBlock(b) +
           button(bookingLink(b), 'Track your booking')
       );

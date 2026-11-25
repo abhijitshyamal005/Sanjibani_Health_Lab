@@ -32,6 +32,8 @@ function expectMail(list, to, subject) {
   assert.match(m.html, /<html/, 'uses the branded template');
   assert.match(m.html, /<img src="https:\/\/[^"]+\/logo-512\.png"/, 'shows the logo from a public https URL');
   assert.doesNotMatch(m.html, /linear-gradient/, 'no gradients');
+  assert.match(m.html, /\/email\/(patient|lab|collector)\.jpg"/, 'has a banner image');
+  assert.match(m.html, /Regards,/, 'signs off');
   assert.doesNotMatch(m.subject + m.html, /[\u{1F300}-\u{1FAFF}\u2705]/u, 'no emoji');
   return m;
 }
@@ -106,6 +108,8 @@ describe('email notifications across the whole flow', () => {
     const m = await mails();
     expectMail(m, PATIENT.email, /Bikash will collect your sample/);
     const job = expectMail(m, 'bikash@test.com', /New job/);
+    assert.match(job.html, /email\/collector\.jpg/, 'collector banner');
+    assert.match(expectMail(m, PATIENT.email, /Bikash will collect/).html, /email\/patient\.jpg/, 'patient banner');
     assert.doesNotMatch(job.html, /HbA1c — ₹|₹450|MRP/, 'collector email has no test prices');
     assert.match(job.html, /Collect ₹500/, 'collector sees the amount to collect');
   });
