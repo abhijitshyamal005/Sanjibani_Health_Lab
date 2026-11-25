@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint src e2e",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:live": "playwright test -c playwright.live.config.js"
   },
   "dependencies": {
     "lucide-react": "^1.80.0",

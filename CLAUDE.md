@@ -45,7 +45,10 @@ cd backend && npm test
 
 ## Production
 
-- Website: https://sanjibanilabs.onrender.com (Render static site, root `frontend`)
+- Website: https://sanjibanilabs.dpdns.org (free DigitalPlat domain, A record → Render 216.24.57.1; renew free within 120 days of expiry, next expiry 2027-11-25)
+- Render default URL: https://sanjibanilabs.onrender.com (Render static site, root `frontend`)
+- Any new frontend URL must be added to the API's `CLIENT_ORIGINS` on Render, or browser calls fail with CORS errors.
+- Live smoke tests (read-only): `cd frontend && npm run test:live` (override target with `LIVE_URL=...`)
 - API: https://sanjibanihealth-lab.onrender.com (Render web service, root `backend`)
 - Mirror: https://sanjibani-health-lab.vercel.app (Vercel, root `frontend`)
 - Database: MongoDB Atlas, database `sanjibani`
