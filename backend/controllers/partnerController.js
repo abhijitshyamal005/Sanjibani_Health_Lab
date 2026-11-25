@@ -6,6 +6,7 @@ import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
 import * as events from '../services/events.js';
+import { rewardInviter } from '../services/invites.js';
 import { storage } from '../services/storage.js';
 import { BOOKING_STATUSES, BOOKING_TRANSITIONS } from '../utils/constants.js';
 import { releaseCoupon } from './bookingController.js';
@@ -184,6 +185,8 @@ export async function updateBookingStatus(req, res) {
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
   events.bookingStatusChanged(booking._id, { by: 'lab' });
   if (status === 'completed' && wasUnpaid) events.paymentReceived(booking._id);
+  // A friend's first completed booking earns whoever invited them a coupon.
+  if (status === 'completed') await rewardInviter(booking.user._id || booking.user).catch((err) => console.error('[invite]', err.message));
   res.json({ booking });
 }
 

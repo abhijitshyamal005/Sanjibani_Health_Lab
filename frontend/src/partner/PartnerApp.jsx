@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
-import { Building2, ClipboardList, ExternalLink, FlaskConical, LayoutDashboard, Route as RouteIcon, Users } from 'lucide-react';
+import { Building2, ClipboardList, ExternalLink, FlaskConical, Gift, LayoutDashboard, Route as RouteIcon, Users } from 'lucide-react';
+import InvitePanel from '../components/InvitePanel';
 import { DashboardShell } from '../components/Layouts';
 import { ErrorState, LabStatusBadge, Spinner } from '../components/ui';
 import { api } from '../lib/api';
@@ -47,6 +48,7 @@ export default function PartnerApp() {
     { to: '/partner/patients', label: 'Patients', icon: Users },
     { to: '/partner/collectors', label: 'Collectors', icon: RouteIcon },
     { to: '/partner/profile', label: 'Lab profile', icon: Building2 },
+    { to: '/partner/invite', label: 'Invite & share', icon: Gift },
   ];
 
   return (
@@ -74,6 +76,15 @@ export default function PartnerApp() {
           <Route path="tests" element={<PartnerTests />} />
           <Route path="patients" element={<PartnerPatients />} />
           <Route path="collectors" element={<PartnerCollectors />} />
+          <Route
+            path="invite"
+            element={
+              <div className="max-w-3xl">
+                <h1 className="mb-6 text-2xl font-extrabold tracking-tight">Invite &amp; share</h1>
+                <InvitePanel showLabInvite />
+              </div>
+            }
+          />
           <Route
             path="profile"
             element={

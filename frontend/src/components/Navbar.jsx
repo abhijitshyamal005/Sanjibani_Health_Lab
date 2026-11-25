@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
   ClipboardList,
+  Gift,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -86,7 +87,7 @@ function UserMenu() {
             <p className="truncate text-sm font-bold">{user.name}</p>
             <p className="truncate text-xs text-ink-muted">{user.email}</p>
           </div>
-          {links.map(({ to, label, icon: Icon }) => (
+          {[...links, { to: '/invite', label: 'Invite & earn ₹100', icon: Gift }].map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to} role="menuitem" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-slate-50">
               <Icon className="h-4 w-4 text-ink-muted" /> {label}
             </Link>
@@ -132,7 +133,7 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-0.5 sm:gap-1.5">
           <Link to="/tests" className="grid h-10 w-10 place-items-center rounded-xl text-ink-soft hover:bg-slate-100 md:hidden" aria-label="Search tests">
             <Search className="h-5 w-5" />
           </Link>
@@ -147,6 +148,11 @@ export default function Navbar() {
           {!user && (
             <Link to="/register?role=lab" className="hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 lg:flex">
               <Store className="h-4 w-4" /> Register your lab
+            </Link>
+          )}
+          {user && (
+            <Link to="/invite" className="flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-sm font-semibold text-coral-700 hover:bg-coral-50" aria-label="Invite friends" data-testid="invite-button">
+              <Gift className="h-5 w-5" /> <span className="hidden lg:inline">Invite &amp; earn</span>
             </Link>
           )}
           {user ? (
@@ -171,6 +177,11 @@ export default function Navbar() {
             <NavLink to="/tests" className={navLink}>
               Compare tests
             </NavLink>
+            {user && (
+              <NavLink to="/invite" className={navLink}>
+                Invite &amp; earn ₹100
+              </NavLink>
+            )}
             {!user && (
               <>
                 <NavLink to="/register?role=lab" className={navLink}>

@@ -63,6 +63,10 @@ const userSchema = new mongoose.Schema(
     lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', index: true },
     resetCodeHash: { type: String, select: false },
     resetCodeExpires: { type: Date, select: false },
+    // Invite-a-friend: this user's personal share code, who invited them, and when their inviter was rewarded.
+    inviteCode: { type: String, unique: true, sparse: true, uppercase: true, trim: true },
+    invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+    inviteRewardedAt: { type: Date },
   },
   { timestamps: true }
 );

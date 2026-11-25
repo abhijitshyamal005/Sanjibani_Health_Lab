@@ -6,6 +6,7 @@
  */
 import Booking from '../models/bookingModel.js';
 import Lab from '../models/labModel.js';
+import LabInvite from '../models/labInviteModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
 import { BRAND, MAIL, emailBaseUrl, esc, layout, sendEmail } from './notify.js';
@@ -111,7 +112,18 @@ const bookingLink = (b) => appUrl(`/bookings/${b._id}`);
 
 /* ---------------- Accounts ---------------- */
 
-export function userRegistered(user) {
+/** A coupon code shown large, with what it's worth and when it expires. */
+function couponBlock(c) {
+  const until = c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : null;
+  return details('Your coupon', [
+    row('Code', `<span style="font-family:monospace;font-size:18px;font-weight:700;letter-spacing:1px;color:${MAIL.text}">${esc(c.code)}</span>`),
+    row('Discount', `₹${c.value} off${c.minOrder ? ` on bookings of ₹${c.minOrder} or more` : ''}`),
+    until && row('Valid till', esc(until)),
+  ]);
+}
+
+/** `coupon`: the welcome coupon of a patient who signed up through a friend's invite. */
+export function userRegistered(user, { coupon } = {}) {
   fire(async () => {
     if (user.role === 'lab') {
       await toLabs(
@@ -130,6 +142,7 @@ export function userRegistered(user) {
         'Welcome to SanjiBani',
         hi(user.name) +
           p('Thank you for signing up. Your SanjiBani account is ready to use.') +
+          (coupon ? p(`Because a friend invited you, here is <b>₹${coupon.value} off</b> your booking. Enter the code at checkout.`) + couponBlock(coupon) : '') +
           next(['Compare the price of any test across verified labs near you.', 'Book a home sample collection or a lab visit at a time that suits you.', 'Get your reports online, right in your account.'], 'With SanjiBani you can') +
           button(appUrl('/tests'), 'Book a test')
       );
@@ -147,6 +160,55 @@ export function passwordChanged(user) {
         p('The password for your SanjiBani account was changed just now.') +
         p("If you made this change, no action is needed. If you didn't, reset your password right away and reply to this email so we can secure your account.") +
         button(appUrl('/forgot-password'), 'Reset password')
+    )
+  );
+}
+
+/* ---------------- Invitations ---------------- */
+
+/** Admin invited a laboratory to create its partner account. */
+export function labInvited(inviteId) {
+  fire(async () => {
+    const inv = await LabInvite.findById(inviteId);
+    if (!inv) return;
+    const signUp = appUrl(`/register?role=lab&email=${encodeURIComponent(inv.email)}`);
+    await toLabs(
+      inv.email,
+      `Invitation: list ${inv.labName} on SanjiBani`,
+      'Grow your lab with SanjiBani',
+      (inv.contactName ? p(`Hello ${esc(inv.contactName)},`) : labHi({ name: inv.labName })) +
+        p(`We would like to invite <b>${esc(inv.labName)}</b> to join SanjiBani, an online marketplace where patients compare test prices and book home sample collection or lab visits with verified labs near them.`) +
+        (inv.note ? p(`<i>“${esc(inv.note)}”</i>`) : '') +
+        next(
+          [
+            '<b>Free listing</b>: no joining fee to create your lab page.',
+            '<b>New patients</b>: appear when people in your city search for tests.',
+            '<b>One dashboard</b>: bookings, sample collectors and reports in one place.',
+            '<b>Paid directly</b>: patients pay to your own UPI or at collection.',
+          ],
+          'Why labs join SanjiBani'
+        ) +
+        next(
+          ['Create your partner account (takes 2 minutes).', 'Add your lab details, tests and prices.', 'Our team verifies your lab, usually within 24 hours, and you go live.'],
+          'How to get started'
+        ) +
+        button(signUp, 'Create your lab account') +
+        p(`<span style="font-size:13px;color:${MAIL.muted}">Questions? Just reply to this email and our partner team will help.</span>`)
+    );
+  });
+}
+
+/** A friend the user invited completed their first booking: thank the inviter with a coupon. */
+export function inviteRewarded(inviter, friend, coupon) {
+  fire(() =>
+    send(
+      inviter.email,
+      `You earned ₹${coupon.value} off — thanks for inviting ${String(friend.name || 'a friend').split(' ')[0]}`,
+      'Thanks for spreading the word',
+      hi(inviter.name) +
+        p(`${esc(String(friend.name || 'Your friend').split(' ')[0])} joined SanjiBani with your invite and just completed their first booking. As a thank-you, here is <b>₹${coupon.value} off</b> your next booking.`) +
+        couponBlock(coupon) +
+        button(appUrl('/invite'), 'Invite more friends')
     )
   );
 }

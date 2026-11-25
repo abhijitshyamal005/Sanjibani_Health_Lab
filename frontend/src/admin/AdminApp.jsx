@@ -5,6 +5,7 @@ import {
   CircleCheck,
   ClipboardList,
   FlaskConical,
+  Gift,
   IndianRupee,
   LayoutDashboard,
   MapPin,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { DashboardShell } from '../components/Layouts';
 import AdminCoupons from './AdminCoupons';
+import AdminInvites from './AdminInvites';
 import {
   Badge,
   BarChart,
@@ -408,6 +410,7 @@ export default function AdminApp() {
     { to: '/admin/users', label: 'Users', icon: Users },
     { to: '/admin/bookings', label: 'Bookings', icon: ClipboardList },
     { to: '/admin/coupons', label: 'Coupons', icon: Ticket },
+    { to: '/admin/invites', label: 'Invite labs', icon: Gift },
   ];
   return (
     <DashboardShell title="Admin" nav={nav} badge={<p className="font-bold">Admin console</p>}>
@@ -417,6 +420,7 @@ export default function AdminApp() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="bookings" element={<AdminBookings />} />
         <Route path="coupons" element={<AdminCoupons />} />
+        <Route path="invites" element={<AdminInvites />} />
       </Routes>
     </DashboardShell>
   );

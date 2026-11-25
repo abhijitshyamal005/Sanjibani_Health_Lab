@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { applyInviteOnRegister } from '../services/invites.js';
 import User from '../models/userModel.js';
 import * as events from '../services/events.js';
 import { emails, notify } from '../services/notify.js';
@@ -29,7 +30,14 @@ export async function register(req, res) {
     throw new ApiError(409, 'An account with this email already exists');
   }
   const user = await User.create({ name, email, phone, password, role });
-  events.userRegistered(user);
+  // Signed up through a friend's invite link: link the accounts and give a new patient their welcome coupon.
+  const welcomeCoupon = req.body?.inviteCode
+    ? await applyInviteOnRegister(user, req.body.inviteCode).catch((err) => {
+        console.error('[invite]', err.message);
+        return null;
+      })
+    : null;
+  events.userRegistered(user, { coupon: welcomeCoupon });
   res.status(201).json(await authPayload(user));
 }
 

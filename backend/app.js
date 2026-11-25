@@ -8,6 +8,7 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import adminRoutes from './routes/adminRoutes.js';
 import collectorRoutes from './routes/collectorRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import inviteRoutes from './routes/inviteRoutes.js';
 import { bookingRouter, couponRouter, reviewRouter } from './routes/bookingRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
@@ -54,6 +55,7 @@ export function createApp() {
   app.use('/api/bookings', bookingRouter);
   app.use('/api/reviews', reviewRouter);
   app.use('/api/coupons', couponRouter);
+  app.use('/api/invites', inviteRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api/partner', partnerRoutes);
   app.use('/api/admin', adminRoutes);

@@ -3,6 +3,7 @@ Allow: /
 Disallow: /cart
 Disallow: /bookings
 Disallow: /profile
+Disallow: /invite
 Disallow: /login
 Disallow: /register
 Disallow: /forgot-password

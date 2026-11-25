@@ -20,6 +20,9 @@ const couponSchema = new mongoose.Schema(
     expiresAt: { type: Date, default: null },
     usageLimit: { type: Number, default: null, min: 1 },
     usedCount: { type: Number, default: 0, min: 0 },
+    // Personal coupons (invite rewards) can only be used by their owner. Admin coupons have no owner.
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    source: { type: String, enum: ['admin', 'invite_welcome', 'invite_reward'], default: 'admin' },
   },
   { timestamps: true }
 );

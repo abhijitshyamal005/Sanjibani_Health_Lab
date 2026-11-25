@@ -93,7 +93,7 @@ export async function validateCoupon(req, res) {
   const groups = readGroups(req.body);
   let subtotal = 0;
   for (const g of groups) subtotal += (await loadCart(g.labId, g.items)).subtotal;
-  const { coupon, discount } = await resolveCoupon(req.body?.code, subtotal);
+  const { coupon, discount } = await resolveCoupon(req.body?.code, subtotal, req.user);
   res.json({ code: coupon.code, description: coupon.description, discount, subtotal });
 }
 
@@ -191,7 +191,7 @@ export async function createBooking(req, res) {
   let coupon = null;
   let discount = 0;
   if (couponCode && String(couponCode).trim()) {
-    ({ coupon, discount } = await resolveCoupon(couponCode, subtotal));
+    ({ coupon, discount } = await resolveCoupon(couponCode, subtotal, req.user));
   }
   const discounts = splitDiscount(discount, parts.map((p) => p.subtotal));
   const orderCode = parts.length > 1 ? newOrderCode() : undefined;

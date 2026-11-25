@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Building2, CarFront, Smartphone, House, Info, Layers, ShoppingBag, Ticket, Trash2, Wallet, X } from 'lucide-react';
 import { LabCover } from '../components/Brand';
+import { MyInviteCoupons } from '../components/InvitePanel';
 import { Button, EmptyState, Field } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -549,6 +550,7 @@ export default function Cart() {
                 </form>
               )}
               {couponError && <p className="mt-2 text-xs font-medium text-red-600" role="alert">{couponError}</p>}
+              {user?.role === 'patient' && !coupon && <MyInviteCoupons onApply={applyCoupon} current={coupon?.code} />}
               {!coupon && meta?.featuredCoupon && couponInput.trim().toUpperCase() !== meta.featuredCoupon.code && (
                 <button className="mt-2 text-xs font-semibold text-brand-700 hover:underline" onClick={() => applyCoupon(meta.featuredCoupon.code)}>
                   Try {meta.featuredCoupon.code}: {meta.featuredCoupon.description}

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Store, UserRound } from 'lucide-react';
+import { Eye, EyeOff, Gift, Store, UserRound } from 'lucide-react';
+import { api } from '../lib/api';
 import { Logo } from '../components/Brand';
 import { PHOTOS } from '../lib/banners';
 import { Button, Field } from '../components/ui';
@@ -153,10 +154,23 @@ export function Register() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [role, setRole] = useState(params.get('role') === 'lab' ? 'lab' : 'patient');
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: params.get('email') || '', phone: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const next = params.get('next');
+  // ?ref=CODE — signed up through someone's invite link.
+  const inviteCode = (params.get('ref') || '').trim().toUpperCase();
+  const [invite, setInvite] = useState(null);
+  useEffect(() => {
+    if (!inviteCode) return undefined;
+    let live = true;
+    api(`/invites/check/${encodeURIComponent(inviteCode)}`)
+      .then((r) => live && setInvite(r.valid ? r : null))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [inviteCode]);
 
   if (user) return <Navigate to={registerTarget(user, next)} replace />;
 
@@ -166,7 +180,7 @@ export function Register() {
     if (!/^[6-9]\d{9}$/.test(form.phone)) return setError('Enter a valid 10-digit mobile number');
     setLoading(true);
     try {
-      const u = await register({ ...form, role });
+      const u = await register({ ...form, role, ...(invite ? { inviteCode } : {}) });
       navigate(registerTarget(u, next), { replace: true });
     } catch (err) {
       setError(err.message);
@@ -192,6 +206,18 @@ export function Register() {
           </button>
         ))}
       </div>
+      {invite && (
+        <div className="mb-5 flex items-start gap-3 rounded-2xl bg-coral-50 p-3.5 text-sm text-coral-800 ring-1 ring-coral-200" data-testid="invite-banner">
+          <Gift className="mt-0.5 h-5 w-5 shrink-0 text-coral-600" />
+          <p>
+            {role === 'lab' ? (
+              <><b>{invite.inviterName}</b> invited your lab to Sanjibani. Listing is free.</>
+            ) : (
+              <><b>{invite.inviterName}</b> invited you. Create your account and get <b>₹{invite.reward.amount} off</b> your booking; we’ll email you the coupon.</>
+            )}
+          </p>
+        </div>
+      )}
       <form onSubmit={submit} className="space-y-4">
         <Field label={role === 'lab' ? 'Your name (lab owner / manager)' : 'Full name'}>
           <input className="input" value={form.name} onChange={set('name')} required name="name" autoComplete="name" />

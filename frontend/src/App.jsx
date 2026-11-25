@@ -17,6 +17,7 @@ const CollectorApp = lazy(() => import('./collector/CollectorApp'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const Invite = lazy(() => import('./pages/Invite'));
 const BookingList = lazy(() => import('./pages/Bookings').then((m) => ({ default: m.BookingList })));
 const BookingDetail = lazy(() => import('./pages/Bookings').then((m) => ({ default: m.BookingDetail })));
 
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="bookings" element={<><NoIndex /><RequireAuth roles={['patient']}><BookingList /></RequireAuth></>} />
         <Route path="bookings/:id" element={<><NoIndex /><RequireAuth roles={['patient']}><BookingDetail /></RequireAuth></>} />
         <Route path="profile" element={<><NoIndex /><RequireAuth roles={['patient']}><Profile /></RequireAuth></>} />
+        <Route path="invite" element={<><NoIndex /><RequireAuth><Invite /></RequireAuth></>} />
         <Route path="legal/:page" element={<><LegalSeo /><Legal /></>} />
         <Route path="*" element={<NotFound />} />
       </Route>

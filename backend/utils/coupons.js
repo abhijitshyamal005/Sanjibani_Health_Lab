@@ -8,11 +8,14 @@ export function computeDiscount(coupon, subtotal) {
   return Math.max(0, Math.min(discount, subtotal));
 }
 
-/** Look up a coupon by code and check it applies to this subtotal. Throws ApiError(400) with a user-facing message. */
-export async function resolveCoupon(code, subtotal) {
+/**
+ * Look up a coupon by code and check it applies to this subtotal for this user.
+ * Personal coupons (invite rewards) only work for their owner. Throws ApiError(400) with a user-facing message.
+ */
+export async function resolveCoupon(code, subtotal, user) {
   const clean = String(code || '').trim().toUpperCase();
   const coupon = clean ? await Coupon.findOne({ code: clean, isActive: true }) : null;
-  if (!coupon) throw new ApiError(400, 'Invalid coupon code');
+  if (!coupon || (coupon.owner && !coupon.owner.equals(user?._id))) throw new ApiError(400, 'Invalid coupon code');
   if (coupon.expiresAt && coupon.expiresAt.getTime() < Date.now()) throw new ApiError(400, 'This coupon has expired');
   if (subtotal < coupon.minOrder) {
     throw new ApiError(400, `Add tests worth ₹${coupon.minOrder.toLocaleString('en-IN')} or more to use this coupon`);
@@ -26,6 +29,7 @@ export async function resolveCoupon(code, subtotal) {
 export async function featuredCoupon() {
   const c = await Coupon.findOne({
     featured: true,
+    owner: null,
     isActive: true,
     $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
   })

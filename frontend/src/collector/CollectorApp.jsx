@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   CalendarClock,
@@ -14,6 +14,7 @@ import {
   Route,
   TestTube,
   Wallet,
+  Gift,
 } from 'lucide-react';
 import { Logo } from '../components/Brand';
 import { Badge, Button, EmptyState, ErrorState, Spinner, StatusBadge, Tabs } from '../components/ui';
@@ -249,12 +250,15 @@ export default function CollectorApp() {
       <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 px-4">
           <Logo to="/collector" suffix="Collector" />
+          <Link to="/invite" className="ml-auto flex items-center gap-1.5 rounded-lg p-2 text-sm font-semibold text-coral-700 hover:bg-coral-50" aria-label="Invite friends" data-testid="invite-button">
+            <Gift className="h-5 w-5" /> <span className="hidden sm:inline">Invite</span>
+          </Link>
           <button
             onClick={() => {
               logout();
               navigate('/login');
             }}
-            className="ml-auto rounded-lg p-2 text-ink-muted hover:bg-slate-100"
+            className="rounded-lg p-2 text-ink-muted hover:bg-slate-100"
             aria-label="Log out"
           >
             <LogOut className="h-5 w-5" />

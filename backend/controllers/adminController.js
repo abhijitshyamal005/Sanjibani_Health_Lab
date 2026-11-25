@@ -169,7 +169,8 @@ function couponBody(body) {
 }
 
 export async function listCoupons(_req, res) {
-  res.json({ items: await Coupon.find().sort({ createdAt: -1 }) });
+  // Personal invite coupons are issued automatically; the admin list shows only shared coupons.
+  res.json({ items: await Coupon.find({ owner: null }).sort({ createdAt: -1 }) });
 }
 
 export async function createCoupon(req, res) {
