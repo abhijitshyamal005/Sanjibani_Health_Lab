@@ -3,6 +3,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react
 import { ExternalLink, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { initials } from '../lib/format';
+import { useSeoDefaults } from '../lib/seo';
 import { Logo } from './Brand';
 import Footer from './Footer';
 import HelpButton from './HelpButton';
@@ -12,6 +13,7 @@ import { Spinner } from './ui';
 export function PublicLayout() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useSeoDefaults(pathname);
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

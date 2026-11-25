@@ -7,6 +7,7 @@ import { Badge, ErrorState, Rating, Spinner } from '../components/ui';
 import { useCart } from '../context/CartContext';
 import { api } from '../lib/api';
 import { inr, shortDate } from '../lib/format';
+import { clip, labJsonLd, useSeo } from '../lib/seo';
 import { useAsync } from '../lib/useAsync';
 
 export default function LabDetail() {
@@ -28,6 +29,15 @@ export default function LabDetail() {
     data?.tests.forEach((t) => (counts[t.category] = (counts[t.category] || 0) + 1));
     return Object.entries(counts);
   }, [data]);
+
+  const seoLab = data?.lab;
+  useSeo(seoLab ? {
+    title: `${seoLab.name}, ${seoLab.address?.area ? `${seoLab.address.area}, ` : ''}${seoLab.address?.city} — test prices & home collection`,
+    description: clip(`${seoLab.name} in ${seoLab.address?.city}: ${seoLab.accreditations?.length ? `${seoLab.accreditations.join(', ')} accredited. ` : ''}${data.tests.length ? `${data.tests.length} tests from ₹${Math.min(...data.tests.map((t) => t.price))}` : 'Diagnostic tests'}${seoLab.homeCollection ? ', home sample collection available' : ''}. Reports in ${seoLab.reportTime}. ${seoLab.tagline || ''}`),
+    path: `/labs/${seoLab.slug}`,
+    type: 'business.business',
+    jsonLd: labJsonLd(seoLab, data.tests),
+  } : { path: `/labs/${slug}` });
 
   if (error) return <div className="container-page py-16"><ErrorState error={error} onRetry={reload} /></div>;
   if (loading && !data) return <Spinner className="min-h-[60vh]" />;

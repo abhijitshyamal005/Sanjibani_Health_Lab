@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { api } from '../lib/api';
 import { CATEGORIES } from '../lib/categories';
 import { inr } from '../lib/format';
+import { useSeo } from '../lib/seo';
 import { useAsync } from '../lib/useAsync';
 import SearchBar from '../components/SearchBar';
 
@@ -37,6 +38,16 @@ export default function CompareTests() {
     });
     return [...map.entries()];
   }, [result.data]);
+
+  const cheapest = groups.length && q ? Math.min(...groups[0][1].map((t) => t.price)) : null;
+  const subject = q || category;
+  useSeo({
+    title: subject ? `${subject} test price${city ? ` in ${city}` : ''} — compare ${groups[0]?.[1].length > 1 ? `${groups[0][1].length} labs` : 'labs'}` : 'Compare lab test prices',
+    description: subject
+      ? `Compare ${subject} prices across trusted labs${city ? ` in ${city}` : ''}${cheapest ? `, starting at ₹${cheapest}` : ''}. Book home sample collection and get reports online.`
+      : 'Compare prices for blood tests, health packages and scans across trusted diagnostic labs. Book home sample collection online.',
+    path: q ? `/tests?q=${encodeURIComponent(q)}` : category ? `/tests?category=${encodeURIComponent(category)}` : '/tests',
+  });
 
   return (
     <div className="container-page py-8">

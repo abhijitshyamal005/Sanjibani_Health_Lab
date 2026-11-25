@@ -13,6 +13,7 @@ import Labs from './pages/Labs';
 import Legal from './pages/Legal';
 import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
+import { LegalSeo, NoIndex } from './components/PageSeo';
 
 export default function App() {
   return (
@@ -22,19 +23,19 @@ export default function App() {
         <Route path="labs" element={<Labs />} />
         <Route path="labs/:slug" element={<LabDetail />} />
         <Route path="tests" element={<CompareTests />} />
-        <Route path="cart" element={<Cart />} />
-        <Route path="bookings" element={<RequireAuth roles={['patient']}><BookingList /></RequireAuth>} />
-        <Route path="bookings/:id" element={<RequireAuth roles={['patient']}><BookingDetail /></RequireAuth>} />
-        <Route path="profile" element={<RequireAuth roles={['patient']}><Profile /></RequireAuth>} />
-        <Route path="legal/:page" element={<Legal />} />
+        <Route path="cart" element={<><NoIndex /><Cart /></>} />
+        <Route path="bookings" element={<><NoIndex /><RequireAuth roles={['patient']}><BookingList /></RequireAuth></>} />
+        <Route path="bookings/:id" element={<><NoIndex /><RequireAuth roles={['patient']}><BookingDetail /></RequireAuth></>} />
+        <Route path="profile" element={<><NoIndex /><RequireAuth roles={['patient']}><Profile /></RequireAuth></>} />
+        <Route path="legal/:page" element={<><LegalSeo /><Legal /></>} />
         <Route path="*" element={<NotFound />} />
       </Route>
-      <Route path="login" element={<Login />} />
-      <Route path="register" element={<Register />} />
-      <Route path="forgot-password" element={<ForgotPassword />} />
-      <Route path="partner/*" element={<RequireAuth roles={['lab']}><PartnerApp /></RequireAuth>} />
-      <Route path="admin/*" element={<RequireAuth roles={['admin']}><AdminApp /></RequireAuth>} />
-      <Route path="collector/*" element={<RequireAuth roles={['collector']}><CollectorApp /></RequireAuth>} />
+      <Route path="login" element={<><NoIndex /><Login /></>} />
+      <Route path="register" element={<><NoIndex /><Register /></>} />
+      <Route path="forgot-password" element={<><NoIndex /><ForgotPassword /></>} />
+      <Route path="partner/*" element={<><NoIndex /><RequireAuth roles={['lab']}><PartnerApp /></RequireAuth></>} />
+      <Route path="admin/*" element={<><NoIndex /><RequireAuth roles={['admin']}><AdminApp /></RequireAuth></>} />
+      <Route path="collector/*" element={<><NoIndex /><RequireAuth roles={['collector']}><CollectorApp /></RequireAuth></>} />
     </Routes>
   );
 }

@@ -38,6 +38,14 @@ cd backend && npm test
 - `cd backend && npm run dev:local` runs the API against an embedded MongoDB (data in `backend/.mongo-data/`); use this unless a working `MONGO_URI` is set.
 - `cd frontend && npm run dev` for the web app; `npm run lint` before committing.
 
+## SEO
+
+- Every public page calls `useSeo()` from `frontend/src/lib/seo.js` (title, description, canonical, share tags, JSON-LD). New public pages must do the same; private pages get `<NoIndex />` in `App.jsx` and a `Disallow` in `public/robots.txt`.
+- Canonical host is `https://sanjibanilabs.dpdns.org` (`VITE_SITE_URL` overrides it).
+- `npm run build` also writes `dist/sitemap.xml` from live API data (`scripts/build-sitemap.mjs`); it falls back to static pages if the API is down.
+- Share image is `public/og-image.png` (1200×630).
+- `e2e/seo.spec.js` covers all of this — keep it passing.
+
 ## Design
 
 - Palette: orange `#f97316` / `#ea580c`, green `#16a34a`, deep green gradient `#14532d → #0f766e`; font General Sans.

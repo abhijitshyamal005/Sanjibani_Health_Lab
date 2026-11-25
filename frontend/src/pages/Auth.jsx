@@ -6,6 +6,7 @@ import authPhoto from '../assets/photos/lab-scientist.jpg';
 import { Button, Field } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { useAuth, homeFor } from '../context/AuthContext';
+import { useSeo } from '../lib/seo';
 
 // Demo logins only exist in local/dev data — never show them on the live site.
 const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO === 'true';
@@ -207,6 +208,7 @@ export function Register() {
 }
 
 export function NotFound() {
+  useSeo({ title: 'Page not found', noindex: true });
   return (
     <div className="container-page flex min-h-[60vh] flex-col items-center justify-center py-16 text-center">
       <p className="text-7xl font-extrabold text-brand-200">404</p>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Building2, House, Search } from 'lucide-react';
 import { LabCard } from '../components/Cards';
@@ -7,11 +7,24 @@ import { EmptyState, ErrorState } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { api } from '../lib/api';
 import { CATEGORIES } from '../lib/categories';
+import { useSeo } from '../lib/seo';
 import { useAsync } from '../lib/useAsync';
 
 export default function Labs() {
-  const { city } = useApp();
+  const { city, setCity } = useApp();
   const [params, setParams] = useSearchParams();
+
+  // Shareable / search-engine links like /labs?city=Kolkata pick the city, then the param is dropped
+  // so the city selector stays the single source of truth.
+  const urlCity = params.get('city');
+  useEffect(() => {
+    if (!urlCity) return;
+    setCity(urlCity);
+    const next = new URLSearchParams(params);
+    next.delete('city');
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCity]);
   const [q, setQ] = useState(params.get('q') || '');
   const category = params.get('category') || '';
   const sort = params.get('sort') || 'rating';
@@ -28,6 +41,14 @@ export default function Labs() {
     () => api('/labs', { params: { city, q: params.get('q'), category, sort, homeCollection: home ? 'true' : '', limit: 48 } }),
     [city, params.toString()]
   );
+
+  const where = city ? ` in ${city}` : '';
+  const what = category ? `${category} — ` : '';
+  useSeo({
+    title: `${what}Diagnostic labs${where}`,
+    description: `Find NABL-accredited diagnostic labs${where}${category ? ` offering ${category.toLowerCase()}` : ''}. Compare ratings, prices and report times, and book home sample collection online.`,
+    path: `/labs${city ? `?city=${encodeURIComponent(city)}` : ''}`,
+  });
 
   return (
     <div className="container-page py-8">

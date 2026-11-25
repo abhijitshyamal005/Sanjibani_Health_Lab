@@ -24,6 +24,7 @@ import { useApp } from '../context/AppContext';
 import { api } from '../lib/api';
 import { categoryMeta } from '../lib/categories';
 import { inr } from '../lib/format';
+import { organizationJsonLd, useSeo } from '../lib/seo';
 import { useAsync } from '../lib/useAsync';
 
 const STEPS = [
@@ -36,6 +37,12 @@ export default function Home() {
   const { meta, city } = useApp();
   const navigate = useNavigate();
   const labs = useAsync(() => api('/labs', { params: { city, limit: 8 } }), [city]);
+  useSeo({
+    title: 'Book lab tests online — compare prices from trusted labs',
+    description: `Compare blood test and health checkup prices across ${meta?.stats.labs || 'trusted'} NABL-accredited labs${meta?.cities?.length ? ` in ${meta.cities.join(', ')}` : ''}. Book home sample collection and get reports online.`,
+    path: '/',
+    jsonLd: organizationJsonLd,
+  });
 
   return (
     <>

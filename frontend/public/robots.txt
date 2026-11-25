@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /bookings
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /partner
+Disallow: /admin
+Disallow: /collector
+
+Sitemap: https://sanjibanilabs.dpdns.org/sitemap.xml
