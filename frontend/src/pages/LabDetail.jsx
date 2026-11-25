@@ -100,11 +100,11 @@ export default function LabDetail() {
           <p className="mb-3 hidden text-xs font-bold uppercase tracking-wider text-ink-muted lg:block">Categories</p>
           <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0">
             <button className={`chip lg:justify-between ${!category ? 'chip-on' : 'chip-off'}`} onClick={() => setCategory('')}>
-              All tests <span className="opacity-90">{data.tests.length}</span>
+              All tests <span className="font-semibold">{data.tests.length}</span>
             </button>
             {categories.map(([c, n]) => (
               <button key={c} className={`chip lg:justify-between ${category === c ? 'chip-on' : 'chip-off'}`} onClick={() => setCategory(c)}>
-                {c} <span className="opacity-90">{n}</span>
+                {c} <span className="font-semibold">{n}</span>
               </button>
             ))}
           </div>
