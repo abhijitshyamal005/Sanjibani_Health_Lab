@@ -21,3 +21,16 @@ export async function logout(page) {
     localStorage.removeItem('sanjibani.cart');
   });
 }
+
+// The e2e API records every email it sends (EMAIL_CAPTURE) and lists them here.
+const OUTBOX = 'http://localhost:5055/api/__e2e/outbox';
+
+/** Wait until an email to `to` (any recipient when null) with a subject matching `subject` has been sent. */
+export async function expectEmail(request, to, subject) {
+  await expect
+    .poll(async () => {
+      const { items } = await (await request.get(OUTBOX)).json();
+      return items.some((m) => (!to || m.to === to) && subject.test(m.subject));
+    }, { message: `email to ${to || 'anyone'} matching ${subject}` })
+    .toBe(true);
+}

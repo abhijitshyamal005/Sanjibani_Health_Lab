@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers';
+import { expectEmail, login } from './helpers';
 
 test.describe('Patient', () => {
   test('home page shows categories, popular tests and labs', async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe('Patient', () => {
     await expect(page.getByTestId('cart-link')).toContainText('1');
   });
 
-  test('book home collection, then cancel', async ({ page }) => {
+  test('book home collection, then cancel', async ({ page, request }) => {
     await page.goto('/labs');
     await page.getByTestId('lab-card').filter({ hasText: 'Lifeline Pathology' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lifeline Pathology');
@@ -79,11 +79,16 @@ test.describe('Patient', () => {
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
     await expect(page.getByText('Pending').first()).toBeVisible();
     await expect(page.getByText('Complete Blood Count (CBC)')).toBeVisible();
+    const code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
+    await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Booking #${code} placed with Lifeline Pathology`));
+    await expectEmail(request, null, new RegExp(`New booking #${code}`));
     await expect(page.getByTestId('cart-link')).not.toContainText(/\d/);
 
     await page.getByTestId('cancel-booking').click();
     await page.getByTestId('confirm-cancel').click();
     await expect(page.getByText('Booking cancelled by patient')).toBeVisible();
+    await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Booking #${code} cancelled$`));
+    await expectEmail(request, null, new RegExp(`Booking #${code} cancelled by patient`));
   });
 
   test('profile shows stats and saves changes', async ({ page }) => {

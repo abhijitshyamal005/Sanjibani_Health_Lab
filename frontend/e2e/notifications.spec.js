@@ -1,17 +1,17 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers.js';
+import { expectEmail, login } from './helpers.js';
 
-// The e2e API records every email it sends (EMAIL_CAPTURE) and lists them here.
-const OUTBOX = 'http://localhost:5055/api/__e2e/outbox';
-
-async function expectEmail(request, to, subject) {
-  await expect
-    .poll(async () => {
-      const { items } = await (await request.get(OUTBOX)).json();
-      return items.some((m) => (!to || m.to === to) && subject.test(m.subject));
-    }, { message: `email to ${to || 'anyone'} matching ${subject}` })
-    .toBe(true);
-}
+test('a new patient gets a welcome email', async ({ page, request }) => {
+  const email = `welcome${Date.now()}@example.com`;
+  await page.goto('/register');
+  await page.getByLabel(/Your name|Full name|Name/).first().fill('Welcome Tester');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Mobile number').fill('9811100099');
+  await page.locator('input[name="password"]').fill('Welcome@123');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await expect(page).not.toHaveURL(/\/register/);
+  await expectEmail(request, email, /^Welcome to SanjiBani$/);
+});
 
 test('admin deactivating and reactivating a patient emails that patient', async ({ page, request }) => {
   await login(page, 'admin');

@@ -321,6 +321,14 @@ export function fieldProgress(bookingId, step) {
     if (!b?.collector || !FIELD_MSG[step]) return;
     const [title, text] = FIELD_MSG[step](b);
     await send(b.user?.email, `${title} — booking #${b.code}`, title, p(text) + button(bookingLink(b), 'Track live'));
+    // The lab follows every step its collector takes.
+    const STEP = { on_the_way: 'is on the way to', arrived: 'has reached', picked_up: 'has picked up', reached_lab: 'has reached the lab with', dropped_home: 'has dropped home' };
+    await toLabs(
+      await labEmail(b.lab),
+      `${b.collector.name} ${STEP[step]} ${b.patient.name} — #${b.code}`,
+      'Collector update',
+      p(`<b>${esc(b.collector.name)}</b> ${STEP[step]} <b>${esc(b.patient.name)}</b>.`) + bookingBlock(b, { forLab: true }) + button(appUrl('/partner/bookings'), 'Open bookings')
+    );
   });
 }
 

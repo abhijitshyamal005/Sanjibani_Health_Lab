@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { login, logout } from './helpers';
+import { expectEmail, login, logout } from './helpers';
 
 const COLLECTOR = { email: 'collector1@sanjibani.in', password: 'Collector@123' };
 
 test.describe.serial('Sample collector & assisted visit', () => {
   let code = '';
 
-  test('patient books an assisted visit with live slot availability', async ({ page }) => {
+  test('patient books an assisted visit with live slot availability', async ({ page, request }) => {
     await login(page, 'patient');
     await page.goto('/labs');
     await page.getByTestId('lab-card').filter({ hasText: 'Lifeline Pathology' }).click();
@@ -23,9 +23,11 @@ test.describe.serial('Sample collector & assisted visit', () => {
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
     code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
     expect(code).toMatch(/^SJB/);
+    await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Booking #${code} placed`));
+    await expectEmail(request, null, new RegExp(`New booking #${code}`));
   });
 
-  test('lab assigns a collector', async ({ page }) => {
+  test('lab assigns a collector', async ({ page, request }) => {
     await login(page, 'lab');
     await page.goto('/partner/bookings');
     await page.getByLabel('Search bookings').fill(code);
@@ -35,11 +37,13 @@ test.describe.serial('Sample collector & assisted visit', () => {
     const value = await select.locator('option', { hasText: 'Bikash Mondal' }).getAttribute('value');
     await select.selectOption(value);
     await expect(card.getByTestId('assign-row')).toContainText('Bikash Mondal');
+    await expectEmail(request, 'patient@sanjibani.in', new RegExp(`Bikash Mondal will take you to the lab — #${code}`));
+    await expectEmail(request, COLLECTOR.email, new RegExp(`New job #${code}`));
     await page.getByRole('link', { name: 'Collectors', exact: true }).click();
     await expect(page.getByTestId('collector-card').filter({ hasText: 'Bikash Mondal' })).toBeVisible();
   });
 
-  test('collector sees no prices, works through every step and earns', async ({ page }) => {
+  test('collector sees no prices, works through every step and earns', async ({ page, request }) => {
     await login(page, COLLECTOR);
     await expect(page).toHaveURL(/\/collector/);
     await page.getByRole('tab', { name: /Upcoming/ }).click();
@@ -55,6 +59,14 @@ test.describe.serial('Sample collector & assisted visit', () => {
       await job.getByTestId('collector-next').click();
       if (label !== 'Sample taken at the lab') await expect(job.getByTestId('collector-next')).not.toHaveText(label);
     }
+    // Every step emails the patient and the lab.
+    for (const s of [/on the way — booking/, /has arrived — booking/, /On the way to the lab — booking/, /Reached the lab — booking/, /Sample collected — booking/]) {
+      await expectEmail(request, 'patient@sanjibani.in', new RegExp(`${s.source.replace('booking', `booking #${code}`)}`));
+    }
+    for (const s of ['is on the way to', 'has reached', 'has picked up', 'has reached the lab with']) {
+      await expectEmail(request, null, new RegExp(`Bikash Mondal ${s} .* — #${code}`));
+    }
+    await expectEmail(request, null, new RegExp(`Sample collected — booking #${code}`));
     await page.getByRole('tab', { name: 'Completed' }).click();
     const done = page.getByTestId('collector-job').filter({ hasText: `#${code}` });
     await done.getByTestId('collector-payment').click();

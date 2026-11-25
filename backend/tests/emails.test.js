@@ -114,6 +114,8 @@ describe('email notifications across the whole flow', () => {
     let m = await mails();
     expectMail(m, PATIENT.email, /on the way/);
     expectMail(m, PATIENT.email, /has arrived/);
+    expectMail(m, LAB_EMAIL, /Bikash is on the way to Riya Sen/);
+    expectMail(m, LAB_EMAIL, /Bikash has reached Riya Sen/);
 
     await step('sample_collected');
     m = await mails();
