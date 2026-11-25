@@ -44,6 +44,7 @@ cd backend && npm test
 - Canonical host is `https://sanjibanilabs.dpdns.org` (`VITE_SITE_URL` overrides it).
 - `npm run build` also writes `dist/sitemap.xml` from live API data (`scripts/build-sitemap.mjs`); it falls back to static pages if the API is down.
 - Share image is `public/og-image.png` (1200×630).
+- **Never delete `frontend/public/google0484b97bd9e914fd.html`** — it keeps the site verified in Google Search Console (URL-prefix property `https://sanjibanilabs.dpdns.org/`, sitemap submitted 2026-11-26).
 - `e2e/seo.spec.js` covers all of this — keep it passing.
 
 ## Design
