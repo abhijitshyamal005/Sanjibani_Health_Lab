@@ -18,6 +18,13 @@ test('free UPI: patient pays by QR + UTR, admin confirms, patient sees it paid',
   const upi = page.getByTestId('upi-pay');
   await expect(upi.getByRole('img', { name: /UPI QR code/ })).toBeVisible();
   await expect(upi).toContainText('sanjibani-test@okhdfcbank');
+  // Nothing in the UPI panel may spill outside its card (long UPI IDs used to overflow the sidebar).
+  const overflow = await page.locator('#upi-pay').evaluate((card) => {
+    const box = card.getBoundingClientRect();
+    return [...card.querySelectorAll('*')].filter((el) => el.getBoundingClientRect().right > box.right + 1).map((el) => el.outerHTML.slice(0, 80));
+  });
+  expect(overflow).toEqual([]);
+  await page.locator('#upi-pay').screenshot({ path: test.info().outputPath('upi-card.png') });
   const code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
   const utr = String(Date.now()).slice(-12).padStart(12, '7');
   await upi.locator('input[name="utr"]').fill(utr);
