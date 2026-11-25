@@ -8,7 +8,7 @@ import Booking from '../models/bookingModel.js';
 import Lab from '../models/labModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
-import { BRAND, esc, layout, sendEmail } from './notify.js';
+import { BRAND, MAIL, esc, layout, sendEmail } from './notify.js';
 
 const pending = new Set();
 function fire(task) {
@@ -28,8 +28,8 @@ function appUrl(path = '') {
   return base.replace(/\/$/, '') + path;
 }
 const button = (href, label) =>
-  `<p style="margin:20px 0 4px"><a href="${href}" style="background:#ea580c;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:bold;display:inline-block">${esc(label)}</a></p>`;
-const p = (html) => `<p style="margin:0 0 10px;line-height:1.5">${html}</p>`;
+  `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="background:${MAIL.accent};border-radius:6px"><a href="${href}" style="display:inline-block;padding:11px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600">${esc(label)}</a></td></tr></table>`;
+const p = (html) => `<p style="margin:0 0 12px;line-height:1.6">${html}</p>`;
 const send = (to, subject, title, body, replyTo) => to && sendEmail({ to, subject, html: layout(title, body), replyTo });
 // Replies go to the right team: lab partners → labs@, payments → payments@, everyone else → care@ (default).
 const toLabs = (to, subject, title, body) => send(to, subject, title, body, BRAND.labsEmail || undefined);
@@ -54,39 +54,49 @@ function loadBooking(id) {
     .populate('collector', 'name email phone');
 }
 
+/** Label/value table used for booking and job details. */
+const row = (label, value) =>
+  `<tr><td style="padding:9px 12px 9px 14px;width:96px;vertical-align:top;font-size:13px;color:${MAIL.muted};border-top:1px solid ${MAIL.border}">${label}</td><td style="padding:9px 14px;vertical-align:top;font-size:14px;color:${MAIL.text};border-top:1px solid ${MAIL.border}">${value}</td></tr>`;
+const details = (heading, rows) =>
+  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${MAIL.border};border-radius:8px;border-collapse:separate;overflow:hidden">
+<tr><td colspan="2" style="padding:10px 14px;background:${MAIL.soft};font-size:13px;font-weight:600;color:${MAIL.text}">${heading}</td></tr>
+${rows.filter(Boolean).join('')}
+</table>`;
+
 /** Booking details with prices — for the patient and the lab. */
 function bookingBlock(b, { forLab = false } = {}) {
-  const items = b.items.map((i) => `<li>${esc(i.name)} — ₹${i.price}</li>`).join('');
-  const where = b.collectionType === 'lab_visit' ? `At ${esc(b.lab?.name)}, ${esc(addr(b.lab?.address))}` : esc(addr(b.address));
-  return `<table cellpadding="0" cellspacing="0" style="width:100%;background:#fff7ed;border-radius:12px;padding:14px;margin:10px 0">
-<tr><td style="padding:2px 14px"><b>Booking #${esc(b.code)}</b> · ${esc(b.lab?.name)}</td></tr>
-<tr><td style="padding:2px 14px">${esc(b.slot.date)} · ${esc(b.slot.time)} · ${TYPE[b.collectionType] || ''}</td></tr>
-<tr><td style="padding:2px 14px">${where}</td></tr>
-${forLab ? `<tr><td style="padding:2px 14px">Patient: ${esc(b.patient.name)}, ${b.patient.age} yrs, ${esc(b.patient.gender)} · ${esc(b.patient.phone)}</td></tr>` : ''}
-<tr><td style="padding:2px 14px"><ul style="padding-left:18px;margin:6px 0">${items}</ul></td></tr>
-${b.collectionFee ? `<tr><td style="padding:2px 14px">${b.collectionType === 'assisted_visit' ? 'Assisted visit' : 'Home collection'} fee — ₹${b.collectionFee}</td></tr>` : ''}
-${b.discount ? `<tr><td style="padding:2px 14px">Coupon ${esc(b.couponCode)} — −₹${b.discount}</td></tr>` : ''}
-<tr><td style="padding:2px 14px"><b>Total ₹${b.total}</b> · ${b.paymentStatus === 'paid' ? 'Paid' : 'Pay at collection'}</td></tr>
-</table>`;
+  const items = b.items.map((i) => `${esc(i.name)} <span style="color:${MAIL.muted}">— ₹${i.price}</span>`).join('<br>');
+  const where = b.collectionType === 'lab_visit' ? `${esc(b.lab?.name)}, ${esc(addr(b.lab?.address))}` : esc(addr(b.address));
+  return details(`Booking #${esc(b.code)}`, [
+    row('Lab', esc(b.lab?.name)),
+    row('Date &amp; time', `${esc(b.slot.date)}, ${esc(b.slot.time)}`),
+    row('Service', TYPE[b.collectionType] || ''),
+    row(b.collectionType === 'lab_visit' ? 'Lab address' : 'Address', where),
+    forLab && row('Patient', `${esc(b.patient.name)}, ${b.patient.age} yrs, ${esc(b.patient.gender)}<br>${esc(b.patient.phone)}`),
+    row('Tests', items),
+    b.collectionFee && row(b.collectionType === 'assisted_visit' ? 'Assisted visit fee' : 'Collection fee', `₹${b.collectionFee}`),
+    b.discount && row('Coupon', `${esc(b.couponCode)} (−₹${b.discount})`),
+    row('Total', `<b>₹${b.total}</b> <span style="color:${MAIL.muted}">· ${b.paymentStatus === 'paid' ? 'Paid' : 'Pay at collection'}</span>`),
+  ]);
 }
 
 /** Job details without any prices — for the sample collector. */
 function jobBlock(b) {
-  const tests = b.items.map((i) => `<li>${esc(i.name)}${i.sampleType && i.sampleType !== 'None' ? ` — ${esc(i.sampleType)}` : ''}</li>`).join('');
+  const tests = b.items.map((i) => `${esc(i.name)}${i.sampleType && i.sampleType !== 'None' ? ` <span style="color:${MAIL.muted}">— ${esc(i.sampleType)}</span>` : ''}`).join('<br>');
   const toCollect =
     b.paymentStatus === 'paid'
       ? 'Prepaid — nothing to collect'
       : b.paymentStatus === 'verifying'
         ? 'Paid by UPI (lab is verifying) — do not collect cash'
         : `Collect ₹${b.total} from the patient`;
-  return `<table cellpadding="0" cellspacing="0" style="width:100%;background:#f0fdf4;border-radius:12px;padding:14px;margin:10px 0">
-<tr><td style="padding:2px 14px"><b>Job #${esc(b.code)}</b> · ${TYPE[b.collectionType] || ''}</td></tr>
-<tr><td style="padding:2px 14px">${esc(b.slot.date)} · ${esc(b.slot.time)}</td></tr>
-<tr><td style="padding:2px 14px">Patient: ${esc(b.patient.name)} · ${esc(b.patient.phone)}</td></tr>
-<tr><td style="padding:2px 14px">${b.collectionType === 'assisted_visit' ? 'Pickup' : 'Address'}: ${esc(addr(b.address))}</td></tr>
-<tr><td style="padding:2px 14px">Samples:<ul style="padding-left:18px;margin:6px 0">${tests}</ul></td></tr>
-<tr><td style="padding:2px 14px">${toCollect}</td></tr>
-</table>`;
+  return details(`Job #${esc(b.code)}`, [
+    row('Service', TYPE[b.collectionType] || ''),
+    row('Date &amp; time', `${esc(b.slot.date)}, ${esc(b.slot.time)}`),
+    row('Patient', `${esc(b.patient.name)}<br>${esc(b.patient.phone)}`),
+    row(b.collectionType === 'assisted_visit' ? 'Pickup' : 'Address', esc(addr(b.address))),
+    row('Samples', tests),
+    row('Payment', toCollect),
+  ]);
 }
 
 const bookingLink = (b) => appUrl(`/bookings/${b._id}`);
@@ -181,7 +191,7 @@ export function labStatusChanged(labId) {
     const to = await labEmail(lab);
     const note = lab.statusNote ? p(`<b>Note from SanjiBani:</b> ${esc(lab.statusNote)}`) : '';
     if (lab.status === 'approved') {
-      await send(to, `${lab.name} is now live on SanjiBani 🎉`, 'Your lab is live!', p('Patients can now find your lab, compare your prices and book tests.') + note + button(appUrl('/partner'), 'Open your dashboard'));
+      await send(to, `${lab.name} is now live on SanjiBani`, 'Your lab is live!', p('Patients can now find your lab, compare your prices and book tests.') + note + button(appUrl('/partner'), 'Open your dashboard'));
     } else if (lab.status === 'rejected') {
       await send(to, `${lab.name} was not approved`, 'Your lab needs changes', p('Please update your lab profile based on the note below and save it — it will be re-submitted automatically.') + note + button(appUrl('/partner/profile'), 'Update lab profile'));
     } else if (lab.status === 'suspended') {
@@ -219,7 +229,7 @@ export function bookingPlaced(bookingId) {
 const PATIENT_STATUS = {
   confirmed: (b) => ({
     subject: `Booking #${b.code} confirmed`,
-    title: 'Your booking is confirmed ✅',
+    title: 'Your booking is confirmed',
     body:
       b.collectionType === 'lab_visit'
         ? p(`Please reach ${esc(b.lab.name)} at your slot time. Address: ${esc(addr(b.lab.address))}. Phone: ${esc(b.lab.phone)}.`)
@@ -232,7 +242,7 @@ const PATIENT_STATUS = {
   }),
   report_ready: (b) => ({
     subject: `Your report is ready — booking #${b.code}`,
-    title: 'Your report is ready 📄',
+    title: 'Your report is ready',
     body:
       (b.reportNote ? p(esc(b.reportNote)) : '') +
       p(b.report ? 'You can download your report PDF from your booking page.' : 'The lab has shared your report. Open your booking for details.') +
@@ -340,7 +350,7 @@ export function reportUploaded(bookingId) {
     await send(
       b.user?.email,
       `Your report PDF is available — booking #${b.code}`,
-      'Your report is ready to download 📄',
+      'Your report is ready to download',
       p(`${esc(b.lab.name)} has uploaded your report.`) + button(bookingLink(b), 'Download report')
     );
   });
@@ -353,7 +363,7 @@ export function paymentReceived(bookingId) {
     if (!b) return;
     const how =
       b.paymentMethod === 'upi_direct' ? `by UPI (transaction ID ${esc(b.upiRef)})` : 'at collection';
-    await toPayments(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received ✅', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
+    await toPayments(b.user?.email, `Payment received — ₹${b.total} for booking #${b.code}`, 'Payment received', p(`We received your payment of <b>₹${b.total}</b> ${how}.`) + bookingBlock(b) + button(bookingLink(b), 'View booking'));
     await toLabs(await labEmail(b.lab), `Payment received for booking #${b.code}`, 'Payment received', p(`₹${b.total} received ${how} from ${esc(b.patient.name)}.`) + button(appUrl('/partner/bookings'), 'Open bookings'));
   });
 }

@@ -107,34 +107,52 @@ export const BRAND = {
   url: () => (process.env.APP_URL || (process.env.CLIENT_ORIGINS || '').split(',')[0] || '').trim().replace(/\/$/, ''),
 };
 
+/** Public site used for the logo and footer links — inbox images must load from a real https URL, never localhost. */
+const CANONICAL = 'https://sanjibanilabs.dpdns.org';
+function publicSite() {
+  const site = BRAND.url();
+  return /^https:\/\//.test(site) ? site : CANONICAL;
+}
+
+/** Shared email colours: neutral greys, orange only for the call to action. */
+export const MAIL = {
+  text: '#1f2937',
+  muted: '#6b7280',
+  border: '#e5e7eb',
+  soft: '#f9fafb',
+  page: '#f3f4f6',
+  accent: '#ea580c',
+};
+
 /** Branded, mobile-friendly email shell used by every message (table layout for email clients). */
 export function layout(title, bodyHtml) {
-  const site = BRAND.url();
-  const contact = [BRAND.supportPhone && `📞 ${esc(BRAND.supportPhone)}`, BRAND.supportEmail && `✉️ ${esc(BRAND.supportEmail)}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:#1f2937">
+  const site = publicSite();
+  const host = site.replace(/^https?:\/\//, '');
+  const contact = [BRAND.supportPhone && esc(BRAND.supportPhone), BRAND.supportEmail && `<a href="mailto:${esc(BRAND.supportEmail)}" style="color:${MAIL.muted}">${esc(BRAND.supportEmail)}</a>`]
+    .filter(Boolean)
+    .join(' &nbsp;|&nbsp; ');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(title)}</title></head>
+<body style="margin:0;padding:0;background:${MAIL.page};font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${MAIL.text};-webkit-font-smoothing:antialiased">
 <span style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(title)}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:24px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${MAIL.page};padding:32px 12px">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb">
-  <tr><td style="background:linear-gradient(90deg,#ea580c,#fb923c);background-color:#f97316;padding:20px 28px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-      <td style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:.3px">Sanji<span style="color:#dcfce7">Bani</span></td>
-      <td align="right" style="font-size:12px;color:#ffedd5">Lab tests · Home collection · Reports</td>
-    </tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+  <tr><td style="padding:0 4px 16px">
+    <a href="${site}" style="text-decoration:none;color:${MAIL.text}">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="vertical-align:middle"><img src="${site}/logo-512.png" width="36" height="36" alt="${esc(BRAND.name)}" style="display:block;border:0;border-radius:8px"></td>
+        <td style="vertical-align:middle;padding-left:10px;font-size:18px;font-weight:700;letter-spacing:-.2px;color:${MAIL.text}">${esc(BRAND.name)}</td>
+      </tr></table>
+    </a>
   </td></tr>
-  <tr><td style="padding:28px 28px 8px">
-    <h1 style="margin:0 0 14px;font-size:20px;line-height:1.3;color:#111827">${esc(title)}</h1>
-    <div style="font-size:15px;line-height:1.55;color:#374151">${bodyHtml}</div>
+  <tr><td style="background:#ffffff;border:1px solid ${MAIL.border};border-radius:8px;padding:28px 24px 24px">
+    <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:700;color:#111827">${esc(title)}</h1>
+    <div style="font-size:15px;line-height:1.6;color:#374151">${bodyHtml}</div>
   </td></tr>
-  <tr><td style="padding:8px 28px 24px">
-    <hr style="border:none;border-top:1px solid #f3f4f6;margin:16px 0">
-    <p style="margin:0;font-size:13px;color:#6b7280">Need help? ${contact || 'Reply to this email.'}</p>
-  </td></tr>
-  <tr><td style="background:#14532d;background-image:linear-gradient(90deg,#14532d,#0f766e);padding:16px 28px;color:#d1fae5;font-size:12px;line-height:1.6">
-    <b style="color:#ffffff">${esc(BRAND.name)}</b> — compare prices from verified labs and book tests near you.<br>
-    ${site ? `<a href="${site}" style="color:#bbf7d0">${esc(site.replace(/^https?:\/\//, ''))}</a> · <a href="${site}/legal/privacy" style="color:#bbf7d0">Privacy</a> · <a href="${site}/legal/terms" style="color:#bbf7d0">Terms</a>` : ''}<br>
-    <span style="color:#a7f3d0">You received this email because of activity on your ${esc(BRAND.name)} account.</span>
+  <tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.7;color:${MAIL.muted}">
+    ${contact ? `Questions? ${contact}<br>` : 'Questions? Reply to this email.<br>'}
+    You are receiving this email because of activity on your ${esc(BRAND.name)} account.<br>
+    <a href="${site}" style="color:${MAIL.muted}">${esc(host)}</a> &nbsp;|&nbsp; <a href="${site}/legal/privacy" style="color:${MAIL.muted}">Privacy</a> &nbsp;|&nbsp; <a href="${site}/legal/terms" style="color:${MAIL.muted}">Terms</a>
   </td></tr>
 </table>
 </td></tr></table></body></html>`;
@@ -147,7 +165,7 @@ export const emails = {
     html: layout(
       'Reset your password',
       `<p style="margin:0 0 10px">Hi ${esc(name)}, use this code to reset your password. It expires in <b>15 minutes</b>.</p>
-<p style="margin:18px 0;font-size:32px;letter-spacing:8px;font-weight:800;color:#ea580c;background:#fff7ed;border-radius:12px;padding:14px 0;text-align:center">${esc(code)}</p>
+<p style="margin:20px 0;font-size:30px;letter-spacing:8px;font-weight:700;color:#111827;background:${MAIL.soft};border:1px solid ${MAIL.border};border-radius:8px;padding:14px 0;text-align:center;font-family:Menlo,Consolas,monospace">${esc(code)}</p>
 <p style="margin:0">If you didn't ask for this, you can ignore this email — your password won't change.</p>`
     ),
   }),

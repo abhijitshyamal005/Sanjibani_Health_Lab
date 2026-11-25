@@ -30,6 +30,9 @@ function expectMail(list, to, subject) {
   const m = list.find((x) => x.to === to && subject.test(x.subject));
   assert.ok(m, `expected email to ${to} matching ${subject}; got:\n${list.map((x) => `  ${x.to}: ${x.subject}`).join('\n')}`);
   assert.match(m.html, /<html/, 'uses the branded template');
+  assert.match(m.html, /<img src="https:\/\/[^"]+\/logo-512\.png"/, 'shows the logo from a public https URL');
+  assert.doesNotMatch(m.html, /linear-gradient/, 'no gradients');
+  assert.doesNotMatch(m.subject + m.html, /[\u{1F300}-\u{1FAFF}\u2705]/u, 'no emoji');
   return m;
 }
 
