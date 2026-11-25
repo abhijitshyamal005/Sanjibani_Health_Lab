@@ -95,7 +95,7 @@ export default function LabDetail() {
         {lab.description && <p className="mt-5 max-w-3xl text-sm leading-relaxed text-ink-soft">{lab.description}</p>}
       </div>
 
-      <div className="container-page mt-8 grid gap-8 lg:grid-cols-[220px_1fr]">
+      <div className="container-page mt-8 grid gap-8 [&>*]:min-w-0 lg:grid-cols-[220px_1fr]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 hidden text-xs font-bold uppercase tracking-wider text-ink-muted lg:block">Categories</p>
           <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0">

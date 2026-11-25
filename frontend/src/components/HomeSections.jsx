@@ -111,7 +111,7 @@ export function Faq() {
   const [open, setOpen] = useState(0);
   return (
     <section className="container-page mt-16">
-      <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-8 [&>*]:min-w-0 lg:grid-cols-[320px_1fr]">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight">Questions? We’ve got answers.</h2>
           <p className="mt-2 text-sm text-ink-muted">Can’t find what you’re looking for? Tap the help button and talk to us.</p>
