@@ -1,46 +1,71 @@
-import mongoose from 'mongoose'
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import { ROLES } from '../utils/constants.js';
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required']
+      required: [true, 'Name is required'],
+      trim: true,
+      maxlength: [80, 'Name is too long'],
     },
     email: {
       type: String,
       required: [true, 'Email is required'],
       unique: true,
-      lowercase: true, // Ensures email is stored in lowercase
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
     },
-    mobileNumber: {
+    phone: {
       type: String,
       required: [true, 'Mobile number is required'],
-      unique: true,
-      match: [/^[0-9]{10}$/, 'Please enter a valid mobile number']
+      trim: true,
+      match: [/^[6-9]\d{9}$/, 'Please enter a valid 10-digit mobile number'],
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters']
+      minlength: [6, 'Password must be at least 6 characters'],
+      select: false,
     },
-    isVerified: {
-      type: Boolean,
-      default: false // User is initially not verified
+    role: { type: String, enum: ROLES, default: 'patient' },
+    city: { type: String, trim: true, maxlength: 60 },
+    gender: { type: String, enum: ['male', 'female', 'other', ''], default: '' },
+    dateOfBirth: { type: String, match: [/^(\d{4}-\d{2}-\d{2})?$/, 'Invalid date of birth'] },
+    address: {
+      line: { type: String, trim: true, maxlength: 200 },
+      area: { type: String, trim: true, maxlength: 80 },
+      city: { type: String, trim: true, maxlength: 60 },
+      pincode: { type: String, trim: true, match: [/^(\d{6})?$/, 'Pincode must be 6 digits'] },
     },
-    verificationCode: {
-      type: String // Temporary verification code
-    },
-    cart: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product'
-      }
-    ]
+    isActive: { type: Boolean, default: true },
+    // For sample collectors: the lab that employs them.
+    lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', index: true },
+    resetCodeHash: { type: String, select: false },
+    resetCodeExpires: { type: Date, select: false },
   },
-  {
-    timestamps: true
-  }
-)
+  { timestamps: true }
+);
 
-export default mongoose.model('User', userSchema)
+userSchema.pre('save', async function hashPassword() {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.methods.comparePassword = function comparePassword(candidate) {
+  return bcrypt.compare(candidate, this.password);
+};
+
+userSchema.set('toJSON', {
+  transform(_doc, ret) {
+    delete ret.password;
+    delete ret.resetCodeHash;
+    delete ret.resetCodeExpires;
+    delete ret.__v;
+    return ret;
+  },
+});
+
+export default mongoose.model('User', userSchema);

@@ -1,16 +1,9 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
+export default async function connectDB(uri = process.env.MONGO_URI) {
+  if (!uri) {
+    throw new Error('MONGO_URI is not set. Use `npm run dev:local` to run with a built-in database.');
   }
-};
-
-export default connectDB;
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+  console.log(`MongoDB connected (${mongoose.connection.host}/${mongoose.connection.name})`);
+}

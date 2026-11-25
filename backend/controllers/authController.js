@@ -1,127 +1,106 @@
-import express from "express";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
-import User from "../models/userModel.js";
-import nodemailer from "nodemailer";
-import crypto from "crypto";
+import crypto from 'node:crypto';
+import User from '../models/userModel.js';
+import { emails, notify } from '../services/notify.js';
+import Lab from '../models/labModel.js';
+import { ApiError, pick } from '../utils/helpers.js';
+import { signToken } from '../utils/token.js';
 
-dotenv.config();
-const router = express.Router();
+const SELF_REGISTER_ROLES = ['patient', 'lab'];
 
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
-
-// Store verification data temporarily
-const verificationCodes = new Map();
-
-// --- Helper: Send Verification Email ---
-const sendVerificationEmail = async (email, code) => {
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Verify Your Email for SanjiBani HealthLab",
-    text: `Your verification code is: ${code}`,
-  };
-  await transporter.sendMail(mailOptions);
-};
-
-// --- Helper: Send Confirmation Email ---
-const sendConfirmationEmail = async (email, name) => {
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Welcome to SanjiBani HealthLab – Account Created!",
-    text: `Dear ${name},\n\nYour account has been created successfully!\n\nWe’re happy to have you onboard.\n\nBest regards,\nSanjiBani HealthLab Team\nsupport@sanjibanihealthlab.com\nPhone: +91-6296390743`,
-  };
-  await transporter.sendMail(mailOptions);
-};
-
-// --- Register (Step 1) ---
-export const register = async (req, res) => {
-  const { name, email, mobileNumber, password } = req.body;
-
-  try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(409).json({ message: "User already exists. Please login." });
-
-    const verificationCode = crypto.randomInt(100000, 999999).toString();
-    verificationCodes.set(email, { name, email, mobileNumber, password, verificationCode });
-
-    // Respond immediately
-    res.status(200).json({ message: "Verification code sent to email." });
-
-    // Send email in background (non-blocking)
-    sendVerificationEmail(email, verificationCode)
-      .then(() => console.log("Verification email sent to", email))
-      .catch((err) => console.error("Email sending failed:", err));
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+async function authPayload(user) {
+  const result = { token: await signToken(user), user: user.toJSON() };
+  if (user.role === 'lab') {
+    result.lab = await Lab.findOne({ owner: user._id }).select('name slug status').lean();
   }
-};
+  if (user.role === 'collector') {
+    result.lab = await Lab.findById(user.lab).select('name slug phone').lean();
+  }
+  return result;
+}
 
-// --- Verify Email (Step 2) ---
-export const verifyemail = async (req, res) => {
-  const { email, verificationCode } = req.body;
-  const storedData = verificationCodes.get(email);
+export async function register(req, res) {
+  const { name, email, phone, password, role = 'patient' } = req.body || {};
+  if (!SELF_REGISTER_ROLES.includes(role)) {
+    throw new ApiError(400, 'You can register as a patient or a lab partner');
+  }
+  if (email && (await User.exists({ email: String(email).toLowerCase().trim() }))) {
+    throw new ApiError(409, 'An account with this email already exists');
+  }
+  const user = await User.create({ name, email, phone, password, role });
+  res.status(201).json(await authPayload(user));
+}
 
-  if (!storedData || storedData.verificationCode !== verificationCode) {
-    return res.status(400).json({ message: "Invalid or expired verification code." });
+export async function login(req, res) {
+  const { email, password } = req.body || {};
+  if (!email || !password) throw new ApiError(400, 'Email and password are required');
+
+  const user = await User.findOne({ email: String(email).toLowerCase().trim() }).select('+password');
+  if (!user || !(await user.comparePassword(String(password)))) {
+    throw new ApiError(401, 'Invalid email or password');
+  }
+  if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated');
+
+  res.json(await authPayload(user));
+}
+
+export async function me(req, res) {
+  const { token: _token, ...rest } = await authPayload(req.user);
+  res.json(rest);
+}
+
+export async function updateMe(req, res) {
+  const user = await User.findById(req.user._id).select('+password');
+  Object.assign(user, pick(req.body, ['name', 'phone', 'city', 'gender', 'dateOfBirth']));
+  if (req.body?.address && typeof req.body.address === 'object') {
+    user.address = pick(req.body.address, ['line', 'area', 'city', 'pincode']);
   }
 
-  try {
-    const hashedPassword = await bcrypt.hash(storedData.password, 8); // faster hash
-    const user = await User.create({
-      name: storedData.name,
-      email: storedData.email,
-      mobileNumber: storedData.mobileNumber,
-      password: hashedPassword,
-      isVerified: true,
-    });
-
-    verificationCodes.delete(email);
-    sendConfirmationEmail(email, storedData.name).catch(console.error);
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
-    res.status(201).json({ message: "Email verified successfully!", token, userId: user._id });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  const { currentPassword, newPassword } = req.body || {};
+  if (newPassword) {
+    if (!currentPassword || !(await user.comparePassword(String(currentPassword)))) {
+      throw new ApiError(400, 'Current password is incorrect');
+    }
+    user.password = String(newPassword);
   }
-};
 
-// --- Login (Step 3) ---
-export const login = async (req, res) => {
-  const { email, password } = req.body;
+  await user.save();
+  res.json({ user: user.toJSON() });
+}
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found." });
-    if (!user.isVerified)
-      return res.status(400).json({ message: "Email not verified." });
+const RESET_MESSAGE = 'If an account exists, we have sent a reset code to the email.';
+const hashCode = (code) => crypto.createHash('sha256').update(String(code)).digest('hex');
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials." });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
-
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      userId: user._id,
-      user: { _id: user._id, email: user.email, name: user.name },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+/** POST /api/auth/forgot-password — always 200 so emails can't be enumerated. */
+export async function forgotPassword(req, res) {
+  const email = String(req.body?.email || '').toLowerCase().trim();
+  const response = { message: RESET_MESSAGE };
+  const user = email ? await User.findOne({ email }) : null;
+  if (user && user.isActive) {
+    const code = String(crypto.randomInt(100000, 1000000));
+    user.resetCodeHash = hashCode(code);
+    user.resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+    notify(emails.resetCode(user.email, user.name, code));
+    if (process.env.NODE_ENV !== 'production' && process.env.EMAIL_ENABLED !== 'true') response.devCode = code;
   }
-};
+  res.json(response);
+}
 
-export default router;
+/** POST /api/auth/reset-password */
+export async function resetPassword(req, res) {
+  const { email, code, newPassword } = req.body || {};
+  const user = await User.findOne({ email: String(email || '').toLowerCase().trim() }).select('+password +resetCodeHash +resetCodeExpires');
+  const ok =
+    user &&
+    user.resetCodeHash &&
+    user.resetCodeExpires &&
+    user.resetCodeExpires.getTime() > Date.now() &&
+    crypto.timingSafeEqual(Buffer.from(user.resetCodeHash), Buffer.from(hashCode(code || '')));
+  if (!ok) throw new ApiError(400, 'Invalid or expired code');
+  if (!newPassword || String(newPassword).length < 6) throw new ApiError(400, 'Password must be at least 6 characters');
+  user.password = String(newPassword);
+  user.resetCodeHash = undefined;
+  user.resetCodeExpires = undefined;
+  await user.save();
+  res.json(await authPayload(user));
+}

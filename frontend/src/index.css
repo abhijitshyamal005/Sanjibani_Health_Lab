@@ -2,59 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  @keyframes moveBall1 {
-    0% {
-      transform: translateX(0) translateY(0);
-    }
-    50% {
-      transform: translateX(20px) translateY(-30px);
-    }
-    100% {
-      transform: translateX(0) translateY(0);
-    }
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
-
-  @keyframes moveBall2 {
-    0% {
-      transform: translateX(0) translateY(0);
-    }
-    50% {
-      transform: translateX(-25px) translateY(30px);
-    }
-    100% {
-      transform: translateX(0) translateY(0);
-    }
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
   }
-
-  @keyframes moveBall3 {
-    0% {
-      transform: translateX(0) translateY(0);
-    }
-    50% {
-      transform: translateX(30px) translateY(-20px);
-    }
-    100% {
-      transform: translateX(0) translateY(0);
-    }
-  }
-
-  .animate-moveBall1 {
-    animation: moveBall1 5s ease-in-out infinite;
-  }
-
-  .animate-moveBall2 {
-    animation: moveBall2 6s ease-in-out infinite;
-  }
-
-  .animate-moveBall3 {
-    animation: moveBall3 7s ease-in-out infinite;
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2;
   }
 }
 
-.card-container {
-  transition: transform 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  overflow: hidden;
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200/70 bg-white shadow-card;
+  }
+  .input {
+    @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-slate-400 transition focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50 disabled:text-slate-500;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink-soft;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition;
+  }
+  .chip-off {
+    @apply border-slate-200 bg-white text-ink-soft hover:border-brand-300 hover:text-brand-700;
+  }
+  .chip-on {
+    @apply border-brand-600 bg-brand-600 text-white;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes toast {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }

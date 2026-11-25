@@ -1,109 +1,40 @@
-import { Routes, Route } from 'react-router-dom';
-import ScrollToTop from './components/ScrollTop.jsx';
-import { CartProvider } from './context/CartContext';
+import { Route, Routes } from 'react-router-dom';
+import AdminApp from './admin/AdminApp';
+import CollectorApp from './collector/CollectorApp';
+import { PublicLayout, RequireAuth } from './components/Layouts';
+import PartnerApp from './partner/PartnerApp';
+import { Login, NotFound, Register } from './pages/Auth';
+import { BookingDetail, BookingList } from './pages/Bookings';
+import Cart from './pages/Cart';
+import CompareTests from './pages/CompareTests';
+import Home from './pages/Home';
+import LabDetail from './pages/LabDetail';
+import Labs from './pages/Labs';
+import Legal from './pages/Legal';
+import ForgotPassword from './pages/ForgotPassword';
+import Profile from './pages/Profile';
 
-import './App.css';
-import CarouselComponent from './components/CarouselComponent';
-import Checkups from './components/Checkups';
-import Hero from './components/Hero';
-import InfoCard from './components/InfoCard';
-import Slider1 from './components/Slider1';
-import PhotoSlider from './components/PhotoSlider';
-import BodyOrgans from './components/BodyOrgans';
-import WhatsappImg from './components/WhatsappImg.jsx';
-import Testimonial from './components/Testimonial.jsx';
-import LastImgSec from './components/LastImgSec.jsx';
-import Footer from './components/Footer.jsx';
-import AppLayout from './components/AppLayoyt.jsx';
-import Home from './pages/Home.jsx';           // Assuming Home component exists
-import WithoutHeaderFotter from './components/WithoutHeaderFotter.jsx';
-import NotFound from './pages/Not-found.jsx';
-import LabTest from './pages/LabTest.jsx'
-import Checkup from './pages/Checkup.jsx';
-import ViewDetails from '../src/components/ViewDetails/ViewDetails.jsx';
-import FullBody  from './pages/FullBody.jsx';
-import Heart from './pages/Heart.jsx';
-import Liver from './pages/Liver.jsx';
-import Kidney from './pages/Kidney.jsx';  
-import Fiver from './pages/Fiver.jsx';
-import SexHealth from './pages/SexHealth.jsx';
-import Signup from './pages/Signup.jsx';
-import Login from './pages/Login.jsx';
-
-
-const router = {
-  home: '/',
-  Hero: '/hero',
-  CarouselComponent: '/carousel',
-  Checkups: '/checkups',
-  InfoCard: '/infoCard',
-  Slider1: '/slider1',
-  PhotoSlider: '/photoSlider',
-  BodyOrgans: '/bodyOrgans',
-  WhatsappImg: '/whatsappImg',
-  Testimonial: '/testimonial',
-  LastImgSec: '/lastImgSec',
-  Footer: '/footer',
-  notFound: '/not-found',
-  LabTest: '/labtest',
-  Checkup: '/checkup',
- 
-  ViewDetails: '/view-details',
-  FullBody: '/full-body',
-  Heart: '/heart',
-  Liver: '/liver',
-  Kidney: '/kidney',
-  Fiver: '/fiver',
-  SexHealth: '/sex-health',
-  Login:'/login',
-  Signup:'/signup'
-  
-  // Route for Full Body Checkup Details
-  
-  // Add more routes as needed
-};
-
-function App() {
+export default function App() {
   return (
-    <>
-      {/* ScrollToTop should be outside the Routes component */}
-      <ScrollToTop />
-      <CartProvider>
-      <Routes>
-        <Route path='/' element={<AppLayout />}>
-          <Route index element={<Home />} />
-          <Route path={router.Hero} element={<Hero />} />
-          <Route path={router.CarouselComponent} element={<CarouselComponent />} />
-          <Route path={router.Checkups} element={<Checkups />} />
-          <Route path={router.InfoCard} element={<InfoCard />} />
-          <Route path={router.Slider1} element={<Slider1 />} />
-          <Route path={router.PhotoSlider} element={<PhotoSlider />} />
-          <Route path={router.BodyOrgans} element={<BodyOrgans />} />
-          <Route path={router.WhatsappImg} element={<WhatsappImg />} />
-          <Route path={router.Testimonial} element={<Testimonial />} />
-          <Route path={router.LastImgSec} element={<LastImgSec />} />
-          <Route path={router.Footer} element={<Footer />} />
-          <Route path={router.LabTest} element={<LabTest />} /> 
-          <Route path={router.Checkup} element={<Checkup />} /> 
-          <Route path={router.ViewDetails} element={<ViewDetails />} />         
-          <Route path={router.FullBody} element={<FullBody/>} />
-          <Route path={router.Heart} element={<Heart/>} />
-          <Route path={router.Liver} element={<Liver/>} />
-          <Route path={router.Kidney} element={<Kidney/>} />
-          <Route path={router.Fiver} element={<Fiver/>} />
-          <Route path={router.SexHealth} element={<SexHealth/>} />
-          <Route path={router.Login} element={<Login/>} />
-          <Route path={router.Signup} element={<Signup/>} />
-          {/* Add more routes as needed */}
-        </Route>
-
-        {/* For routes without header/footer */}
-        <Route path="*" element={<WithoutHeaderFotter />} />
-        <Route path={router.notFound} element={<NotFound />} />
-      </Routes>
-      </CartProvider>
-    </>
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route index element={<Home />} />
+        <Route path="labs" element={<Labs />} />
+        <Route path="labs/:slug" element={<LabDetail />} />
+        <Route path="tests" element={<CompareTests />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="bookings" element={<RequireAuth roles={['patient']}><BookingList /></RequireAuth>} />
+        <Route path="bookings/:id" element={<RequireAuth roles={['patient']}><BookingDetail /></RequireAuth>} />
+        <Route path="profile" element={<RequireAuth roles={['patient']}><Profile /></RequireAuth>} />
+        <Route path="legal/:page" element={<Legal />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="partner/*" element={<RequireAuth roles={['lab']}><PartnerApp /></RequireAuth>} />
+      <Route path="admin/*" element={<RequireAuth roles={['admin']}><AdminApp /></RequireAuth>} />
+      <Route path="collector/*" element={<RequireAuth roles={['collector']}><CollectorApp /></RequireAuth>} />
+    </Routes>
   );
 }
-
-export default App;

@@ -1,174 +1,189 @@
-import { useState, useRef, useEffect } from 'react';
-import { FaBox, FaChevronDown, FaLocationDot, FaMicroscope } from "react-icons/fa6";
-import { FaShoppingCart } from "react-icons/fa";
-import { IoLogoWhatsapp } from "react-icons/io";
-import { Link } from 'react-router-dom';
-import Cart from './Cart';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import {
+  ChevronDown,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  MapPin,
+  Menu,
+  Search,
+  ShoppingBag,
+  Store,
+  UserRound,
+  X,
+} from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { initials } from '../lib/format';
+import { Logo } from './Brand';
 
-const Navbar = () => {
-  const [isPopupVisible, setPopupVisible] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('Kolkata');
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const { cart } = useCart();
-  const itemCount = cart?.items?.length || 0;
+export function CitySelect({ className = '' }) {
+  const { meta, city, setCity } = useApp();
+  return (
+    <label className={`relative flex items-center ${className}`}>
+      <MapPin className="pointer-events-none absolute left-3 h-4 w-4 text-coral-500" />
+      <span className="sr-only">City</span>
+      <select
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm font-semibold text-ink focus:border-brand-500 focus:outline-none"
+        data-testid="city-select"
+      >
+        <option value="">All cities</option>
+        {(meta?.cities || []).map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4 text-ink-muted" />
+    </label>
+  );
+}
 
-  const cities = ['Kolkata', 'Howrah', 'Salt Lake', 'New Town', 'Durgapur'];
-
-  const togglePopup = () => setPopupVisible(prev => !prev);
-
-  const handleCitySelect = (city) => {
-    setSelectedCity(city);
-    setPopupVisible(false);
-  };
-
-  const handleClickOutside = (event) => {
-    event.stopPropagation();
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setPopupVisible(false);
-    }
-  };
+function UserMenu() {
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const close = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  const links =
+    user.role === 'admin'
+      ? [{ to: '/admin', label: 'Admin dashboard', icon: LayoutDashboard }]
+      : user.role === 'lab'
+        ? [{ to: '/partner', label: 'Lab dashboard', icon: LayoutDashboard }]
+        : user.role === 'collector'
+          ? [{ to: '/collector', label: 'My collection jobs', icon: LayoutDashboard }]
+        : [
+            { to: '/bookings', label: 'My bookings', icon: ClipboardList },
+            { to: '/profile', label: 'My profile', icon: UserRound },
+          ];
+
   return (
-    <>
-      {/* Main Navigation Bar */}
-      <nav className="sticky top-0 flex items-center justify-between p-4 border-b-2 border-gray-100 bg-white z-50 w-full">
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2 hover:bg-slate-100"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-testid="user-menu"
+      >
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-800">{initials(user.name)}</span>
+        <span className="hidden max-w-[120px] truncate text-sm font-semibold lg:block">{user.name.split(' ')[0]}</span>
+        <ChevronDown className="h-4 w-4 text-ink-muted" />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white py-1.5 shadow-lift">
+          <div className="border-b border-slate-100 px-4 pb-2.5 pt-1.5">
+            <p className="truncate text-sm font-bold">{user.name}</p>
+            <p className="truncate text-xs text-ink-muted">{user.email}</p>
+          </div>
+          {links.map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to} role="menuitem" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-slate-50">
+              <Icon className="h-4 w-4 text-ink-muted" /> {label}
+            </Link>
+          ))}
+          <button
+            role="menuitem"
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="h-4 w-4" /> Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
-        {/* Left Section - Logo and Location */}
-        <div className="flex items-center space-x-4 gap-32 md:gap-3">
-          {/* Logo */}
-          <Link to="/" className="flex flex-col items-start space-y-[-4px]">
-            <span className="text-orange-400 text-2xl font-bold">SanjiBani</span>
-            <span className="text-green-600 text-xl">
-              Health<span className="text-orange-400">Labs</span>
-            </span>
+export default function Navbar() {
+  const { user } = useAuth();
+  const cart = useCart();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  const navLink = ({ isActive }) =>
+    `rounded-xl px-3 py-2 text-sm font-semibold transition ${isActive ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:text-ink'}`;
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur">
+      <div className="container-page flex h-16 items-center gap-3">
+        <Logo />
+        <CitySelect className="ml-2 hidden md:flex" />
+        <nav className="ml-2 hidden items-center gap-1 md:flex">
+          <NavLink to="/labs" className={navLink}>
+            Labs
+          </NavLink>
+          <NavLink to="/tests" className={navLink}>
+            Compare tests
+          </NavLink>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-1.5">
+          <Link to="/tests" className="grid h-10 w-10 place-items-center rounded-xl text-ink-soft hover:bg-slate-100 md:hidden" aria-label="Search tests">
+            <Search className="h-5 w-5" />
           </Link>
-
-          {/* Location Selector */}
-          <div className="relative" ref={dropdownRef}>
-            <div className="flex flex-col cursor-pointer" onClick={togglePopup}>
-              <div className="flex items-center gap-1 text-gray-500">
-                <FaLocationDot className="text-orange-400" />
-                <span className="text-xs font-semibold hidden md:block">MY LOCATION</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm">{selectedCity}</span>
-                <FaChevronDown className="text-gray-500" />
-              </div>
-            </div>
-
-            {/* City Selection Popup */}
-            {isPopupVisible && (
-              <div className="absolute top-full right-4 md:left-0  mt-9 w-48 bg-white border rounded-lg shadow-lg">
-                <div className="p-3">
-                  <h3 className="text-sm font-semibold mb-2">Select City</h3>
-                  <div className="space-y-2">
-                    {cities.map(city => (
-                      <div
-                        key={city}
-                        onClick={() => handleCitySelect(city)}
-                        className={`p-2 text-sm rounded-md cursor-pointer ${selectedCity === city
-                          ? 'bg-green-100 text-green-700'
-                          : 'hover:bg-gray-100'}`}
-                      >
-                        {city}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          {(!user || user.role === 'patient') && (
+            <Link to="/cart" className="relative grid h-10 w-10 place-items-center rounded-xl text-ink-soft hover:bg-slate-100" aria-label={`Cart, ${cart.count} items`} data-testid="cart-link">
+              <ShoppingBag className="h-5 w-5" />
+              {cart.count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-coral-500 px-1 text-[11px] font-bold text-white">{cart.count}</span>
+              )}
+            </Link>
+          )}
+          {!user && (
+            <Link to="/register?role=lab" className="hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 lg:flex">
+              <Store className="h-4 w-4" /> Register your lab
+            </Link>
+          )}
+          {user ? (
+            <UserMenu />
+          ) : (
+            <Link to="/login" className="hidden h-10 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 sm:flex">
+              Log in
+            </Link>
+          )}
+          <button className="grid h-10 w-10 place-items-center rounded-xl hover:bg-slate-100 md:hidden" onClick={() => setMobileOpen((o) => !o)} aria-label="Menu">
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+      {mobileOpen && (
+        <div className="border-t border-slate-100 bg-white md:hidden">
+          <div className="container-page flex flex-col gap-1 py-3">
+            <CitySelect className="mb-2" />
+            <NavLink to="/labs" className={navLink}>
+              Labs
+            </NavLink>
+            <NavLink to="/tests" className={navLink}>
+              Compare tests
+            </NavLink>
+            {!user && (
+              <>
+                <NavLink to="/register?role=lab" className={navLink}>
+                  Register your lab
+                </NavLink>
+                <NavLink to="/login" className={navLink}>
+                  Log in
+                </NavLink>
+              </>
             )}
           </div>
         </div>
-
-        {/* Right Section - Navigation Items */}
-        <div className="hidden md:flex items-center gap-4">
-          <div className="flex items-center gap-4 ">
-            <Link
-              to="/labtest"
-              className="flex items-center space-x-2 text-gray-600 hover:shadow-lg hover:shadow-orange-300 transition-all duration-300 rounded-b-lg py-2 px-4"
-            >
-              <FaMicroscope className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium">Tests</span>
-            </Link>
-
-            <Link
-              to="/checkup"
-              className="flex items-center space-x-2 text-gray-600 hover:shadow-lg hover:shadow-green-300 transition-all duration-300 rounded-b-lg py-2 px-4"
-            >
-              <FaBox className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium">Checkups</span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <a
-              href="https://wa.me/916296390743"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 border border-green-400 text-green-600 hover:border-green-600 hover:text-green-600 hover:shadow-lg hover:shadow-green-500 transition-all duration-300 rounded-md py-2 px-6"
-            >
-              <IoLogoWhatsapp className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium">Support</span>
-            </a>
-
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="flex items-center space-x-2 bg-gradient-to-r from-green-800 to-teal-600 text-white rounded-md hover:opacity-90 transition duration-300 py-2 px-6 relative"
-            >
-              <FaShoppingCart className="h-4 w-4" />
-              <span className="text-sm font-medium">Cart</span>
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-50">
-          <div className="flex justify-around py-3">
-            <Link to="/labtest" className="text-gray-600">
-              <FaMicroscope className="text-xl" />
-            </Link>
-            <Link to="/checkup" className="text-gray-600">
-              <FaBox className="text-xl" />
-            </Link>
-            <a
-              href="https://wa.me/916296390743"
-              target="_blank"
-              rel="noreferrer"
-              className="text-green-600"
-            >
-              <IoLogoWhatsapp className="text-xl" />
-            </a>
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative text-green-600"
-            >
-              <FaShoppingCart className="text-xl" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Cart Modal */}
-      {isCartOpen && <Cart onClose={() => setIsCartOpen(false)} />}
-    </>
+      )}
+    </header>
   );
-};
-
-export default Navbar;
+}

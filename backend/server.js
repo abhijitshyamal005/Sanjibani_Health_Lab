@@ -1,38 +1,32 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './config/db.js'; 
-import authRoutes from './routes/authRoutes.js';
-import cartRoutes from './routes/cartRoutes.js';
-import userRoutes from './routes/userRoutes.js'; 
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import { createApp } from './app.js';
+import connectDB from './config/db.js';
+import { validateEnv } from './config/env.js';
 
-dotenv.config();
+validateEnv();
+const PORT = Number(process.env.PORT) || 5001;
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+try {
+  await connectDB();
+} catch (error) {
+  console.error('Could not connect to MongoDB:', error.message);
+  console.error('Tip: run `npm run dev:local` to start with a built-in local database.');
+  process.exit(1);
+}
 
-// Connect to MongoDB
-connectDB();
+const server = createApp().listen(PORT, () => console.log(`Sanjibani API running on http://localhost:${PORT}`));
 
-// Middleware to handle CORS and JSON parsing
-app.use(cors({
-  origin: ["https://sanjibani-health-lab.vercel.app","https://sanjibanilabs.onrender.com","http://localhost:5173"], 
-  methods: ["POST", "GET","PUT", "DELETE"],
-  credentials: true,
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Test route
-app.get("/", (req, res) => {
-  res.status(200).send("Server is running on port 5000");
-});
-
-// Define routes
-app.use("/api/auth", authRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/users", userRoutes); 
-
-// Start server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+let shuttingDown = false;
+function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received — shutting down gracefully`);
+  const force = setTimeout(() => process.exit(1), 10_000);
+  force.unref();
+  server.close(async () => {
+    await mongoose.disconnect().catch(() => {});
+    process.exit(0);
+  });
+}
+['SIGTERM', 'SIGINT'].forEach((sig) => process.on(sig, () => shutdown(sig)));
