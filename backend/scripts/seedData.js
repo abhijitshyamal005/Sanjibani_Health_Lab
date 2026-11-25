@@ -6,6 +6,7 @@ import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
 import { TIME_SLOTS } from '../utils/constants.js';
 import { todayIST } from '../utils/helpers.js';
+import { LAB_CATALOG } from './labCatalog.js';
 
 export const DEMO_ACCOUNTS = {
   admin: { email: 'admin@sanjibani.in', password: 'Admin@123' },
@@ -26,61 +27,39 @@ function rng(seed) {
   };
 }
 
-const CATALOG = [
-  ['Complete Blood Count (CBC)', 'Blood Tests', 'test', 500, 299, 'Blood', 'No special preparation', '12 hours',
-    ['Hemoglobin', 'RBC Count', 'WBC Count', 'Platelet Count', 'PCV', 'MCV', 'MCH', 'MCHC', 'Differential Count'],
-    'Screens for anaemia, infection and many other conditions by measuring the cells in your blood.', true],
-  ['HbA1c (Glycated Haemoglobin)', 'Diabetes', 'test', 650, 399, 'Blood', 'No special preparation', '12 hours',
-    ['HbA1c', 'Estimated Average Glucose'], 'Shows your average blood sugar over the last 2–3 months.', true],
-  ['Fasting Blood Sugar (FBS)', 'Diabetes', 'test', 150, 99, 'Blood', '10–12 hours fasting', '6 hours',
-    ['Glucose, Fasting'], 'Measures blood glucose after an overnight fast.', false],
-  ['Lipid Profile', 'Heart', 'test', 900, 499, 'Blood', '10–12 hours fasting', '12 hours',
-    ['Total Cholesterol', 'HDL', 'LDL', 'VLDL', 'Triglycerides', 'Cholesterol/HDL Ratio'],
-    'Checks cholesterol and fats in the blood to assess heart disease risk.', true],
-  ['Thyroid Profile (T3, T4, TSH)', 'Thyroid', 'test', 800, 449, 'Blood', 'No special preparation', '24 hours',
-    ['Total T3', 'Total T4', 'TSH'], 'Evaluates how well your thyroid gland is working.', true],
-  ['TSH (Thyroid Stimulating Hormone)', 'Thyroid', 'test', 400, 249, 'Blood', 'No special preparation', '24 hours',
-    ['TSH'], 'Single best screening test for thyroid problems.', false],
-  ['Liver Function Test (LFT)', 'Liver', 'test', 1000, 599, 'Blood', '8 hours fasting preferred', '24 hours',
-    ['SGOT', 'SGPT', 'Bilirubin (Total, Direct, Indirect)', 'Alkaline Phosphatase', 'Total Protein', 'Albumin', 'GGT'],
-    'Assesses liver health and detects liver damage or disease.', false],
-  ['Kidney Function Test (KFT)', 'Kidney', 'test', 1000, 549, 'Blood', 'No special preparation', '24 hours',
-    ['Urea', 'Creatinine', 'Uric Acid', 'BUN', 'Sodium', 'Potassium', 'Chloride'],
-    'Checks how well your kidneys filter waste from the blood.', false],
-  ['Vitamin D (25-OH)', 'Vitamins', 'test', 1800, 899, 'Blood', 'No special preparation', '24 hours',
-    ['25-Hydroxy Vitamin D'], 'Detects vitamin D deficiency, common in Indian adults.', true],
-  ['Vitamin B12', 'Vitamins', 'test', 1200, 649, 'Blood', 'No special preparation', '24 hours',
-    ['Cyanocobalamin'], 'Checks for B12 deficiency that causes fatigue and nerve problems.', false],
-  ['Dengue NS1 Antigen', 'Fever & Infection', 'test', 900, 599, 'Blood', 'No special preparation', '6 hours',
-    ['Dengue NS1 Antigen'], 'Early detection of dengue in the first 5 days of fever.', false],
-  ['Typhoid (Widal Test)', 'Fever & Infection', 'test', 400, 249, 'Blood', 'No special preparation', '12 hours',
-    ['S. Typhi O', 'S. Typhi H', 'S. Paratyphi AH', 'S. Paratyphi BH'], 'Screens for typhoid fever.', false],
-  ['CRP (C-Reactive Protein)', 'Fever & Infection', 'test', 600, 349, 'Blood', 'No special preparation', '12 hours',
-    ['CRP, Quantitative'], 'Marker of inflammation and infection in the body.', false],
-  ['Urine Routine & Microscopy', 'Urine & Stool', 'test', 300, 149, 'Urine', 'First morning sample preferred', '12 hours',
-    ['Physical Exam', 'Chemical Exam', 'Microscopic Exam'], 'Detects urinary infections, kidney issues and diabetes.', false],
-  ['Iron Studies', 'Blood Tests', 'test', 1100, 699, 'Blood', '8 hours fasting preferred', '24 hours',
-    ['Serum Iron', 'TIBC', 'Transferrin Saturation', 'Ferritin'], 'Evaluates iron levels and storage.', false],
-  ['PCOD Screening Panel', "Women's Health", 'package', 2500, 1499, 'Blood', 'Day 2–5 of cycle preferred', '48 hours',
-    ['LH', 'FSH', 'Prolactin', 'Testosterone', 'TSH', 'Fasting Glucose', 'Insulin Fasting'],
-    'Hormone panel to evaluate polycystic ovarian disease.', false],
-  ['Testosterone, Total', 'Hormones', 'test', 900, 549, 'Blood', 'Morning sample before 10 AM', '24 hours',
-    ['Testosterone, Total'], 'Measures the main male sex hormone.', false],
-  ['Full Body Checkup – Essential (62 tests)', 'Full Body Checkup', 'package', 3500, 1299, 'Blood', '10–12 hours fasting', '24 hours',
-    ['CBC', 'Lipid Profile', 'Liver Function', 'Kidney Function', 'Thyroid Profile', 'Fasting Sugar', 'Urine Routine'],
-    'Annual health check covering the most important organs.', true],
-  ['Full Body Checkup – Advanced (92 tests)', 'Full Body Checkup', 'package', 6000, 2499, 'Blood', '10–12 hours fasting', '48 hours',
-    ['Everything in Essential', 'HbA1c', 'Vitamin D', 'Vitamin B12', 'Iron Studies', 'CRP'],
-    'Comprehensive annual check-up including vitamins and diabetes markers.', true],
-  ['Diabetes Care Package', 'Diabetes', 'package', 2200, 999, 'Blood', '10–12 hours fasting', '24 hours',
-    ['Fasting Sugar', 'HbA1c', 'Lipid Profile', 'Creatinine', 'Urine Microalbumin'], 'Complete diabetes monitoring.', false],
-  ['Cardiac Risk Markers', 'Heart', 'package', 3000, 1699, 'Blood', '10–12 hours fasting', '48 hours',
-    ['Lipid Profile', 'hs-CRP', 'Homocysteine', 'Lipoprotein(a)', 'Apolipoprotein A1 & B'], 'Advanced heart risk assessment.', false],
-  ['Allergy Panel (Food & Inhalants)', 'Allergy', 'package', 5500, 3299, 'Blood', 'Stop antihistamines 3 days prior', '72 hours',
-    ['Total IgE', '40 food allergens', '30 inhalant allergens'], 'Identifies common food and environmental allergies.', false],
-  ['X-Ray Chest PA View', 'Imaging', 'test', 600, 399, 'None', 'Remove metal objects', '2 hours',
-    ['Chest X-Ray PA'], 'Digital chest X-ray at the centre.', false],
+// Specialty tests and packages not covered by the reference listing in labCatalog.js.
+const EXTRA_CATALOG = [
+  { name: 'Dengue NS1 Antigen', category: 'Fever & Infection', type: 'test', mrp: 900, price: 599, sampleType: 'Blood',
+    preparation: 'No special preparation required', reportTime: '24 hours', parameters: ['Dengue NS1 Antigen'],
+    description: 'Early detection of dengue in the first 5 days of fever.', popular: false },
+  { name: 'PCOD Screening Panel', category: "Women's Health", type: 'package', mrp: 2500, price: 1499, sampleType: 'Blood',
+    preparation: 'Day 2–5 of cycle preferred', reportTime: '48 hours',
+    parameters: ['LH', 'FSH', 'Prolactin', 'Testosterone', 'TSH', 'Fasting Glucose', 'Insulin Fasting'],
+    description: 'Hormone panel to evaluate polycystic ovarian disease.', popular: false },
+  { name: 'Diabetes Care Package', category: 'Diabetes', type: 'package', mrp: 2200, price: 999, sampleType: 'Blood',
+    preparation: '10–12 hours fasting', reportTime: '24 hours',
+    parameters: ['Fasting Sugar', 'HbA1c', 'Lipid Profile', 'Creatinine', 'Urine Microalbumin'],
+    description: 'Complete diabetes monitoring.', popular: false },
+  { name: 'Cardiac Risk Markers', category: 'Heart', type: 'package', mrp: 3000, price: 1699, sampleType: 'Blood',
+    preparation: '10–12 hours fasting', reportTime: '48 hours',
+    parameters: ['Lipid Profile', 'hs-CRP', 'Homocysteine', 'Lipoprotein(a)', 'Apolipoprotein A1 & B'],
+    description: 'Advanced heart risk assessment.', popular: false },
+  { name: 'Allergy Panel (Food & Inhalants)', category: 'Allergy', type: 'package', mrp: 5500, price: 3299, sampleType: 'Blood',
+    preparation: 'Stop antihistamines 3 days prior', reportTime: '72 hours',
+    parameters: ['Total IgE', '40 food allergens', '30 inhalant allergens'],
+    description: 'Identifies common food and environmental allergies.', popular: false },
+  { name: 'X-Ray Chest PA View', category: 'Imaging', type: 'test', mrp: 600, price: 399, sampleType: 'None',
+    preparation: 'Remove metal objects', reportTime: '2 hours', parameters: ['Chest X-Ray PA'],
+    description: 'Digital chest X-ray at the centre.', popular: false },
 ];
+
+const CATALOG = [...LAB_CATALOG, ...EXTRA_CATALOG];
+
+// Names each demo lab does not offer, so the labs' menus differ a little.
+const XRAY = 'X-Ray Chest PA View';
+const ALLERGY = 'Allergy Panel (Food & Inhalants)';
+// The small neighbourhood lab only runs routine single tests.
+const routineOnly = (t) => t.type === 'test' && !['Imaging', 'Allergy'].includes(t.category) && t.mrp <= 1200;
 
 const LABS = [
   {
@@ -89,7 +68,7 @@ const LABS = [
     description: 'Lifeline Pathology is a fully automated diagnostic centre in Salt Lake with trained phlebotomists for safe home collection across Kolkata.',
     address: { line: 'CK-12, Sector II', area: 'Salt Lake', city: 'Kolkata', pincode: '700091' },
     phone: '03340011111', accreditations: ['NABL', 'ISO 15189'], homeCollectionFee: 49, reportTime: '12–24 hours',
-    establishedYear: 2005, coverTheme: 0, factor: 1.0, skip: [22], status: 'approved',
+    establishedYear: 2005, coverTheme: 0, factor: 1.0, skip: [XRAY], status: 'approved',
   },
   {
     owner: ['Priya Banerjee', 'lab2@sanjibani.in', '9830022222'],
@@ -97,7 +76,7 @@ const LABS = [
     description: 'CarePoint offers affordable pathology with free home sample collection anywhere in central Kolkata.',
     address: { line: '45 Park Street', area: 'Park Street', city: 'Kolkata', pincode: '700016' },
     phone: '03340022222', accreditations: ['NABL', 'CAP'], homeCollectionFee: 0, reportTime: '24 hours',
-    establishedYear: 2012, coverTheme: 1, factor: 0.88, skip: [21, 22, 16], status: 'approved',
+    establishedYear: 2012, coverTheme: 1, factor: 0.88, skip: [ALLERGY, XRAY, 'Testosterone, Total', 'Hemogram (CBC + ESR)'], status: 'approved',
   },
   {
     owner: ['Karthik Rao', 'lab3@sanjibani.in', '9845033333'],
@@ -105,7 +84,7 @@ const LABS = [
     description: 'GreenLeaf Labs in Indiranagar runs a CAP-standard lab with same-day reports for most routine tests.',
     address: { line: '100 Feet Road, HAL 2nd Stage', area: 'Indiranagar', city: 'Bengaluru', pincode: '560038' },
     phone: '08040033333', accreditations: ['NABL'], homeCollectionFee: 99, reportTime: 'Same day',
-    establishedYear: 2015, coverTheme: 2, factor: 1.12, skip: [22, 11], status: 'approved',
+    establishedYear: 2015, coverTheme: 2, factor: 1.12, skip: [XRAY, 'Typhoid (Widal Test)', 'Hepatitis C Antibody (Anti-HCV)'], status: 'approved',
   },
   {
     owner: ['Neha Kapoor', 'lab4@sanjibani.in', '9810044444'],
@@ -113,7 +92,7 @@ const LABS = [
     description: 'MedScan combines a NABH-accredited imaging centre with a full pathology lab in South Delhi.',
     address: { line: 'B-12, Defence Colony Road', area: 'Lajpat Nagar', city: 'Delhi', pincode: '110024' },
     phone: '01140044444', accreditations: ['NABL', 'NABH'], homeCollectionFee: 79, reportTime: '24 hours',
-    establishedYear: 2009, coverTheme: 3, factor: 1.05, skip: [21], status: 'approved',
+    establishedYear: 2009, coverTheme: 3, factor: 1.05, skip: [ALLERGY], status: 'approved',
   },
   {
     owner: ['Rahul Mehta', 'lab5@sanjibani.in', '9820055555'],
@@ -121,7 +100,7 @@ const LABS = [
     description: 'Pulse Diagnostics serves Andheri and the western suburbs with early morning home collection.',
     address: { line: 'Shop 3, Lokhandwala Complex', area: 'Andheri West', city: 'Mumbai', pincode: '400053' },
     phone: '02240055555', accreditations: ['ISO 15189'], homeCollectionFee: 59, reportTime: '24 hours',
-    establishedYear: 2018, coverTheme: 4, factor: 0.95, skip: [22, 20, 15], status: 'approved',
+    establishedYear: 2018, coverTheme: 4, factor: 0.95, skip: [XRAY, 'Cardiac Risk Markers', 'PCOD Screening Panel', 'Full Body Checkup – Essential Plus (57 tests)'], status: 'approved',
   },
   {
     owner: ['Sourav Das', 'lab6@sanjibani.in', '9830066666'],
@@ -129,7 +108,7 @@ const LABS = [
     description: 'A small neighbourhood lab focused on routine blood work at fair prices.',
     address: { line: '22 Diamond Harbour Road', area: 'Behala', city: 'Kolkata', pincode: '700034' },
     phone: '03340066666', accreditations: [], homeCollectionFee: 30, reportTime: '24 hours',
-    establishedYear: 2021, coverTheme: 5, factor: 0.8, skip: [15, 16, 17, 18, 19, 20, 21, 22], status: 'pending',
+    establishedYear: 2021, coverTheme: 5, factor: 0.8, include: routineOnly, status: 'pending',
   },
 ];
 
@@ -321,12 +300,12 @@ export async function seedDatabase({ reset = false, log = () => {} } = {}) {
   for (const def of LABS) {
     const [ownerName, ownerEmail, ownerPhone] = def.owner;
     const owner = await User.create({ name: ownerName, email: ownerEmail, phone: ownerPhone, password: DEMO_ACCOUNTS.lab.password, role: 'lab' });
-    const { factor, skip, owner: _o, ...labData } = def;
+    const { factor, skip = [], include = () => true, owner: _o, ...labData } = def;
     const lab = await Lab.create({ ...labData, ...(LAB_EXTRAS[labData.name] || {}), slotCapacity: 4, owner: owner._id, homeCollection: true, opensAt: '07:00', closesAt: '20:00' });
 
     const tests = await LabTest.insertMany(
-      CATALOG.filter((_, i) => !skip.includes(i)).map(
-        ([name, category, type, mrp, base, sampleType, preparation, reportTime, parameters, description, popular]) => ({
+      CATALOG.filter((t) => include(t) && !skip.includes(t.name)).map(
+        ({ name, category, type, mrp, price: base, sampleType, preparation, reportTime, parameters, description, popular }) => ({
           lab: lab._id, name, category, type, mrp, sampleType, preparation, reportTime, parameters, description,
           price: Math.min(mrp, roundPrice(base * factor * (0.92 + rand() * 0.16))),
           homeCollection: sampleType !== 'None',
