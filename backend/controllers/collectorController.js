@@ -1,7 +1,6 @@
 import Booking from '../models/bookingModel.js';
 import Lab from '../models/labModel.js';
-import User from '../models/userModel.js';
-import { emails, notify } from '../services/notify.js';
+import * as events from '../services/events.js';
 import { FIELD_FLOW } from '../utils/constants.js';
 import { ApiError, todayIST } from '../utils/helpers.js';
 
@@ -169,13 +168,9 @@ export async function progress(req, res) {
   }
   await booking.save();
 
-  if (step === 'on_the_way') {
-    const [patientUser, lab] = await Promise.all([
-      User.findById(booking.user).select('email').lean(),
-      Lab.findById(booking.lab).select('name').lean(),
-    ]);
-    notify(emails.collectorOnTheWay(booking, lab?.name || '', req.user, patientUser?.email));
-  }
+  if (step === 'sample_collected') events.bookingStatusChanged(booking._id, { by: 'collector' });
+  else if (step === 'payment_collected') events.paymentReceived(booking._id);
+  else events.fieldProgress(booking._id, step);
 
   await booking.populate('lab', LAB_FIELDS);
   res.json({ booking: sanitizeJob(booking.toObject()) });

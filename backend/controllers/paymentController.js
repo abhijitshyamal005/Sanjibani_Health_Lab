@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Booking from '../models/bookingModel.js';
 import { createOrder, paymentsEnabled, razorpayKeyId, verifySignature } from '../services/payments.js';
+import * as events from '../services/events.js';
 import { ApiError } from '../utils/helpers.js';
 
 function requirePayments() {
@@ -45,5 +46,6 @@ export async function verifyPayment(req, res) {
   booking.paymentMethod = 'online';
   booking.paymentId = paymentId;
   await booking.save();
+  events.paymentReceived(booking._id);
   res.json({ booking: await booking.populate('lab', 'name slug address phone coverTheme reportTime') });
 }

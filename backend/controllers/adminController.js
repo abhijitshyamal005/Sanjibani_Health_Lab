@@ -1,6 +1,6 @@
 import Booking from '../models/bookingModel.js';
 import Coupon from '../models/couponModel.js';
-import { emails, notify } from '../services/notify.js';
+import * as events from '../services/events.js';
 import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import User from '../models/userModel.js';
@@ -106,10 +106,7 @@ export async function setLabStatus(req, res) {
   lab.status = status;
   lab.statusNote = note ? String(note).slice(0, 300) : undefined;
   await lab.save();
-  User.findById(lab.owner)
-    .select('email')
-    .lean()
-    .then((owner) => owner && notify(emails.labStatus(lab, owner.email)));
+  events.labStatusChanged(lab._id);
   res.json({ lab });
 }
 

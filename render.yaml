@@ -18,6 +18,14 @@ services:
         generateValue: true
       - key: CLIENT_ORIGINS
         sync: false
+      - key: APP_URL
+        sync: false
+      - key: COMPANY_NAME
+        value: SanjiBani Health
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: SUPPORT_PHONE
+        sync: false
       - key: EMAIL_ENABLED
         value: "false"
       - key: EMAIL

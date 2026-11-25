@@ -5,7 +5,7 @@ import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
 import User from '../models/userModel.js';
-import { emails, notify } from '../services/notify.js';
+import * as events from '../services/events.js';
 import { storage } from '../services/storage.js';
 import { BOOKING_STATUSES, BOOKING_TRANSITIONS } from '../utils/constants.js';
 import { releaseCoupon } from './bookingController.js';
@@ -81,6 +81,7 @@ export async function createMyLab(req, res) {
     throw new ApiError(409, 'You have already registered a lab');
   }
   const lab = await Lab.create({ ...labUpdate(req.body), owner: req.user._id, status: 'pending' });
+  events.labSubmitted(lab._id);
   res.status(201).json({ lab });
 }
 
@@ -90,11 +91,13 @@ export async function updateMyLab(req, res) {
   if (data.address) data.address = { ...lab.address.toObject(), ...data.address };
   lab.set(data);
   // A rejected lab that edits its profile goes back into the review queue.
-  if (lab.status === 'rejected') {
+  const resubmitted = lab.status === 'rejected';
+  if (resubmitted) {
     lab.status = 'pending';
     lab.statusNote = undefined;
   }
   await lab.save();
+  if (resubmitted) events.labSubmitted(lab._id, { resubmitted: true });
   res.json({ lab });
 }
 
@@ -163,6 +166,7 @@ export async function updateBookingStatus(req, res) {
 
   const cleanNote = note ? String(note).slice(0, 1000) : undefined;
   if (status === 'report_ready' && cleanNote) booking.reportNote = cleanNote;
+  const wasUnpaid = booking.paymentStatus !== 'paid';
   if (status === 'completed') booking.paymentStatus = 'paid';
   if (status === 'cancelled') {
     booking.cancelledBy = 'lab';
@@ -172,7 +176,8 @@ export async function updateBookingStatus(req, res) {
   await booking.save();
   if (status === 'cancelled') await releaseCoupon(booking);
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
-  notify(emails.bookingStatus(booking, lab.name, booking.user?.email, cleanNote));
+  events.bookingStatusChanged(booking._id, { by: 'lab' });
+  if (status === 'completed' && wasUnpaid) events.paymentReceived(booking._id);
   res.json({ booking });
 }
 
@@ -197,6 +202,7 @@ export async function uploadReport(req, res) {
   };
   await booking.save();
   if (previous && previous !== fileName) await storage.remove(previous);
+  events.reportUploaded(booking._id);
   res.json({ booking: await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]) });
 }
 
@@ -364,6 +370,7 @@ export async function createCollector(req, res) {
     throw new ApiError(409, 'An account with this email already exists');
   }
   const collector = await User.create({ name, email, phone, password, role: 'collector', lab: lab._id, city: lab.address?.city });
+  events.collectorAccountCreated(collector._id);
   res.status(201).json({ collector });
 }
 
@@ -413,6 +420,6 @@ export async function assignCollector(req, res) {
   }
   await booking.save();
   await booking.populate([{ path: 'user', select: 'name email phone' }, { path: 'collector', select: 'name phone' }]);
-  if (booking.collector) notify(emails.collectorAssigned(booking, lab.name, booking.collector, booking.user?.email));
+  if (booking.collector) events.collectorAssigned(booking._id);
   res.json({ booking });
 }

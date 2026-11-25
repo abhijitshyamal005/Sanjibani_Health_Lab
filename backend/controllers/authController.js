@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import User from '../models/userModel.js';
+import * as events from '../services/events.js';
 import { emails, notify } from '../services/notify.js';
 import Lab from '../models/labModel.js';
 import { ApiError, pick } from '../utils/helpers.js';
@@ -27,6 +28,7 @@ export async function register(req, res) {
     throw new ApiError(409, 'An account with this email already exists');
   }
   const user = await User.create({ name, email, phone, password, role });
+  events.userRegistered(user);
   res.status(201).json(await authPayload(user));
 }
 
@@ -64,6 +66,7 @@ export async function updateMe(req, res) {
   }
 
   await user.save();
+  if (newPassword) events.passwordChanged(user);
   res.json({ user: user.toJSON() });
 }
 
@@ -102,5 +105,6 @@ export async function resetPassword(req, res) {
   user.resetCodeHash = undefined;
   user.resetCodeExpires = undefined;
   await user.save();
+  events.passwordChanged(user);
   res.json(await authPayload(user));
 }

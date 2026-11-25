@@ -4,8 +4,7 @@ import Coupon from '../models/couponModel.js';
 import Lab from '../models/labModel.js';
 import LabTest from '../models/labTestModel.js';
 import Review from '../models/reviewModel.js';
-import User from '../models/userModel.js';
-import { emails, notify } from '../services/notify.js';
+import * as events from '../services/events.js';
 import { storage } from '../services/storage.js';
 import { CANCELLABLE_BY_PATIENT, COLLECTION_TYPES, MAX_BOOKING_DAYS_AHEAD, TIME_SLOTS } from '../utils/constants.js';
 import { resolveCoupon } from '../utils/coupons.js';
@@ -35,12 +34,6 @@ export async function loadCart(labId, items) {
     throw new ApiError(400, 'Some tests in your cart are no longer available at this lab');
   }
   return { lab, tests, subtotal: tests.reduce((sum, t) => sum + t.price, 0) };
-}
-
-async function labContactEmail(lab) {
-  if (lab.email) return lab.email;
-  const owner = await User.findById(lab.owner).select('email').lean();
-  return owner?.email;
 }
 
 export async function releaseCoupon(booking) {
@@ -156,8 +149,7 @@ export async function createBooking(req, res) {
     throw err;
   }
 
-  notify(emails.bookingPlacedPatient(booking, lab, req.user.email));
-  labContactEmail(lab).then((to) => notify(emails.bookingPlacedLab(booking, lab, to)));
+  events.bookingPlaced(booking._id);
 
   res.status(201).json({ booking: await booking.populate('lab', LAB_SUMMARY) });
 }
@@ -221,6 +213,7 @@ export async function cancelBooking(req, res) {
   booking.setStatus('cancelled', reason);
   await booking.save();
   await releaseCoupon(booking);
+  events.bookingStatusChanged(booking._id, { by: 'patient' });
   res.json({ booking: await booking.populate('lab', LAB_SUMMARY) });
 }
 
@@ -238,6 +231,7 @@ export async function createReview(req, res) {
   booking.reviewed = true;
   await booking.save();
   await Review.recalculateLabRating(booking.lab);
+  events.reviewPosted(review._id);
 
   res.status(201).json({ review });
 }
