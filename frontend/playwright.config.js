@@ -27,7 +27,7 @@ export default defineConfig({
       command: 'node scripts/e2e-server.js',
       cwd: '../backend',
       url: `http://localhost:${API_PORT}/api/health`,
-      env: { E2E_API_PORT: String(API_PORT), CLIENT_ORIGINS: `http://localhost:${WEB_PORT}`, UPI_ID: 'sanjibani-test@okhdfcbank', UPI_NAME: 'SanjiBani Test' },
+      env: { E2E_API_PORT: String(API_PORT), CLIENT_ORIGINS: `http://localhost:${WEB_PORT}`, UPI_ID: 'patholy-test@okhdfcbank', UPI_NAME: 'Patholy Test' },
       reuseExistingServer: false,
       timeout: 120_000,
     },

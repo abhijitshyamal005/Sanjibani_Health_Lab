@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { login, logout } from './helpers';
 
-const COLLECTOR = { email: 'collector1@sanjibani.in', password: 'Collector@123' };
+const COLLECTOR = { email: 'collector1@patholy.in', password: 'Collector@123' };
 
 test.describe.serial('Sample collector & assisted visit', () => {
   let code = '';
@@ -22,7 +22,7 @@ test.describe.serial('Sample collector & assisted visit', () => {
     await page.getByTestId('place-booking').click();
     await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
     code = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Booking #', '').trim();
-    expect(code).toMatch(/^SJB/);
+    expect(code).toMatch(/^PTL/);
   });
 
   test('lab assigns a collector', async ({ page }) => {

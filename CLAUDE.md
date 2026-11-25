@@ -1,4 +1,4 @@
-# Sanjibani Health Lab — project rules
+# Patholy — project rules
 
 Diagnostic-lab marketplace: patients book tests, labs and collectors fulfil them, admins oversee.
 
@@ -41,7 +41,7 @@ cd backend && npm test
 ## SEO
 
 - Every public page calls `useSeo()` from `frontend/src/lib/seo.js` (title, description, canonical, share tags, JSON-LD). New public pages must do the same; private pages get `<NoIndex />` in `App.jsx` and a `Disallow` in `public/robots.txt`.
-- Canonical host is `https://sanjibanilabs.dpdns.org` (`VITE_SITE_URL` overrides it).
+- Canonical host is `https://patholy.dpdns.org` (`VITE_SITE_URL` overrides it).
 - `npm run build` also writes `dist/sitemap.xml` from live API data (`scripts/build-sitemap.mjs`); it falls back to static pages if the API is down.
 - Share image is `public/og-image.png` (1200×630).
 - **Never delete `frontend/public/google0484b97bd9e914fd.html`** — it keeps the site verified in Google Search Console (URL-prefix property `https://sanjibanilabs.dpdns.org/`, sitemap submitted 2026-11-26).
@@ -54,11 +54,11 @@ cd backend && npm test
 
 ## Production
 
-- Website: https://sanjibanilabs.dpdns.org (free DigitalPlat domain, A record → Render 216.24.57.1; renew free within 120 days of expiry, next expiry 2027-11-25)
+- Website: https://patholy.dpdns.org (free DigitalPlat domain, A record → Render 216.24.57.1; renew free within 120 days of expiry). Brand renamed from Sanjibani on 2026-11-26; the old https://sanjibanilabs.dpdns.org stays as a second domain on the same site (expires 2027-11-25).
 - Render default URL: https://sanjibanilabs.onrender.com (Render static site, root `frontend`)
 - Any new frontend URL must be added to the API's `CLIENT_ORIGINS` on Render, or browser calls fail with CORS errors.
 - Live smoke tests (read-only): `cd frontend && npm run test:live` (override target with `LIVE_URL=...`)
 - API: https://sanjibanihealth-lab.onrender.com (Render web service, root `backend`)
 - Mirror: https://sanjibani-health-lab.vercel.app (Vercel, root `frontend`)
-- Database: MongoDB Atlas, database `sanjibani`
+- Database: MongoDB Atlas, database `sanjibani` (infrastructure names — DB, Render services, API URL — keep the old name on purpose)
 - Transactional emails are defined in `backend/services/events.js`.

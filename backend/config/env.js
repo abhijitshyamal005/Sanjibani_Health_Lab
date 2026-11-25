@@ -1,5 +1,5 @@
 /** Startup checks for production deployments. Exits with a clear list of what is missing. */
-const DEV_SECRET = 'sanjibani-dev-secret-change-me';
+const DEV_SECRET = 'patholy-dev-secret-change-me';
 
 export function validateEnv() {
   const env = process.env.NODE_ENV || 'development';
@@ -12,7 +12,7 @@ export function validateEnv() {
     if (!secret || secret === DEV_SECRET || secret.length < 32) {
       errors.push('JWT_SECRET — a random string of at least 32 characters');
     }
-    if (!process.env.CLIENT_ORIGINS) errors.push('CLIENT_ORIGINS — comma-separated frontend URLs, e.g. https://sanjibani.vercel.app');
+    if (!process.env.CLIENT_ORIGINS) errors.push('CLIENT_ORIGINS — comma-separated frontend URLs, e.g. https://patholy.vercel.app');
   }
 
   const mailApi = process.env.BREVO_API_KEY || process.env.RESEND_API_KEY;

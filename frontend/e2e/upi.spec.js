@@ -17,7 +17,7 @@ test('free UPI: patient pays by QR + UTR, admin confirms, patient sees it paid',
   await expect(page).toHaveURL(/\/bookings\/[a-f0-9]{24}/);
   const upi = page.getByTestId('upi-pay');
   await expect(upi.getByRole('img', { name: /UPI QR code/ })).toBeVisible();
-  await expect(upi).toContainText('sanjibani-test@okhdfcbank');
+  await expect(upi).toContainText('patholy-test@okhdfcbank');
   // Nothing in the UPI panel may spill outside its card (long UPI IDs used to overflow the sidebar).
   const overflow = await page.locator('#upi-pay').evaluate((card) => {
     const box = card.getBoundingClientRect();

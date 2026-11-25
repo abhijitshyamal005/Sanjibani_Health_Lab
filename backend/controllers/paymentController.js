@@ -29,7 +29,7 @@ async function payeeFor(booking) {
 export async function upiDetails(req, res) {
   const booking = await payableBooking(req, req.params.bookingId);
   const to = await payeeFor(booking);
-  const note = `SanjiBani ${booking.code}`;
+  const note = `Patholy ${booking.code}`;
   res.json({ upiId: to.upiId, payee: to.payee, amount: booking.total, note, uri: upiUri({ upiId: to.upiId, payee: to.payee, amount: booking.total, note }) });
 }
 

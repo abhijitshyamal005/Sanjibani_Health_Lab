@@ -1,4 +1,4 @@
-# Render Blueprint — deploys the Sanjibani API. In Render: New → Blueprint → pick this repo.
+# Render Blueprint — deploys the Patholy API. In Render: New → Blueprint → pick this repo.
 services:
   - type: web
     name: sanjibani-api
@@ -21,7 +21,7 @@ services:
       - key: APP_URL
         sync: false
       - key: COMPANY_NAME
-        value: SanjiBani Health
+        value: Patholy
       - key: SUPPORT_EMAIL
         sync: false
       - key: SUPPORT_PHONE
@@ -39,7 +39,7 @@ services:
       - key: UPI_ID
         sync: false
       - key: UPI_NAME
-        value: SanjiBani Health
+        value: Patholy
       - key: STORAGE_DRIVER
         value: local
       - key: S3_BUCKET

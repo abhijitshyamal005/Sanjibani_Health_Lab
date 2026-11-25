@@ -98,16 +98,16 @@ export function userRegistered(user) {
     if (user.role === 'lab') {
       await toLabs(
         user.email,
-        'Welcome to SanjiBani for labs',
+        'Welcome to Patholy for labs',
         `Welcome, ${user.name}!`,
-        p('Thanks for registering your lab with SanjiBani.') +
+        p('Thanks for registering your lab with Patholy.') +
           p('<b>Next steps:</b> 1) add your lab details, 2) add your tests and prices, 3) our team verifies your lab and it goes live for patients.') +
           button(appUrl('/partner'), 'Complete your lab profile')
       );
     } else {
       await send(
         user.email,
-        'Welcome to SanjiBani',
+        'Welcome to Patholy',
         `Welcome, ${user.name}!`,
         p('Compare lab test prices across verified labs, book home sample collection or a lab visit, and get your reports online.') +
           button(appUrl('/tests'), 'Find a test')
@@ -120,9 +120,9 @@ export function passwordChanged(user) {
   fire(() =>
     send(
       user.email,
-      'Your SanjiBani password was changed',
+      'Your Patholy password was changed',
       'Password changed',
-      p(`Hi ${esc(user.name)}, the password for your SanjiBani account was just changed.`) +
+      p(`Hi ${esc(user.name)}, the password for your Patholy account was just changed.`) +
         p("If this wasn't you, reset your password immediately and contact support.") +
         button(appUrl('/forgot-password'), 'Reset password')
     )
@@ -137,7 +137,7 @@ export function collectorAccountCreated(collectorId) {
       c.email,
       `You're now a sample collector for ${c.lab?.name}`,
       `Welcome, ${c.name}!`,
-      p(`<b>${esc(c.lab?.name)}</b> has added you as a sample collector on SanjiBani.`) +
+      p(`<b>${esc(c.lab?.name)}</b> has added you as a sample collector on Patholy.`) +
         p(`Log in with <b>${esc(c.email)}</b> and the password your lab gave you (or use "Forgot password"). You'll see the jobs assigned to you, directions and your earnings.`) +
         button(appUrl('/login'), 'Open the collector app')
     );
@@ -154,7 +154,7 @@ export function labSubmitted(labId, { resubmitted = false } = {}) {
       await labEmail(lab),
       `${lab.name} ${resubmitted ? 're-submitted' : 'submitted'} for verification`,
       'Your lab is under review',
-      p(`Thanks! <b>${esc(lab.name)}</b> is now being verified by the SanjiBani team. This usually takes up to 24 hours.`) +
+      p(`Thanks! <b>${esc(lab.name)}</b> is now being verified by the Patholy team. This usually takes up to 24 hours.`) +
         p('Meanwhile, add your tests and prices so you are ready to go live.') +
         button(appUrl('/partner/tests'), 'Add tests & prices')
     );
@@ -179,13 +179,13 @@ export function labStatusChanged(labId) {
     const lab = await Lab.findById(labId);
     if (!lab) return;
     const to = await labEmail(lab);
-    const note = lab.statusNote ? p(`<b>Note from SanjiBani:</b> ${esc(lab.statusNote)}`) : '';
+    const note = lab.statusNote ? p(`<b>Note from Patholy:</b> ${esc(lab.statusNote)}`) : '';
     if (lab.status === 'approved') {
-      await send(to, `${lab.name} is now live on SanjiBani 🎉`, 'Your lab is live!', p('Patients can now find your lab, compare your prices and book tests.') + note + button(appUrl('/partner'), 'Open your dashboard'));
+      await send(to, `${lab.name} is now live on Patholy 🎉`, 'Your lab is live!', p('Patients can now find your lab, compare your prices and book tests.') + note + button(appUrl('/partner'), 'Open your dashboard'));
     } else if (lab.status === 'rejected') {
       await send(to, `${lab.name} was not approved`, 'Your lab needs changes', p('Please update your lab profile based on the note below and save it — it will be re-submitted automatically.') + note + button(appUrl('/partner/profile'), 'Update lab profile'));
     } else if (lab.status === 'suspended') {
-      await send(to, `${lab.name} has been suspended`, 'Your lab is suspended', p('Your lab is temporarily hidden from patients.') + note + p('Reply to this email or contact SanjiBani support to resolve it.'));
+      await send(to, `${lab.name} has been suspended`, 'Your lab is suspended', p('Your lab is temporarily hidden from patients.') + note + p('Reply to this email or contact Patholy support to resolve it.'));
     } else {
       await send(to, `${lab.name} is under review`, 'Your lab is under review', p('Your lab is waiting for verification.') + note);
     }
@@ -241,7 +241,7 @@ const PATIENT_STATUS = {
   }),
   completed: (b) => ({
     subject: `Thank you — booking #${b.code} completed`,
-    title: 'Thank you for choosing SanjiBani',
+    title: 'Thank you for choosing Patholy',
     body: p(`Your booking with ${esc(b.lab.name)} is complete.`) + p('How was your experience? Your rating helps other patients choose the right lab.'),
     cta: 'Rate your experience',
   }),
@@ -252,7 +252,7 @@ const PATIENT_STATUS = {
       p(by === 'patient' ? 'Your booking has been cancelled as requested.' : `${esc(b.lab.name)} had to cancel your booking.`) +
       (b.cancelReason ? p(`<b>Reason:</b> ${esc(b.cancelReason)}`) : '') +
       (b.paymentMethod === 'upi_direct' && b.paymentStatus === 'paid'
-        ? p(`Your UPI payment of <b>₹${b.total}</b> will be refunded to your UPI account within 3 working days. Contact ${b.upiPayee === 'lab' ? `${esc(b.lab.name)} at ${esc(b.lab.phone)}` : 'SanjiBani support'} if you don't receive it.`)
+        ? p(`Your UPI payment of <b>₹${b.total}</b> will be refunded to your UPI account within 3 working days. Contact ${b.upiPayee === 'lab' ? `${esc(b.lab.name)} at ${esc(b.lab.phone)}` : 'Patholy support'} if you don't receive it.`)
         : ''),
     cta: 'Book again',
     href: appUrl('/tests'),
@@ -373,7 +373,7 @@ export function upiSubmitted(bookingId) {
       to,
       `Confirm UPI payment ₹${b.total} — booking #${b.code}`,
       'Please confirm a UPI payment',
-      p(`${esc(b.patient.name)} says they paid <b>₹${b.total}</b> to ${b.upiPayee === 'platform' ? 'the SanjiBani UPI ID' : 'your UPI ID'} for ${esc(b.lab.name)}.`) +
+      p(`${esc(b.patient.name)} says they paid <b>₹${b.total}</b> to ${b.upiPayee === 'platform' ? 'the Patholy UPI ID' : 'your UPI ID'} for ${esc(b.lab.name)}.`) +
         p(`UPI transaction ID (UTR): <b style="font-size:17px;letter-spacing:1px">${esc(b.upiRef)}</b>`) +
         p('Check your bank or UPI app for this transaction, then mark it as received (or not received) on the booking.') +
         button(appUrl(b.upiPayee === 'platform' ? '/admin/bookings' : '/partner/bookings'), 'Verify payment')

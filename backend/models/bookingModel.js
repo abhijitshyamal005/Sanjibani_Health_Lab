@@ -7,7 +7,7 @@ const bookingSchema = new mongoose.Schema(
     code: {
       type: String,
       unique: true,
-      default: () => `SJB${crypto.randomInt(100000, 999999)}${crypto.randomBytes(1).toString('hex').toUpperCase()}`,
+      default: () => `PTL${crypto.randomInt(100000, 999999)}${crypto.randomBytes(1).toString('hex').toUpperCase()}`,
     },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', required: true, index: true },

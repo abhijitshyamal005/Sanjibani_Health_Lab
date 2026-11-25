@@ -35,10 +35,10 @@ before(async () => {
   await mongoose.connect(mongod.getUri('sjb-enh'));
   app = createApp();
   await seedDatabase({ reset: true });
-  ctx.patient = await loginAs('patient@sanjibani.in', 'Patient@123');
-  ctx.lab = await loginAs('lab1@sanjibani.in', 'Lab@1234');
-  ctx.lab2 = await loginAs('lab2@sanjibani.in', 'Lab@1234');
-  ctx.admin = await loginAs('admin@sanjibani.in', 'Admin@123');
+  ctx.patient = await loginAs('patient@patholy.in', 'Patient@123');
+  ctx.lab = await loginAs('lab1@patholy.in', 'Lab@1234');
+  ctx.lab2 = await loginAs('lab2@patholy.in', 'Lab@1234');
+  ctx.admin = await loginAs('admin@patholy.in', 'Admin@123');
 
   const labs = await api().get('/api/labs?q=Lifeline');
   ctx.labSlug = labs.body.items[0].slug;
@@ -229,7 +229,7 @@ describe('reports', () => {
     });
     assert.equal(dl.status, 200);
     assert.equal(dl.headers['content-type'], 'application/pdf');
-    assert.match(dl.headers['content-disposition'], /attachment; filename="Sanjibani-Report-SJB.+\.pdf"/);
+    assert.match(dl.headers['content-disposition'], /attachment; filename="Patholy-Report-PTL.+\.pdf"/);
     assert.ok(dl.body.equals(PDF));
 
     assert.equal((await api().get(`/api/bookings/${id}/report`).set(auth(ctx.lab)).buffer(true)).status, 200);

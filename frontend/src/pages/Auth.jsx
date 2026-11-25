@@ -120,10 +120,10 @@ export function Login() {
         <p className="font-bold text-ink-soft">Demo accounts</p>
         <ul className="mt-2 space-y-1">
           {[
-            ['Patient', 'patient@sanjibani.in', 'Patient@123'],
-            ['Lab partner', 'lab1@sanjibani.in', 'Lab@1234'],
-            ['Sample collector', 'collector1@sanjibani.in', 'Collector@123'],
-            ['Admin', 'admin@sanjibani.in', 'Admin@123'],
+            ['Patient', 'patient@patholy.in', 'Patient@123'],
+            ['Lab partner', 'lab1@patholy.in', 'Lab@1234'],
+            ['Sample collector', 'collector1@patholy.in', 'Collector@123'],
+            ['Admin', 'admin@patholy.in', 'Admin@123'],
           ].map(([role, email, password]) => (
             <li key={role}>
               <button type="button" className="text-left hover:text-brand-700" onClick={() => setForm({ email, password })}>

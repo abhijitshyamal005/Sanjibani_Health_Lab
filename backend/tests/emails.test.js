@@ -54,8 +54,8 @@ describe('email notifications across the whole flow', () => {
     ctx.patient = (await api().post('/api/auth/register').send(PATIENT)).body.token;
     ctx.owner = (await api().post('/api/auth/register').send(OWNER)).body.token;
     const m = await mails();
-    expectMail(m, PATIENT.email, /Welcome to SanjiBani$/);
-    expectMail(m, OWNER.email, /Welcome to SanjiBani for labs/);
+    expectMail(m, PATIENT.email, /Welcome to Patholy$/);
+    expectMail(m, OWNER.email, /Welcome to Patholy for labs/);
   });
 
   test('lab submission emails the lab and admins; approval emails the lab', async () => {

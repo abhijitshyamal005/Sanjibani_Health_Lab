@@ -9,10 +9,10 @@ import { todayIST } from '../utils/helpers.js';
 import { LAB_CATALOG } from './labCatalog.js';
 
 export const DEMO_ACCOUNTS = {
-  admin: { email: 'admin@sanjibani.in', password: 'Admin@123' },
-  patient: { email: 'patient@sanjibani.in', password: 'Patient@123' },
-  lab: { email: 'lab1@sanjibani.in', password: 'Lab@1234' },
-  collector: { email: 'collector1@sanjibani.in', password: 'Collector@123' },
+  admin: { email: 'admin@patholy.in', password: 'Admin@123' },
+  patient: { email: 'patient@patholy.in', password: 'Patient@123' },
+  lab: { email: 'lab1@patholy.in', password: 'Lab@1234' },
+  collector: { email: 'collector1@patholy.in', password: 'Collector@123' },
 };
 
 // Deterministic pseudo-random so the demo data looks the same on every seed.
@@ -63,7 +63,7 @@ const routineOnly = (t) => t.type === 'test' && !['Imaging', 'Allergy'].includes
 
 const LABS = [
   {
-    owner: ['Arindam Ghosh', 'lab1@sanjibani.in', '9830011111'],
+    owner: ['Arindam Ghosh', 'lab1@patholy.in', '9830011111'],
     name: 'Lifeline Pathology', tagline: 'NABL-accredited lab with 20 years of trust',
     description: 'Lifeline Pathology is a fully automated diagnostic centre in Salt Lake with trained phlebotomists for safe home collection across Kolkata.',
     address: { line: 'CK-12, Sector II', area: 'Salt Lake', city: 'Kolkata', pincode: '700091' },
@@ -71,7 +71,7 @@ const LABS = [
     establishedYear: 2005, coverTheme: 0, factor: 1.0, skip: [XRAY], status: 'approved',
   },
   {
-    owner: ['Priya Banerjee', 'lab2@sanjibani.in', '9830022222'],
+    owner: ['Priya Banerjee', 'lab2@patholy.in', '9830022222'],
     name: 'CarePoint Diagnostics', tagline: 'Free home collection, reports on WhatsApp',
     description: 'CarePoint offers affordable pathology with free home sample collection anywhere in central Kolkata.',
     address: { line: '45 Park Street', area: 'Park Street', city: 'Kolkata', pincode: '700016' },
@@ -79,7 +79,7 @@ const LABS = [
     establishedYear: 2012, coverTheme: 1, factor: 0.88, skip: [ALLERGY, XRAY, 'Testosterone, Total', 'Hemogram (CBC + ESR)'], status: 'approved',
   },
   {
-    owner: ['Karthik Rao', 'lab3@sanjibani.in', '9845033333'],
+    owner: ['Karthik Rao', 'lab3@patholy.in', '9845033333'],
     name: 'GreenLeaf Labs', tagline: 'Precision diagnostics, compassionate care',
     description: 'GreenLeaf Labs in Indiranagar runs a CAP-standard lab with same-day reports for most routine tests.',
     address: { line: '100 Feet Road, HAL 2nd Stage', area: 'Indiranagar', city: 'Bengaluru', pincode: '560038' },
@@ -87,7 +87,7 @@ const LABS = [
     establishedYear: 2015, coverTheme: 2, factor: 1.12, skip: [XRAY, 'Typhoid (Widal Test)', 'Hepatitis C Antibody (Anti-HCV)'], status: 'approved',
   },
   {
-    owner: ['Neha Kapoor', 'lab4@sanjibani.in', '9810044444'],
+    owner: ['Neha Kapoor', 'lab4@patholy.in', '9810044444'],
     name: 'MedScan Health Centre', tagline: 'Pathology + digital X-ray under one roof',
     description: 'MedScan combines a NABH-accredited imaging centre with a full pathology lab in South Delhi.',
     address: { line: 'B-12, Defence Colony Road', area: 'Lajpat Nagar', city: 'Delhi', pincode: '110024' },
@@ -95,7 +95,7 @@ const LABS = [
     establishedYear: 2009, coverTheme: 3, factor: 1.05, skip: [ALLERGY], status: 'approved',
   },
   {
-    owner: ['Rahul Mehta', 'lab5@sanjibani.in', '9820055555'],
+    owner: ['Rahul Mehta', 'lab5@patholy.in', '9820055555'],
     name: 'Pulse Diagnostics', tagline: 'Early morning slots from 6 AM',
     description: 'Pulse Diagnostics serves Andheri and the western suburbs with early morning home collection.',
     address: { line: 'Shop 3, Lokhandwala Complex', area: 'Andheri West', city: 'Mumbai', pincode: '400053' },
@@ -103,7 +103,7 @@ const LABS = [
     establishedYear: 2018, coverTheme: 4, factor: 0.95, skip: [XRAY, 'Cardiac Risk Markers', 'PCOD Screening Panel', 'Full Body Checkup – Essential Plus (57 tests)'], status: 'approved',
   },
   {
-    owner: ['Sourav Das', 'lab6@sanjibani.in', '9830066666'],
+    owner: ['Sourav Das', 'lab6@patholy.in', '9830066666'],
     name: 'Wellness Path Lab', tagline: 'Your neighbourhood lab in Behala',
     description: 'A small neighbourhood lab focused on routine blood work at fair prices.',
     address: { line: '22 Diamond Harbour Road', area: 'Behala', city: 'Kolkata', pincode: '700034' },
@@ -154,9 +154,9 @@ const LAB_EXTRAS = {
 };
 
 const COLLECTORS = [
-  ['Bikash Mondal', 'collector1@sanjibani.in', '9830077771', 'Lifeline Pathology'],
-  ['Rupa Saha', 'collector2@sanjibani.in', '9830077772', 'Lifeline Pathology'],
-  ['Tanmoy Paul', 'collector3@sanjibani.in', '9830077773', 'CarePoint Diagnostics'],
+  ['Bikash Mondal', 'collector1@patholy.in', '9830077771', 'Lifeline Pathology'],
+  ['Rupa Saha', 'collector2@patholy.in', '9830077772', 'Lifeline Pathology'],
+  ['Tanmoy Paul', 'collector3@patholy.in', '9830077773', 'CarePoint Diagnostics'],
 ];
 
 const payoutFor = (lab, type) => (type === 'assisted_visit' ? lab.collectorPayoutAssisted ?? 120 : lab.collectorPayoutHome ?? 60);
@@ -227,8 +227,8 @@ export async function ensureDemoCollectors() {
     }
     if (c) collectors[email] = c;
   }
-  const c1 = collectors['collector1@sanjibani.in'];
-  const c3 = collectors['collector3@sanjibani.in'];
+  const c1 = collectors['collector1@patholy.in'];
+  const c3 = collectors['collector3@patholy.in'];
 
   // Assign every open home booking at these labs.
   for (const [labName, collector] of [['Lifeline Pathology', c1], ['CarePoint Diagnostics', c3]]) {
@@ -300,7 +300,7 @@ export async function seedDatabase({ reset = false, append = false, includeAdmin
   await ensureDemoCoupons();
 
   if (includeAdmin) {
-    await User.create({ name: 'Sanjibani Admin', email: DEMO_ACCOUNTS.admin.email, phone: '9000000001', password: pw(DEMO_ACCOUNTS.admin.password), role: 'admin' });
+    await User.create({ name: 'Patholy Admin', email: DEMO_ACCOUNTS.admin.email, phone: '9000000001', password: pw(DEMO_ACCOUNTS.admin.password), role: 'admin' });
   }
 
   const patients = [];

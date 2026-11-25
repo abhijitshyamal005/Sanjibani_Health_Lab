@@ -6,7 +6,7 @@ import connectDB from '../config/db.js';
 import { seedDatabase } from './seedData.js';
 
 const mongod = await MongoMemoryServer.create();
-await connectDB(mongod.getUri('sanjibani-e2e'));
+await connectDB(mongod.getUri('patholy-e2e'));
 await seedDatabase({ reset: true });
 
 const PORT = Number(process.env.E2E_API_PORT) || 5055;

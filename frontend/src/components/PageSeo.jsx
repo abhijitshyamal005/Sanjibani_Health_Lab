@@ -2,10 +2,10 @@ import { useParams } from 'react-router-dom';
 import { useSeo } from '../lib/seo';
 
 const LEGAL = {
-  terms: ['Terms of Service', 'The terms that apply when you book lab tests through Sanjibani.'],
-  privacy: ['Privacy Policy', 'How Sanjibani collects, uses and protects your personal and health information.'],
-  refunds: ['Refund & Cancellation Policy', 'How cancellations, rescheduling and refunds work for lab test bookings on Sanjibani.'],
-  contact: ['Contact us', 'Get help with a lab test booking, a report or a payment. Reach the Sanjibani support team.'],
+  terms: ['Terms of Service', 'The terms that apply when you book lab tests through Patholy.'],
+  privacy: ['Privacy Policy', 'How Patholy collects, uses and protects your personal and health information.'],
+  refunds: ['Refund & Cancellation Policy', 'How cancellations, rescheduling and refunds work for lab test bookings on Patholy.'],
+  contact: ['Contact us', 'Get help with a lab test booking, a report or a payment. Reach the Patholy support team.'],
 };
 
 export function LegalSeo() {

@@ -15,7 +15,7 @@ try {
   process.exit(1);
 }
 
-const server = createApp().listen(PORT, () => console.log(`Sanjibani API running on http://localhost:${PORT}`));
+const server = createApp().listen(PORT, () => console.log(`Patholy API running on http://localhost:${PORT}`));
 
 let shuttingDown = false;
 function shutdown(signal) {

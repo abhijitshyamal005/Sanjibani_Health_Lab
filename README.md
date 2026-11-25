@@ -1,6 +1,6 @@
-# Sanjibani: a marketplace for diagnostic labs
+# Patholy: a marketplace for diagnostic labs
 
-Sanjibani works like Swiggy or Zomato, but labs take the place of restaurants and tests take the place of dishes. Labs register and list their tests with prices. Patients compare prices across labs and book a home sample collection or a lab visit. An admin approves labs and watches the platform.
+Patholy works like Swiggy or Zomato, but labs take the place of restaurants and tests take the place of dishes. Labs register and list their tests with prices. Patients compare prices across labs and book a home sample collection or a lab visit. An admin approves labs and watches the platform.
 
 The product spec is in [docs/PRD.md](docs/PRD.md). The step-by-step guide for deploying on free services is in [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
@@ -43,10 +43,10 @@ npm run dev
 
 | Role | Email | Password |
 |---|---|---|
-| Patient | patient@sanjibani.in | Patient@123 |
-| Lab partner | lab1@sanjibani.in (to lab6) | Lab@1234 |
-| Admin | admin@sanjibani.in | Admin@123 |
-| Collector (field staff) | collector1@sanjibani.in (to collector3) | Collector@123 |
+| Patient | patient@patholy.in | Patient@123 |
+| Lab partner | lab1@patholy.in (to lab6) | Lab@1234 |
+| Admin | admin@patholy.in | Admin@123 |
+| Collector (field staff) | collector1@patholy.in (to collector3) | Collector@123 |
 
 `lab6` (Wellness Path Lab) starts as **pending**, so you can try the admin approval flow.
 

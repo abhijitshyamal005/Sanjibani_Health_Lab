@@ -1,10 +1,10 @@
-# Sanjibani — Product Requirements Document
+# Patholy — Product Requirements Document
 
 **Version:** 1.0 (MVP) · **Date:** 2026-11-25
 
 ## 1. One-liner
 
-Sanjibani is a marketplace for diagnostic laboratories, in the way Swiggy and Zomato are marketplaces for restaurants. Labs register and list their tests and packages with prices. Patients discover nearby labs, compare prices for the same test across labs, and book a home sample collection or a lab visit.
+Patholy is a marketplace for diagnostic laboratories, in the way Swiggy and Zomato are marketplaces for restaurants. Labs register and list their tests and packages with prices. Patients discover nearby labs, compare prices for the same test across labs, and book a home sample collection or a lab visit.
 
 ## 2. Problem
 
@@ -17,12 +17,12 @@ Sanjibani is a marketplace for diagnostic laboratories, in the way Swiggy and Zo
 |---|---|---|
 | **Patient** | Anyone booking a test | Find labs, compare prices, book, track status, review |
 | **Lab partner** | Owner or manager of a diagnostic lab | Register lab, manage test catalogue and prices, handle bookings, update status |
-| **Admin** | Sanjibani operations | Approve or reject labs, monitor users, bookings and platform stats |
+| **Admin** | Patholy operations | Approve or reject labs, monitor users, bookings and platform stats |
 | **Collector** (lab field staff) | A phlebotomist or field executive employed by a lab. The lab creates the account | See assigned jobs only, with no prices. Collect samples at home or escort patients for assisted visits. Update each step and record cash. See own earnings |
 
-## 4. Swiggy/Zomato → Sanjibani mapping
+## 4. Swiggy/Zomato → Patholy mapping
 
-| Food delivery | Sanjibani |
+| Food delivery | Patholy |
 |---|---|
 | Restaurant | Laboratory |
 | Menu item | Test / health package |

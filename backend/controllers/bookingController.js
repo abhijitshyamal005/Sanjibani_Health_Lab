@@ -194,7 +194,7 @@ export async function downloadReport(req, res) {
     throw new ApiError(404, 'Report file not found');
   }
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="Sanjibani-Report-${booking.code}.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="Patholy-Report-${booking.code}.pdf"`);
   if (booking.report.size) res.setHeader('Content-Length', String(booking.report.size));
   stream.on('error', () => res.destroy());
   stream.pipe(res);

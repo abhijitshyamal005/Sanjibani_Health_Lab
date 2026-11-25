@@ -65,7 +65,7 @@ describe('free UPI payments', () => {
     assert.match(res.body.message, /pay at collection/);
   });
 
-  test('platform UPI: patient pays SanjiBani, admin verifies (lab cannot)', async () => {
+  test('platform UPI: patient pays Patholy, admin verifies (lab cannot)', async () => {
     process.env.UPI_ID = 'abhijitshyamal005-3@okhdfcbank';
     process.env.UPI_NAME = 'Abhijit Shyamal';
     assert.equal((await api().get('/api/meta')).body.upiAvailable, true);
@@ -75,7 +75,7 @@ describe('free UPI payments', () => {
     assert.equal(details.status, 200);
     assert.equal(details.body.upiId, 'abhijitshyamal005-3@okhdfcbank');
     assert.equal(details.body.payee, 'Abhijit Shyamal');
-    assert.match(details.body.uri, /^upi:\/\/pay\?pa=abhijitshyamal005-3%40okhdfcbank&pn=Abhijit\+Shyamal&am=450\.00&cu=INR&tn=SanjiBani\+SJB/);
+    assert.match(details.body.uri, /^upi:\/\/pay\?pa=abhijitshyamal005-3%40okhdfcbank&pn=Abhijit\+Shyamal&am=450\.00&cu=INR&tn=Patholy\+PTL/);
 
     assert.equal((await api().post(`/api/payments/upi/${id}/submit`).set(auth(ctx.patient)).send({ utr: '12' })).status, 400);
     await mails();
@@ -89,7 +89,7 @@ describe('free UPI payments', () => {
 
     const byLab = await api().patch(`/api/partner/bookings/${id}/payment`).set(auth(ctx.owner)).send({ action: 'confirm' });
     assert.equal(byLab.status, 400);
-    assert.match(byLab.body.message, /SanjiBani team will verify/);
+    assert.match(byLab.body.message, /Patholy team will verify/);
 
     const ok = await api().patch(`/api/admin/bookings/${id}/payment`).set(auth(ctx.admin)).send({ action: 'confirm' });
     assert.equal(ok.status, 200, ok.body.message);

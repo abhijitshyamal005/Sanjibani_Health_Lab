@@ -202,7 +202,7 @@ export default function Home() {
       {/* How it works */}
       <section className="container-page mt-16">
         <div className="rounded-4xl bg-white p-6 shadow-card sm:p-10">
-          <SectionTitle title="How Sanjibani works" />
+          <SectionTitle title="How Patholy works" />
           <div className="grid gap-6 md:grid-cols-3">
             {STEPS.map(({ icon: Icon, title, text }, i) => (
               <div key={title} className="flex gap-4">

@@ -2,7 +2,7 @@
 // Pulls live data from the API; if the API is unreachable the build still succeeds with the static pages.
 import { writeFileSync } from 'node:fs';
 
-const SITE = (process.env.VITE_SITE_URL || 'https://sanjibanilabs.dpdns.org').replace(/\/$/, '');
+const SITE = (process.env.VITE_SITE_URL || 'https://patholy.dpdns.org').replace(/\/$/, '');
 const API = (process.env.SITEMAP_API_URL || (/^https?:/.test(process.env.VITE_API_URL || '') ? process.env.VITE_API_URL : '') || 'https://sanjibanihealth-lab.onrender.com/api').replace(/\/$/, '');
 const OUT = new URL('../dist/sitemap.xml', import.meta.url);
 const today = new Date().toISOString().slice(0, 10);

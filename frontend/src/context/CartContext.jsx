@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-const KEY = 'sanjibani.cart';
+const KEY = 'patholy.cart';
 const EMPTY = { lab: null, items: [] };
 const CartContext = createContext(null);
 
