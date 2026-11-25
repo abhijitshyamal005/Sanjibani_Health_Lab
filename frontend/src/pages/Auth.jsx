@@ -72,6 +72,16 @@ export function redirectTarget(user, next) {
   return homeFor(user);
 }
 
+/**
+ * Where a brand-new account goes. `next` usually comes from a private page the
+ * visitor was bounced off (e.g. a booking link from someone's email), which a
+ * new account can't own — so only the cart checkout intent is honoured.
+ */
+export function registerTarget(user, next) {
+  if (user.role === 'patient' && next && /^\/cart(?:[?#]|$)/.test(next)) return next;
+  return homeFor(user);
+}
+
 export function Login() {
   const { login, user } = useAuth();
   const [params] = useSearchParams();
@@ -148,7 +158,7 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const next = params.get('next');
 
-  if (user) return <Navigate to={redirectTarget(user, next)} replace />;
+  if (user) return <Navigate to={registerTarget(user, next)} replace />;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -157,7 +167,7 @@ export function Register() {
     setLoading(true);
     try {
       const u = await register({ ...form, role });
-      navigate(redirectTarget(u, next), { replace: true });
+      navigate(registerTarget(u, next), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
