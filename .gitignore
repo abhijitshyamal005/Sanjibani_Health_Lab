@@ -7,3 +7,4 @@ frontend/test-results/
 frontend/playwright-report/
 .DS_Store
 backend/uploads/
+frontend/.deploy/

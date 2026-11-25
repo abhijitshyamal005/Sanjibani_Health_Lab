@@ -7,6 +7,9 @@ import { Button, Field } from '../components/ui';
 import { useApp } from '../context/AppContext';
 import { useAuth, homeFor } from '../context/AuthContext';
 
+// Demo logins only exist in local/dev data — never show them on the live site.
+const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO === 'true';
+
 export function AuthShell({ title, subtitle, children }) {
   const { meta } = useApp();
   return (
@@ -111,6 +114,7 @@ export function Login() {
       <p className="mt-6 text-center text-sm text-ink-muted">
         New here? <Link to={`/register${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="font-bold text-brand-700">Create an account</Link>
       </p>
+      {SHOW_DEMO && (
       <div className="mt-8 rounded-2xl border border-dashed border-slate-300 p-4 text-xs text-ink-muted">
         <p className="font-bold text-ink-soft">Demo accounts</p>
         <ul className="mt-2 space-y-1">
@@ -128,6 +132,7 @@ export function Login() {
           ))}
         </ul>
       </div>
+      )}
     </AuthShell>
   );
 }
