@@ -1,19 +1,49 @@
+import { useId } from 'react';
 import { Link } from 'react-router-dom';
 import { Microscope, TestTubes, FlaskConical, HeartPulse, Dna, Activity } from 'lucide-react';
 import { initials } from '../lib/format';
 
+/** The SanjiBani mark: a life-giving herb leaf with a pulse running through it. */
+export function LogoMark({ className = 'h-9 w-9' }) {
+  const id = `sjb${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <svg viewBox="0 0 64 64" className={`shrink-0 ${className}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#14532d" />
+          <stop offset="1" stopColor="#0f766e" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="18" fill={`url(#${id})`} />
+      <path d="M14 50C14 26 26 14 50 14C50 38 38 50 14 50Z" fill="#fff" />
+      <path
+        d="M9 36h12l4-9 6 17 4-11 3 3h17"
+        fill="none"
+        stroke="#f97316"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function Logo({ to = '/', light = false, suffix }) {
   return (
-    <Link to={to} className="flex items-center gap-2" aria-label="Sanjibani home">
-      <svg viewBox="0 0 64 64" className="h-9 w-9 shrink-0" aria-hidden="true">
-        <rect width="64" height="64" rx="18" fill="#f97316" />
-        <path d="M32 11c-7.5 10.5-15 19-15 27.5a15 15 0 0 0 30 0C47 30 39.5 21.5 32 11z" fill="#fff" />
-        <path d="M32 45V31m-7 7h14" stroke="#16a34a" strokeWidth="4.5" strokeLinecap="round" />
-      </svg>
-      <span className="text-xl font-extrabold tracking-tight">
-        <span className={light ? 'text-brand-300' : 'text-brand-600'}>Sanji</span>
-        <span className={light ? 'text-coral-300' : 'text-coral-500'}>Bani</span>
-        {suffix && <span className="ml-1.5 align-middle text-xs font-bold uppercase tracking-wider text-coral-500">{suffix}</span>}
+    <Link to={to} className="flex items-center gap-2.5" aria-label="Sanjibani home">
+      <LogoMark className="h-10 w-10" />
+      <span className="flex flex-col leading-none">
+        <span className="flex items-center text-xl font-bold tracking-tight">
+          <span className={light ? 'text-brand-300' : 'text-brand-600'}>Sanji</span>
+          <span className={light ? 'text-coral-300' : 'text-coral-600'}>Bani</span>
+          {suffix && <span className="ml-1.5 text-xs font-bold uppercase tracking-wider text-coral-500">{suffix}</span>}
+        </span>
+        <span
+          data-testid="logo-tagline"
+          className={`mt-1 text-[9.5px] font-semibold uppercase tracking-[0.22em] ${light ? 'text-white/60' : 'text-ink-muted'}`}
+        >
+          Health Lab
+        </span>
       </span>
     </Link>
   );
