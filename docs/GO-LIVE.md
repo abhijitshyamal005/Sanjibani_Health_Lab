@@ -28,10 +28,14 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
    - Access Key ID and Secret Access Key
    - Endpoint: `https://<account-id>.r2.cloudflarestorage.com`
 
-## 3. Email: Gmail app password
-1. Turn on 2-Step Verification on the Google account.
-2. Go to https://myaccount.google.com/apppasswords and create an app password named "Sanjibani".
-3. Set `EMAIL` to the Gmail address and `EMAIL_PASSWORD` to the 16-character app password, without spaces.
+## 3. Email: Brevo (HTTPS API)
+Render's free web services block outbound SMTP ports (25/465/587), so Gmail SMTP times out in production. Send over HTTPS instead:
+1. Create a free account at https://www.brevo.com (300 emails/day, no card).
+2. Under **Senders, domains & dedicated IPs**, add and verify the sender address (or authenticate the domain with its DKIM/DMARC records).
+3. Under **SMTP & API → API keys**, create a key.
+4. Set `BREVO_API_KEY` to the key and `EMAIL_FROM` to the verified sender.
+
+For local development you can still use Gmail SMTP instead: set `EMAIL` and an app password (https://myaccount.google.com/apppasswords) as `EMAIL_PASSWORD`.
 
 ## 4. Backend: Render
 1. Push this repo to GitHub.
@@ -44,7 +48,7 @@ The whole stack below runs on free plans. Expect about one to two hours of setup
 | `JWT_SECRET` | Render generates this automatically |
 | `CLIENT_ORIGINS` | your Vercel URL(s), comma-separated, e.g. `https://sanjibani.vercel.app,https://www.yourdomain.in` |
 | `EMAIL_ENABLED` | `true` |
-| `EMAIL`, `EMAIL_PASSWORD` | from step 3 |
+| `BREVO_API_KEY`, `EMAIL_FROM` | from step 3 |
 | `STORAGE_DRIVER` | `s3` |
 | `S3_BUCKET` | `sanjibani-reports` |
 | `S3_REGION` | `auto` |

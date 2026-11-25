@@ -28,6 +28,10 @@ services:
         sync: false
       - key: EMAIL_ENABLED
         value: "false"
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: EMAIL
         sync: false
       - key: EMAIL_PASSWORD

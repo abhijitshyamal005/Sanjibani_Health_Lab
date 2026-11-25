@@ -2,8 +2,24 @@ import nodemailer from 'nodemailer';
 
 let transporter = null;
 
-function emailEnabled() {
-  return process.env.EMAIL_ENABLED === 'true' && process.env.EMAIL && process.env.EMAIL_PASSWORD;
+/**
+ * Delivery channels, first match wins:
+ *  - BREVO_API_KEY  → Brevo HTTPS API (free 300/day)
+ *  - RESEND_API_KEY → Resend HTTPS API
+ *  - EMAIL + EMAIL_PASSWORD → Gmail SMTP (local only: Render's free tier blocks SMTP ports 25/465/587)
+ * HTTPS providers use port 443, which hosting platforms never block.
+ */
+export function emailChannel(env = process.env) {
+  if (env.EMAIL_ENABLED !== 'true') return null;
+  if (env.BREVO_API_KEY) return 'brevo';
+  if (env.RESEND_API_KEY) return 'resend';
+  if (env.EMAIL && env.EMAIL_PASSWORD) return 'smtp';
+  return null;
+}
+
+/** The From address: EMAIL_FROM (a verified sender at the provider), else the Gmail account. */
+export function fromAddress(env = process.env) {
+  return (env.EMAIL_FROM || env.EMAIL || '').trim();
 }
 
 function getTransporter() {
@@ -11,9 +27,39 @@ function getTransporter() {
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASSWORD },
+      connectionTimeout: 15000,
     });
   }
   return transporter;
+}
+
+/** Build the HTTPS request for an API provider (exported for tests). */
+export function httpRequest(channel, { to, subject, html, replyTo }, env = process.env) {
+  const from = fromAddress(env);
+  const name = env.COMPANY_NAME || 'SanjiBani Health';
+  if (channel === 'brevo') {
+    return {
+      url: 'https://api.brevo.com/v3/smtp/email',
+      headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+      body: { sender: { name, email: from }, to: [{ email: to }], subject, htmlContent: html, ...(replyTo ? { replyTo: { email: replyTo } } : {}) },
+    };
+  }
+  return {
+    url: 'https://api.resend.com/emails',
+    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+    body: { from: `${name} <${from}>`, to: [to], subject, html, ...(replyTo ? { reply_to: replyTo } : {}) },
+  };
+}
+
+/** Send through an HTTPS API provider. Throws with the provider's message on failure. */
+export async function sendViaHttp(channel, message, env = process.env, fetchImpl = fetch) {
+  const { url, headers, body } = httpRequest(channel, message, env);
+  const res = await fetchImpl(url, { method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`${channel} ${res.status}: ${text.slice(0, 300)}`);
+  }
+  return res;
 }
 
 /** Emails "sent" while NODE_ENV=test, so tests can assert who was notified. */
@@ -27,11 +73,18 @@ export async function sendEmail({ to, subject, html, replyTo }) {
       outbox.push({ to, subject, html, replyTo });
       return;
     }
-    if (!emailEnabled()) {
-      if (process.env.NODE_ENV !== 'test') console.log(`[email:disabled] to=${to} subject="${subject}"`);
+    const channel = emailChannel();
+    if (!channel) {
+      console.log(`[email:disabled] to=${to} subject="${subject}"`);
       return;
     }
-    await getTransporter().sendMail({ from: `"${BRAND.name}" <${process.env.EMAIL}>`, to, subject, html, replyTo: replyTo || BRAND.supportEmail || undefined });
+    const reply = replyTo || BRAND.supportEmail || undefined;
+    if (channel === 'smtp') {
+      await getTransporter().sendMail({ from: `"${BRAND.name}" <${fromAddress()}>`, to, subject, html, replyTo: reply });
+    } else {
+      await sendViaHttp(channel, { to, subject, html, replyTo: reply });
+    }
+    console.log(`[email:sent] via=${channel} to=${to} subject="${subject}"`);
   } catch (err) {
     console.error(`[email:error] to=${to} subject="${subject}": ${err.message}`);
   }
