@@ -29,6 +29,28 @@ test.describe('Live site', () => {
     await expect(page.getByTestId('lab-card').first()).toBeVisible({ timeout: 60_000 });
   });
 
+  test('robots.txt, sitemap and share image are served', async ({ request }) => {
+    const robots = await request.get('/robots.txt');
+    expect(robots.ok()).toBe(true);
+    expect(await robots.text()).toContain('Sitemap: https://sanjibanilabs.dpdns.org/sitemap.xml');
+
+    const sitemap = await request.get('/sitemap.xml');
+    expect(sitemap.ok()).toBe(true);
+    const xml = await sitemap.text();
+    expect(xml).toContain('<urlset');
+    expect(xml).toMatch(/<loc>https:\/\/sanjibanilabs\.dpdns\.org\/labs\/[a-z0-9-]+<\/loc>/);
+
+    const og = await request.get('/og-image.png');
+    expect(og.headers()['content-type']).toContain('image/png');
+  });
+
+  test('pages carry canonical and share tags', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://sanjibanilabs.dpdns.org/');
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /og-image\.png$/);
+    await expect(page.locator('#seo-jsonld')).toHaveCount(1);
+  });
+
   test('login form reaches the API', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('nobody@example.com');
