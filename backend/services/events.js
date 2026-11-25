@@ -54,12 +54,12 @@ function loadBooking(id) {
     .populate('collector', 'name email phone');
 }
 
-/** Label/value table used for booking and job details. */
+/** Plain label/value lines for booking and job details — no boxes, just a heading and aligned text. */
 const row = (label, value) =>
-  `<tr><td style="padding:9px 12px 9px 14px;width:96px;vertical-align:top;font-size:13px;color:${MAIL.muted};border-top:1px solid ${MAIL.border}">${label}</td><td style="padding:9px 14px;vertical-align:top;font-size:14px;color:${MAIL.text};border-top:1px solid ${MAIL.border}">${value}</td></tr>`;
+  `<tr><td style="padding:4px 16px 4px 0;width:110px;vertical-align:top;font-size:14px;color:${MAIL.muted}">${label}</td><td style="padding:4px 0;vertical-align:top;font-size:14px;color:${MAIL.text}">${value}</td></tr>`;
 const details = (heading, rows) =>
-  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${MAIL.border};border-radius:8px;border-collapse:separate;overflow:hidden">
-<tr><td colspan="2" style="padding:10px 14px;background:${MAIL.soft};font-size:13px;font-weight:600;color:${MAIL.text}">${heading}</td></tr>
+  `<p style="margin:24px 0 8px;font-size:14px;font-weight:600;color:${MAIL.text}">${heading}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
 ${rows.filter(Boolean).join('')}
 </table>`;
 

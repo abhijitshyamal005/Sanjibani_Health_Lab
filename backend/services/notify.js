@@ -119,8 +119,6 @@ export const MAIL = {
   text: '#1f2937',
   muted: '#6b7280',
   border: '#e5e7eb',
-  soft: '#f9fafb',
-  page: '#f3f4f6',
   accent: '#ea580c',
 };
 
@@ -132,12 +130,12 @@ export function layout(title, bodyHtml) {
     .filter(Boolean)
     .join(' &nbsp;|&nbsp; ');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(title)}</title></head>
-<body style="margin:0;padding:0;background:${MAIL.page};font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${MAIL.text};-webkit-font-smoothing:antialiased">
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${MAIL.text};-webkit-font-smoothing:antialiased">
 <span style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(title)}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${MAIL.page};padding:32px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:32px 16px">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
-  <tr><td style="padding:0 4px 16px">
+  <tr><td style="padding:0 0 28px">
     <a href="${site}" style="text-decoration:none;color:${MAIL.text}">
       <table role="presentation" cellpadding="0" cellspacing="0"><tr>
         <td style="vertical-align:middle"><img src="${site}/logo-512.png" width="36" height="36" alt="${esc(BRAND.name)}" style="display:block;border:0;border-radius:8px"></td>
@@ -145,11 +143,12 @@ export function layout(title, bodyHtml) {
       </tr></table>
     </a>
   </td></tr>
-  <tr><td style="background:#ffffff;border:1px solid ${MAIL.border};border-radius:8px;padding:28px 24px 24px">
+  <tr><td style="padding:0">
     <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:700;color:#111827">${esc(title)}</h1>
     <div style="font-size:15px;line-height:1.6;color:#374151">${bodyHtml}</div>
   </td></tr>
-  <tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.7;color:${MAIL.muted}">
+  <tr><td style="padding:32px 0 0"><hr style="border:none;border-top:1px solid ${MAIL.border};margin:0 0 16px"></td></tr>
+  <tr><td style="padding:0;font-size:12px;line-height:1.7;color:${MAIL.muted}">
     ${contact ? `Questions? ${contact}<br>` : 'Questions? Reply to this email.<br>'}
     You are receiving this email because of activity on your ${esc(BRAND.name)} account.<br>
     <a href="${site}" style="color:${MAIL.muted}">${esc(host)}</a> &nbsp;|&nbsp; <a href="${site}/legal/privacy" style="color:${MAIL.muted}">Privacy</a> &nbsp;|&nbsp; <a href="${site}/legal/terms" style="color:${MAIL.muted}">Terms</a>
@@ -165,7 +164,7 @@ export const emails = {
     html: layout(
       'Reset your password',
       `<p style="margin:0 0 10px">Hi ${esc(name)}, use this code to reset your password. It expires in <b>15 minutes</b>.</p>
-<p style="margin:20px 0;font-size:30px;letter-spacing:8px;font-weight:700;color:#111827;background:${MAIL.soft};border:1px solid ${MAIL.border};border-radius:8px;padding:14px 0;text-align:center;font-family:Menlo,Consolas,monospace">${esc(code)}</p>
+<p style="margin:20px 0;font-size:30px;letter-spacing:8px;font-weight:700;color:#111827;font-family:Menlo,Consolas,monospace">${esc(code)}</p>
 <p style="margin:0">If you didn't ask for this, you can ignore this email — your password won't change.</p>`
     ),
   }),
